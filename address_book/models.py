@@ -46,10 +46,10 @@ class Email(models.Model):
 class WalletAddress(models.Model):
     TRANSMISSION_SENDING = "They receive to this address"
     TRANSMISSION_RECEIVING = "You receive from this address"
-    TRANSMISSION_CHOICES = {
-        TRANSMISSION_SENDING: TRANSMISSION_SENDING,
-        TRANSMISSION_RECEIVING: TRANSMISSION_RECEIVING
-    }
+    TRANSMISSION_CHOICES = [
+        (TRANSMISSION_SENDING, TRANSMISSION_SENDING,),
+        (TRANSMISSION_RECEIVING, TRANSMISSION_RECEIVING,)
+    ]
 
     network=models.CharField(max_length=50)
     transmission=models.CharField(blank=False, choices=TRANSMISSION_CHOICES, max_length=30)
