@@ -1,6 +1,7 @@
-from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.db import models
+from django.urls import reverse
 
 class Nation(models.Model):
     code=models.CharField(blank=False, max_length=3)
@@ -11,18 +12,24 @@ class Contact(models.Model):
     nickname=models.CharField(blank=True, max_length=50)
     first_name=models.CharField(blank=False, max_length=100)
     last_name=models.CharField(blank=True, max_length=100)
-    dob=models.DateField(null=True)
-    addresses=models.ManyToManyField("Address")
-    nationality=models.ManyToManyField(Nation)
+    dob=models.DateField(blank=True, null=True)
+    addresses=models.ManyToManyField("Address", blank=True)
+    nationality=models.ManyToManyField(Nation, blank=True)
     year_met=models.SmallIntegerField(blank=False, null=False)
     is_business=models.BooleanField(default=False, null=False)
-    met_through_contact=models.OneToOneField("self", on_delete=models.SET_NULL, null=True)
-    family_members=models.ManyToManyField("self")
+    met_through_contact=models.OneToOneField("self", blank=True, on_delete=models.SET_NULL, null=True)
+    family_members=models.ManyToManyField("self", blank=True)
     profession=models.CharField(blank=True, max_length=50)
     website=models.CharField(blank=True, max_length=100)
-    dod=models.DateField(null=True)
+    dod=models.DateField(blank=True, null=True)
     middle_names=models.CharField(blank=True, max_length=200)
-    notes=models.TextField()
+    notes=models.TextField(blank=True)
+
+    def get_absolute_url(self):
+        return reverse("contact-detail", args=[self.id])
+    
+    def __str__(self):
+        return f"{self.first_name} {self.last_name}"
 
 class PhoneNumber(models.Model):
     country_code=models.PositiveSmallIntegerField(null=False, validators=[MaxValueValidator(999), MinValueValidator(1)])
