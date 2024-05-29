@@ -77,7 +77,10 @@
             </div>
         </div>
     </nav>
-    <div class="container mt-4">
+    <div class="container my-4">
+        <h1 class="mb-4">
+            {% block header %}Give Me A Header{% endblock header %}
+        </h1>
         {% block content %}
             Give Me Some Content
         {% endblock content %}
