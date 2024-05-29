@@ -1,11 +1,10 @@
 {% extends "base.html" %}
 
-{% block title %}
-    Login
-{% endblock title %}
+{% block title %}Login{% endblock title %}
+
+{% block header %}Login{% endblock header %}
 
 {% block content %}
-    <h1 class="mb-4">Login</h1>
     {% load crispy_forms_tags %}
     <form method="POST">
         {{ form|crispy }}
