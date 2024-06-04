@@ -1,15 +1,17 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import CreateView, DetailView, ListView
 
+from .forms import ContactForm
 from .models import Contact
 from app.mixins import OwnedByUserMixin
 
 class ContactListView(LoginRequiredMixin, OwnedByUserMixin, ListView):
     model = Contact
     
-class ContactCreateView(LoginRequiredMixin, CreateView):
+class ContactCreateView(LoginRequiredMixin, CreateView, OwnedByUserMixin):
     model = Contact
-    fields = '__all__'
+    def get_form(self, *args, **kwargs):
+        return ContactForm(initial={'user': self.request.user})
 
 # TODO
 # Can use OwnedByUserMixin here too. Leave as is for timebeing until there is an
