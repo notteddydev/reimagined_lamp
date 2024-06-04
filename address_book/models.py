@@ -18,7 +18,7 @@ class Contact(models.Model):
     year_met=models.SmallIntegerField(blank=False, null=False)
     is_business=models.BooleanField(default=False, null=False)
     met_through_contact=models.OneToOneField("self", blank=True, on_delete=models.SET_NULL, null=True)
-    family_members=models.ManyToManyField("self", blank=True)
+    family_members=models.ManyToManyField("self", blank=True, symmetrical=True)
     profession=models.CharField(blank=True, max_length=50)
     website=models.CharField(blank=True, max_length=100)
     dod=models.DateField(blank=True, null=True)
@@ -37,6 +37,7 @@ class PhoneNumber(models.Model):
     contact=models.ForeignKey(Contact, on_delete=models.CASCADE)
 
 class Address(models.Model):
+    user=models.ForeignKey(User, on_delete=models.CASCADE)
     address_line_1=models.CharField(max_length=100)
     address_line_2=models.CharField(max_length=100)
     postcode=models.CharField(max_length=20)
