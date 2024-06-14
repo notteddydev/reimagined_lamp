@@ -7,6 +7,10 @@ class Nation(models.Model):
     code=models.CharField(blank=False, max_length=3)
     verbose=models.CharField(blank=False, max_length=50)
 
+class Tag(models.Model):
+    user=models.ForeignKey(User, on_delete=models.CASCADE)
+    name=models.CharField(max_length=50)
+
 class Contact(models.Model):
     user=models.ForeignKey(User, on_delete=models.CASCADE)
     nickname=models.CharField(blank=True, max_length=50)
@@ -17,7 +21,7 @@ class Contact(models.Model):
     nationality=models.ManyToManyField(Nation, blank=True)
     year_met=models.SmallIntegerField(blank=False, null=False)
     is_business=models.BooleanField(default=False, null=False)
-    met_through_contact=models.OneToOneField("self", blank=True, on_delete=models.SET_NULL, null=True)
+    tags=models.ManyToManyField(Tag, blank=True, symmetrical=True)
     family_members=models.ManyToManyField("self", blank=True, symmetrical=True)
     profession=models.CharField(blank=True, max_length=50)
     website=models.CharField(blank=True, max_length=100)
