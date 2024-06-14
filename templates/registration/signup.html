@@ -6,11 +6,12 @@
 
 {% block content %}
     <h1 class="mb-4">Signup</h1>
-    {% load crispy_forms_tags %}
     <form method="POST">
-        {{ form|crispy }}
+        {% csrf_token %}
+        <table>
+            {{ form.as_table }}
+        </table>
         <p>Already have an account? <a href="{% url "login" %}">Login</a> here</p>
         <button type="submit" class="btn btn-primary">Submit</button>
-        {% csrf_token %}
     </form>
 {% endblock content %}

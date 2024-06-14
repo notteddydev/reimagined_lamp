@@ -5,11 +5,12 @@
 {% block header %}Login{% endblock header %}
 
 {% block content %}
-    {% load crispy_forms_tags %}
     <form method="POST">
-        {{ form|crispy }}
+        {% csrf_token %}
+        <table>
+            {{ form }}
+        </table>
         <p>Don't have an account? <a href="{% url "signup" %}">Register</a> here</p>
         <button type="submit" class="btn btn-primary">Submit</button>
-        {% csrf_token %}
     </form>
 {% endblock content %}
