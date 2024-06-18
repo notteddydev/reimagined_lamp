@@ -2,8 +2,51 @@
 
 {% block title %}Address Book{% endblock title %}
 
-{% block header %}Contact Detail {{ contact }}{% endblock header %}
+{% block header %}Contact Detail{% endblock header %}
 
 {% block content %}
-    Here is the contact content.
+    <h2>
+        {% if contact.is_business %}
+            Business: 
+        {% endif %}
+        {{ contact.full_name }}
+        {% if contact.nickname|length %}
+             ({{ contact.nickname }})
+        {% endif %}
+    </h2>
+    <h3>Met in {{ contact.year_met }}, known for {{ contact.known_for_years }} years.</h3>
+    <table>
+        <tbody>
+            {% if contact.website %}
+                <tr>
+                    <th>Website:</th>
+                    <td>{{ contact.website|urlize }}</td>
+                </tr>
+            {% endif %}
+            {% if contact.profession %}
+                <tr>
+                    <th>Profession:</th>
+                    <td>{{ contact.profession }}</td>
+                </tr>
+            {% endif %}
+            {% if contact.dob %}
+                <tr>
+                    <th>Born:</th>
+                    <td>{{ contact.dob|date:"l jS F Y" }} ({{ contact.age }} years old)</td>
+                </tr>
+            {% endif %}
+            {% if contact.dod %}
+                <tr>
+                    <th>Passed Away:</th>
+                    <td>{{ contact.dod|date:"l jS F Y" }} ({{ contact.age_passed }} years old)</td>
+                </tr>
+            {% endif %}
+            {% if contact.notes|length %}
+                <tr>
+                    <th>Notes:</th>
+                    <td>{{ contact.notes|linebreaks }}</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
 {% endblock content %}
