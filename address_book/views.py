@@ -8,10 +8,12 @@ from app.mixins import OwnedByUserMixin
 class ContactListView(LoginRequiredMixin, OwnedByUserMixin, ListView):
     model = Contact
     
-class ContactCreateView(LoginRequiredMixin, CreateView, OwnedByUserMixin):
+class ContactCreateView(LoginRequiredMixin, OwnedByUserMixin, CreateView):
     model = Contact
+    
     def get_form(self, *args, **kwargs):
         return ContactForm(initial={'user': self.request.user})
+    
 
 # TODO
 # Can use OwnedByUserMixin here too. Leave as is for timebeing until there is an
