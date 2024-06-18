@@ -38,7 +38,7 @@ class Contact(models.Model):
 class PhoneNumber(models.Model):
     country_code=models.PositiveSmallIntegerField(null=False, validators=[MaxValueValidator(999), MinValueValidator(1)])
     number=models.PositiveIntegerField(null=False)
-    contact=models.ForeignKey(Contact, on_delete=models.CASCADE)
+    contact=models.ForeignKey(Contact, on_delete=models.CASCADE, null=True)
 
 class Address(models.Model):
     user=models.ForeignKey(User, on_delete=models.CASCADE)
