@@ -1,3 +1,6 @@
+from datetime import date
+from dateutil.relativedelta import relativedelta
+
 from django.contrib.auth.models import User
 from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
@@ -28,6 +31,36 @@ class Contact(models.Model):
     dod=models.DateField(blank=True, null=True)
     middle_names=models.CharField(blank=True, max_length=200)
     notes=models.TextField(blank=True)
+
+    @property
+    def age(self):
+        if not self.dob:
+            return None
+        
+        return relativedelta(date.today(), self.dob).years
+    
+    @property
+    def age_passed(self):
+        if not self.dod:
+            return None
+        
+        return relativedelta(self.dod, self.dob).years
+    
+    @property
+    def known_for_years(self):
+        return date.today().year - self.year_met
+
+    @property
+    def full_name(self):
+        full_name = self.first_name
+
+        if len(self.middle_names):
+            full_name += f" {self.middle_names}"
+
+        if len(self.last_name):
+            full_name += f" {self.last_name}"
+
+        return full_name
 
     def get_absolute_url(self):
         return reverse("contact-detail", args=[self.id])
