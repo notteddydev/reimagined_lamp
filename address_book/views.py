@@ -10,9 +10,12 @@ class ContactListView(LoginRequiredMixin, OwnedByUserMixin, ListView):
     
 class ContactCreateView(LoginRequiredMixin, OwnedByUserMixin, CreateView):
     model = Contact
-    
-    def get_form(self, *args, **kwargs):
-        return ContactForm(initial={'user': self.request.user})
+    form_class = ContactForm
+
+    def get_form_kwargs(self):
+        kwargs = super().get_form_kwargs()
+        kwargs['user'] = self.request.user
+        return kwargs
     
 
 # TODO
