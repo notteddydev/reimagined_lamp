@@ -17,6 +17,10 @@
         td p:last-child {
             margin-bottom: 0px;
         }
+
+        .subnav {
+            margin-top: 10px;
+        }
     </style>
 </head>
 <body>
@@ -32,6 +36,11 @@
                 <a href="{% url "login" %}">Login</a>            
             {% endif %}
         {% endif %}
+    </nav>
+    <nav class="subnav">
+        {% block subnav %}
+
+        {% endblock subnav %}
     </nav>
     <div>
         <h1>
