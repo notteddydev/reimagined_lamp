@@ -103,8 +103,12 @@ class Address(models.Model):
     landline=models.OneToOneField(PhoneNumber, on_delete=models.SET_NULL, null=True)
 
 class Email(models.Model):
-    email=models.EmailField(primary_key=True)
+    email=models.EmailField(unique=True)
     contact=models.ForeignKey(Contact, on_delete=models.CASCADE)
+
+    @property
+    def href(self):
+        return f"mailto:{self.email}"
 
 class WalletAddress(models.Model):
     TRANSMISSION_SENDING = "They receive to this address"
