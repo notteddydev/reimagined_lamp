@@ -25,13 +25,20 @@
         caption {
             text-align: left;
         }
+
+        #logout-form {
+            display: inline;
+        }
     </style>
 </head>
 <body>
     <nav>
         {% if user.is_authenticated %}
             <a href="{% url "home" %}">Home</a>
-            <a href="{% url "logout" %}">Logout</a>
+            <form action="{% url "logout" %}" id="logout-form" method="POST">
+                {% csrf_token %}
+                <a href="javascript:;" onclick="document.getElementById('logout-form').submit()">Logout</a>
+            </form>
         {% else %}
             {% if request.resolver_match.url_name != "signup" %}
                 <a href="{% url "signup" %}">Register</a>
