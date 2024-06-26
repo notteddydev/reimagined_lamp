@@ -17,6 +17,20 @@
     <h3>Met in {{ contact.year_met }}, known for {{ contact.known_for_years }} years.</h3>
     <table>
         <tbody>
+            {% for phone_number in phone_numbers %}
+                <tr>
+                    <th>{{ phone_number.number }}</th>
+                    <td>
+                        <a href="{{ phone_number.sms_href }}" target="_blank">SMS</a>
+                        <a href="{{ phone_number.tel_href }}" target="_blank">Call</a>
+                        <a href="{{ phone_number.wa_href }}" target="_blank">WhatsApp</a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <table>
+        <tbody>
             {% if contact.website %}
                 <tr>
                     <th>Website:</th>
