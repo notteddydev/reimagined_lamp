@@ -41,10 +41,7 @@ class ContactCreateView(LoginRequiredMixin, OwnedByUserMixin, View):
         })
     
 
-# TODO
-# Can use OwnedByUserMixin here too. Leave as is for timebeing until there is an
-# appropriate place to leave an example of UserPassesTestMixin too.
-class ContactDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
+class ContactDetailView(LoginRequiredMixin, OwnedByUserMixin, DetailView):
     model = Contact
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
@@ -52,12 +49,9 @@ class ContactDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
         context['emails'] = Email.objects.filter(contact=self.object)
         context['phone_numbers'] = PhoneNumber.objects.filter(contact=self.object)
         return context
-
-    def test_func(self) -> bool | None:
-        return Contact.objects.filter(id=self.kwargs['pk'], user=self.request.user).exists()
     
 
-class ContactUpdateView(LoginRequiredMixin, OwnedByUserMixin, View):
+class ContactUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
     def get(self, request, pk):
         contact = get_object_or_404(Contact, pk=pk)
 
@@ -92,3 +86,6 @@ class ContactUpdateView(LoginRequiredMixin, OwnedByUserMixin, View):
             "object": contact,
             "phonenumber_formset": phonenumber_formset,
         })
+
+    def test_func(self) -> bool | None:
+        return Contact.objects.filter(id=self.kwargs['pk'], user=self.request.user).exists()
