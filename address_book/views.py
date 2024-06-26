@@ -1,21 +1,39 @@
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.views.generic import CreateView, DetailView, ListView
+from django.shortcuts import redirect, render
+from django.views.generic import DetailView, ListView, View
 
-from .forms import ContactForm
+from .forms import ContactForm, PhoneNumberFormSet
 from .models import Contact
 from app.mixins import OwnedByUserMixin
 
 class ContactListView(LoginRequiredMixin, OwnedByUserMixin, ListView):
     model = Contact
     
-class ContactCreateView(LoginRequiredMixin, OwnedByUserMixin, CreateView):
-    model = Contact
-    form_class = ContactForm
+class ContactCreateView(LoginRequiredMixin, OwnedByUserMixin, View):
+    def get(self, request):
+        return render(request, "address_book/contact_form.html", {
+            "form": ContactForm(**{"user": self.request.user}),
+            "phonenumber_formset": PhoneNumberFormSet
+        })
+    
+    def post(self, request):
+        form = ContactForm(request.user, request.POST)
+        phonenumber_formset = PhoneNumberFormSet(request.POST)
 
-    def get_form_kwargs(self):
-        kwargs = super().get_form_kwargs()
-        kwargs['user'] = self.request.user
-        return kwargs
+        if form.is_valid() and phonenumber_formset.is_valid():
+            contact = form.save()
+            phone_numbers = phonenumber_formset.save(commit=False)
+
+            for phone_number in phone_numbers:
+                phone_number.contact = contact
+                phone_number.save()
+
+            return redirect("contact-list")
+
+        return render(request, "address_book/contact_form.html", {
+            "form": form,
+            "phonenumber_formset": phonenumber_formset
+        })
     
 
 # TODO
