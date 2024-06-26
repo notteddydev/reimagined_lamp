@@ -4,7 +4,7 @@ from django.shortcuts import redirect, render
 from django.views.generic import DetailView, ListView, View
 from django.urls import reverse
 
-from .forms import ContactForm, PhoneNumberFormSet
+from .forms import ContactForm, PhoneNumberCreateFormSet, PhoneNumberUpdateFormSet
 from .models import Contact, PhoneNumber
 from app.mixins import OwnedByUserMixin
 
@@ -15,12 +15,12 @@ class ContactCreateView(LoginRequiredMixin, OwnedByUserMixin, View):
     def get(self, request):
         return render(request, "address_book/contact_form.html", {
             "form": ContactForm(request.user),
-            "phonenumber_formset": PhoneNumberFormSet
+            "phonenumber_formset": PhoneNumberCreateFormSet
         })
     
     def post(self, request):
         form = ContactForm(request.user, request.POST)
-        phonenumber_formset = PhoneNumberFormSet(request.POST)
+        phonenumber_formset = PhoneNumberCreateFormSet(request.POST)
 
         if form.is_valid() and phonenumber_formset.is_valid():
             contact = form.save()
@@ -61,13 +61,13 @@ class ContactUpdateView(LoginRequiredMixin, OwnedByUserMixin, View):
         return render(request, "address_book/contact_form.html", {
             "form": ContactForm(request.user, instance=contact),
             "object": contact,
-            "phonenumber_formset": PhoneNumberFormSet(instance=contact)
+            "phonenumber_formset": PhoneNumberUpdateFormSet(instance=contact)
         })
     
     def post(self, request, pk):
         contact = Contact.objects.get(pk=pk)
         form = ContactForm(request.user, request.POST, instance=contact)
-        phonenumber_formset = PhoneNumberFormSet(request.POST, instance=contact)
+        phonenumber_formset = PhoneNumberUpdateFormSet(request.POST, instance=contact)
 
         if form.is_valid() and phonenumber_formset.is_valid():
             contact = form.save()
