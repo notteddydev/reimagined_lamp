@@ -2,14 +2,7 @@ from django import forms
 
 from phonenumber_field.formfields import SplitPhoneNumberField
 
-from .models import Contact, PhoneNumber, Tag
-
-class PhoneNumberForm(forms.ModelForm):
-    number = SplitPhoneNumberField()
-
-    class Meta:
-        model = PhoneNumber
-        exclude = ['contact']
+from .models import Contact, Email, PhoneNumber, Tag
 
 class ContactForm(forms.ModelForm):
     def __init__(self, user, *args, **kwargs):
@@ -21,6 +14,21 @@ class ContactForm(forms.ModelForm):
     class Meta:
         model = Contact
         exclude = ['addresses', 'user']
+
+class EmailForm(forms.ModelForm):
+    class Meta:
+        model = Email
+        exclude = ['contact']
+
+EmailCreateFormSet = forms.inlineformset_factory(Contact, Email, EmailForm, extra=3, can_delete=False)
+EmailUpdateFormSet = forms.inlineformset_factory(Contact, Email, EmailForm, extra=3, can_delete=True)
+
+class PhoneNumberForm(forms.ModelForm):
+    number = SplitPhoneNumberField()
+
+    class Meta:
+        model = PhoneNumber
+        exclude = ['contact']
 
 PhoneNumberCreateFormSet = forms.inlineformset_factory(Contact, PhoneNumber, PhoneNumberForm, extra=3, can_delete=False)
 PhoneNumberUpdateFormSet = forms.inlineformset_factory(Contact, PhoneNumber, PhoneNumberForm, extra=3, can_delete=True)
