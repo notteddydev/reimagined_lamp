@@ -1,6 +1,6 @@
 from typing import Any
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.views.generic import DetailView, ListView, View
 from django.urls import reverse
 
@@ -59,7 +59,7 @@ class ContactDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
 
 class ContactUpdateView(LoginRequiredMixin, OwnedByUserMixin, View):
     def get(self, request, pk):
-        contact = Contact.objects.get(pk=pk)
+        contact = get_object_or_404(Contact, pk=pk)
 
         # TODO Look at changing the ContactForm so that in this case the user does not need passing in.
         return render(request, "address_book/contact_form.html", {
@@ -70,7 +70,7 @@ class ContactUpdateView(LoginRequiredMixin, OwnedByUserMixin, View):
         })
     
     def post(self, request, pk):
-        contact = Contact.objects.get(pk=pk)
+        contact = get_object_or_404(Contact, pk=pk)
         form = ContactForm(request.user, request.POST, instance=contact)
         email_formset = EmailUpdateFormSet(request.POST, instance=contact)
         phonenumber_formset = PhoneNumberUpdateFormSet(request.POST, instance=contact)
