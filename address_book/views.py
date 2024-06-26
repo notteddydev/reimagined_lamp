@@ -1,9 +1,10 @@
+from typing import Any
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.shortcuts import redirect, render
 from django.views.generic import DetailView, ListView, View
 
 from .forms import ContactForm, PhoneNumberFormSet
-from .models import Contact
+from .models import Contact, PhoneNumber
 from app.mixins import OwnedByUserMixin
 
 class ContactListView(LoginRequiredMixin, OwnedByUserMixin, ListView):
@@ -41,6 +42,11 @@ class ContactCreateView(LoginRequiredMixin, OwnedByUserMixin, View):
 # appropriate place to leave an example of UserPassesTestMixin too.
 class ContactDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
     model = Contact
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context['phone_numbers'] = PhoneNumber.objects.filter(contact=self.object)
+        return context
 
     def test_func(self) -> bool | None:
         return Contact.objects.filter(id=self.kwargs['pk'], user=self.request.user).exists()
