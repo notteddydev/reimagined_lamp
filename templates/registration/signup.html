@@ -4,8 +4,11 @@
     Sign Up
 {% endblock title %}
 
+{% block header %}
+    Sign Up
+{% endblock header %}
+
 {% block content %}
-    <h1 class="mb-4">Signup</h1>
     <form method="POST">
         {% csrf_token %}
         <table>
