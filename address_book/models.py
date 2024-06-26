@@ -72,6 +72,18 @@ class Contact(models.Model):
 class PhoneNumber(models.Model):
     number=PhoneNumberField(null=False)
     contact=models.ForeignKey(Contact, on_delete=models.CASCADE, null=True)
+    
+    @property
+    def sms_href(self):
+        return f"sms:{self.number}"
+
+    @property
+    def tel_href(self):
+        return f"tel:{self.number}"
+    
+    @property
+    def wa_href(self):
+        return f"https://wa.me/{self.number}"
 
 class Address(models.Model):
     user=models.ForeignKey(User, on_delete=models.CASCADE)
