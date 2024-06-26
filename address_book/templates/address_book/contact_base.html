@@ -7,4 +7,10 @@
     {% if request.resolver_match.url_name != "contact-create" %}
         <a href="{% url "contact-create" %}">Contact Create</a>
     {% endif %}
+    {% if request.resolver_match.url_name == "contact-detail" %}
+        <a href="{% url "contact-update" object.id %}">Contact Update</a>
+    {% endif %}
+    {% if request.resolver_match.url_name == "contact-update" %}
+        <a href="{% url "contact-detail" object.id %}">Contact Detail</a>
+    {% endif %}
 {% endblock subnav %}
