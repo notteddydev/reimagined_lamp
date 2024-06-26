@@ -2,9 +2,10 @@ from datetime import date
 from dateutil.relativedelta import relativedelta
 
 from django.contrib.auth.models import User
-from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models
 from django.urls import reverse
+
+from phonenumber_field.modelfields import PhoneNumberField
 
 class Nation(models.Model):
     code=models.CharField(blank=False, max_length=3)
@@ -69,8 +70,7 @@ class Contact(models.Model):
         return f"{self.first_name} {self.last_name}"
 
 class PhoneNumber(models.Model):
-    country_code=models.PositiveSmallIntegerField(null=False, validators=[MaxValueValidator(999), MinValueValidator(1)])
-    number=models.PositiveIntegerField(null=False)
+    number=PhoneNumberField(null=False)
     contact=models.ForeignKey(Contact, on_delete=models.CASCADE, null=True)
 
 class Address(models.Model):
