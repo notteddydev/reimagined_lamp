@@ -11,9 +11,15 @@ class Nation(models.Model):
     code=models.CharField(blank=False, max_length=3)
     verbose=models.CharField(blank=False, max_length=50)
 
+    def __str__(self):
+        return self.verbose
+
 class Tag(models.Model):
     user=models.ForeignKey(User, on_delete=models.CASCADE)
     name=models.CharField(max_length=50)
+
+    def __str__(self):
+        return self.name
 
 class Contact(models.Model):
     user=models.ForeignKey(User, on_delete=models.CASCADE)
