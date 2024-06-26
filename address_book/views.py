@@ -4,8 +4,8 @@ from django.shortcuts import redirect, render
 from django.views.generic import DetailView, ListView, View
 from django.urls import reverse
 
-from .forms import ContactForm, PhoneNumberCreateFormSet, PhoneNumberUpdateFormSet
-from .models import Contact, PhoneNumber
+from .forms import ContactForm, EmailCreateFormSet, EmailUpdateFormSet, PhoneNumberCreateFormSet, PhoneNumberUpdateFormSet
+from .models import Contact, Email, PhoneNumber
 from app.mixins import OwnedByUserMixin
 
 class ContactListView(LoginRequiredMixin, OwnedByUserMixin, ListView):
@@ -14,21 +14,24 @@ class ContactListView(LoginRequiredMixin, OwnedByUserMixin, ListView):
 class ContactCreateView(LoginRequiredMixin, OwnedByUserMixin, View):
     def get(self, request):
         return render(request, "address_book/contact_form.html", {
+            "email_formset": EmailCreateFormSet,
             "form": ContactForm(request.user),
-            "phonenumber_formset": PhoneNumberCreateFormSet
+            "phonenumber_formset": PhoneNumberCreateFormSet,
         })
     
     def post(self, request):
         form = ContactForm(request.user, request.POST)
+        email_formset = EmailCreateFormSet(request.POST)
         phonenumber_formset = PhoneNumberCreateFormSet(request.POST)
 
-        if form.is_valid() and phonenumber_formset.is_valid():
+        if form.is_valid() and email_formset.is_valid() and phonenumber_formset.is_valid():
             contact = form.save()
-            phone_numbers = phonenumber_formset.save(commit=False)
 
-            for phone_number in phone_numbers:
-                phone_number.contact = contact
-                phone_number.save()
+            email_formset.instance = contact
+            email_formset.save()
+
+            phonenumber_formset.instance = contact
+            phonenumber_formset.save()
 
             return redirect("contact-list")
 
@@ -46,6 +49,7 @@ class ContactDetailView(LoginRequiredMixin, UserPassesTestMixin, DetailView):
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
+        context['emails'] = Email.objects.filter(contact=self.object)
         context['phone_numbers'] = PhoneNumber.objects.filter(contact=self.object)
         return context
 
@@ -59,6 +63,7 @@ class ContactUpdateView(LoginRequiredMixin, OwnedByUserMixin, View):
 
         # TODO Look at changing the ContactForm so that in this case the user does not need passing in.
         return render(request, "address_book/contact_form.html", {
+            "email_formset": EmailUpdateFormSet(instance=contact),
             "form": ContactForm(request.user, instance=contact),
             "object": contact,
             "phonenumber_formset": PhoneNumberUpdateFormSet(instance=contact)
@@ -67,22 +72,23 @@ class ContactUpdateView(LoginRequiredMixin, OwnedByUserMixin, View):
     def post(self, request, pk):
         contact = Contact.objects.get(pk=pk)
         form = ContactForm(request.user, request.POST, instance=contact)
+        email_formset = EmailUpdateFormSet(request.POST, instance=contact)
         phonenumber_formset = PhoneNumberUpdateFormSet(request.POST, instance=contact)
 
-        if form.is_valid() and phonenumber_formset.is_valid():
+        if form.is_valid() and email_formset.is_valid() and phonenumber_formset.is_valid():
             contact = form.save()
-            phone_numbers = phonenumber_formset.save(commit=False)
 
-            for phone_number in phonenumber_formset.deleted_objects:
-                phone_number.delete()
+            email_formset.instance = contact
+            email_formset.save()
 
-            for phone_number in phone_numbers:
-                phone_number.contact = contact
-                phone_number.save()
+            phonenumber_formset.instance = contact
+            phonenumber_formset.save()
 
             return redirect(reverse("contact-detail", args=[contact.id]))
 
         return render(request, "address_book/contact_form.html", {
+            "email_formset": email_formset,
             "form": form,
-            "phonenumber_formset": phonenumber_formset
+            "object": contact,
+            "phonenumber_formset": phonenumber_formset,
         })
