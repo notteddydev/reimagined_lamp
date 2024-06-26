@@ -9,6 +9,8 @@ django-environ = "*"
 python-dotenv = "*"
 pymysql = "*"
 python-dateutil = "*"
+django-phonenumber-field = {extras = ["phonenumberslite"], version = "*"}
+babel = "*"
 
 [dev-packages]
 
