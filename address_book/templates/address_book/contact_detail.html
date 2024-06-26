@@ -15,21 +15,40 @@
         {% endif %}
     </h2>
     <h3>Met in {{ contact.year_met }}, known for {{ contact.known_for_years }} years.</h3>
+    {% if phone_numbers|length %}
+        <table>
+            <caption>Phone Numbers</caption>
+            <tbody>
+                {% for phone_number in phone_numbers %}
+                    <tr>
+                        <th>{{ phone_number.number }}</th>
+                        <td>
+                            <a href="{{ phone_number.sms_href }}" target="_blank">SMS</a>
+                            <a href="{{ phone_number.tel_href }}" target="_blank">Call</a>
+                            <a href="{{ phone_number.wa_href }}" target="_blank">WhatsApp</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+    {% if emails|length %}
+        <table>
+            <caption>Email Addresses</caption>
+            <tbody>
+                {% for email in emails %}
+                    <tr>
+                        <th>{{ email.email }}</th>
+                        <td>
+                            <a href="{{ email.href }}" target="_blank">Email</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
     <table>
-        <tbody>
-            {% for phone_number in phone_numbers %}
-                <tr>
-                    <th>{{ phone_number.number }}</th>
-                    <td>
-                        <a href="{{ phone_number.sms_href }}" target="_blank">SMS</a>
-                        <a href="{{ phone_number.tel_href }}" target="_blank">Call</a>
-                        <a href="{{ phone_number.wa_href }}" target="_blank">WhatsApp</a>
-                    </td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    <table>
+        <caption>Further Information</caption>
         <tbody>
             {% if contact.website %}
                 <tr>
