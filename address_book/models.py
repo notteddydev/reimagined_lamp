@@ -120,11 +120,16 @@ class Email(models.Model):
 
 class WalletAddress(models.Model):
     TRANSMISSION_CHOICES = [
+        (None, "-- Select Transmission --"),
         ("they_receive", "They receive to this address",),
         ("you_receive", "You receive from this address",)
     ]
 
-    network=models.CharField(max_length=50)
+    network=models.CharField(blank=False, max_length=50)
     transmission=models.CharField(blank=False, choices=TRANSMISSION_CHOICES, max_length=12)
     address=models.CharField(blank=False, max_length=96)
     contact=models.ForeignKey(Contact, on_delete=models.CASCADE)
+
+    @property
+    def transmission_hr(self):
+        return " ".join(self.transmission.split('_')).capitalize()
