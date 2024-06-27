@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import date, datetime
 from dateutil.relativedelta import relativedelta
 
 from django.contrib.auth.models import User
@@ -35,7 +35,12 @@ class Contact(models.Model):
     dob=models.DateField(blank=True, null=True)
     addresses=models.ManyToManyField("Address", blank=True)
     nationality=models.ManyToManyField(Nation, blank=True)
-    year_met=models.SmallIntegerField(blank=False, null=False)
+    year_met_choices = list(map(lambda year: (year, str(year)), range(1996, datetime.now().year + 1)[::-1]))
+    year_met=models.SmallIntegerField(
+        blank=False,
+        choices=[(None, "-- Select Year --")] + year_met_choices,
+        null=False,
+    )
     is_business=models.BooleanField(default=False, null=False)
     tags=models.ManyToManyField(Tag, blank=True, symmetrical=True)
     family_members=models.ManyToManyField("self", blank=True, symmetrical=True)
