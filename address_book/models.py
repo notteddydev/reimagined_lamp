@@ -119,14 +119,12 @@ class Email(models.Model):
         return f"mailto:{self.email}"
 
 class WalletAddress(models.Model):
-    TRANSMISSION_SENDING = "They receive to this address"
-    TRANSMISSION_RECEIVING = "You receive from this address"
     TRANSMISSION_CHOICES = [
-        (TRANSMISSION_SENDING, TRANSMISSION_SENDING,),
-        (TRANSMISSION_RECEIVING, TRANSMISSION_RECEIVING,)
+        ("they_receive", "They receive to this address",),
+        ("you_receive", "You receive from this address",)
     ]
 
     network=models.CharField(max_length=50)
-    transmission=models.CharField(blank=False, choices=TRANSMISSION_CHOICES, max_length=30)
+    transmission=models.CharField(blank=False, choices=TRANSMISSION_CHOICES, max_length=12)
     address=models.CharField(blank=False, max_length=96)
     contact=models.ForeignKey(Contact, on_delete=models.CASCADE)
