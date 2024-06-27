@@ -92,6 +92,8 @@ class ContactUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
     def test_func(self) -> bool | None:
         return Contact.objects.filter(id=self.kwargs['pk'], user=self.request.user).exists()
 
+
+# TODO bin this in favour of a filtered ContactListView
 class TagListView(LoginRequiredMixin, OwnedByUserMixin, ListView):
     model = Tag
 
