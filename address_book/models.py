@@ -52,17 +52,11 @@ class Contact(models.Model):
 
     @property
     def age(self):
-        if not self.dob:
-            return None
-        
-        return relativedelta(date.today(), self.dob).years
+        return relativedelta(date.today(), self.dob).years if self.dob else None
     
     @property
     def age_passed(self):
-        if not self.dod:
-            return None
-        
-        return relativedelta(self.dod, self.dob).years
+        return relativedelta(self.dod, self.dob).years if self.dod else None
     
     @property
     def known_for_years(self):
