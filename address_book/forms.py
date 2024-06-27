@@ -4,7 +4,7 @@ from django import forms
 
 from phonenumber_field.formfields import SplitPhoneNumberField
 
-from .models import Contact, Email, PhoneNumber, Tag
+from .models import Contact, Email, PhoneNumber, Tag, WalletAddress
 
 class ContactForm(forms.ModelForm):
     def get_years_for_dob_and_dod():
@@ -65,3 +65,12 @@ class TagForm(forms.ModelForm):
     class Meta:
         model = Tag
         exclude = ['user']
+
+
+class WalletAddressForm(forms.ModelForm):
+    class Meta:
+        model = WalletAddress
+        exclude = ['contact']
+
+WalletAddressCreateFormSet = forms.inlineformset_factory(Contact, WalletAddress, WalletAddressForm, extra=1, can_delete=False)
+WalletAddressUpdateFormSet = forms.inlineformset_factory(Contact, WalletAddress, WalletAddressForm, extra=1, can_delete=True)
