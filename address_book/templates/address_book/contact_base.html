@@ -13,4 +13,11 @@
     {% if request.resolver_match.url_name != "contact-create" %}
         <a href="{% url "contact-create" %}">Contact Create</a>
     {% endif %}
+
+    {% if request.resolver_match.url_name != "tag-list" %}
+        <a href="{% url "tag-list" %}">Tag List</a>
+    {% endif %}
+    {% if request.resolver_match.url_name != "tag-create" %}
+        <a href="{% url "tag-create" %}">Tag Create</a>
+    {% endif %}
 {% endblock subnav %}
