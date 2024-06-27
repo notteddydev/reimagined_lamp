@@ -4,8 +4,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.generic import DetailView, ListView, View
 from django.urls import reverse
 
-from .forms import ContactForm, EmailCreateFormSet, EmailUpdateFormSet, PhoneNumberCreateFormSet, PhoneNumberUpdateFormSet, TagForm
-from .models import Contact, Email, PhoneNumber, Tag
+from .forms import ContactForm, EmailCreateFormSet, EmailUpdateFormSet, PhoneNumberCreateFormSet, PhoneNumberUpdateFormSet, TagForm, WalletAddressCreateFormSet, WalletAddressUpdateFormSet
+from .models import Contact, Tag
 from app.mixins import OwnedByUserMixin
 
 class ContactListView(LoginRequiredMixin, OwnedByUserMixin, ListView):
@@ -17,14 +17,16 @@ class ContactCreateView(LoginRequiredMixin, View):
             "email_formset": EmailCreateFormSet,
             "form": ContactForm(request.user),
             "phonenumber_formset": PhoneNumberCreateFormSet,
+            "walletaddress_formset": WalletAddressCreateFormSet,
         })
     
     def post(self, request):
         form = ContactForm(request.user, request.POST)
         email_formset = EmailCreateFormSet(request.POST)
         phonenumber_formset = PhoneNumberCreateFormSet(request.POST)
+        walletaddress_formset = WalletAddressCreateFormSet(request.POST)
 
-        if form.is_valid() and email_formset.is_valid() and phonenumber_formset.is_valid():
+        if form.is_valid() and email_formset.is_valid() and phonenumber_formset.is_valid() and walletaddress_formset.is_valid():
             contact = form.save()
 
             email_formset.instance = contact
@@ -33,12 +35,16 @@ class ContactCreateView(LoginRequiredMixin, View):
             phonenumber_formset.instance = contact
             phonenumber_formset.save()
 
+            walletaddress_formset.instance = contact
+            walletaddress_formset.save()
+
             return redirect("contact-list")
 
         return render(request, "address_book/contact_form.html", {
             "email_formset": email_formset,
             "form": form,
             "phonenumber_formset": phonenumber_formset,
+            "walletaddress_formset": walletaddress_formset,
         })
     
 
@@ -47,9 +53,10 @@ class ContactDetailView(LoginRequiredMixin, OwnedByUserMixin, DetailView):
 
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
-        context['emails'] = Email.objects.filter(contact=self.object)
-        context['phone_numbers'] = PhoneNumber.objects.filter(contact=self.object)
-        context['tags'] = Tag.objects.filter(contact=self.object)
+        context['emails'] = self.object.email_set.all()
+        context['phone_numbers'] = self.object.phonenumber_set.all()
+        context['tags'] = self.object.tags.all()
+        context['wallet_addresses'] = self.object.walletaddress_set.all()
         return context
     
 
@@ -62,7 +69,8 @@ class ContactUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
             "email_formset": EmailUpdateFormSet(instance=contact),
             "form": ContactForm(request.user, instance=contact),
             "object": contact,
-            "phonenumber_formset": PhoneNumberUpdateFormSet(instance=contact)
+            "phonenumber_formset": PhoneNumberUpdateFormSet(instance=contact),
+            "walletaddress_formset": WalletAddressUpdateFormSet(instance=contact),
         })
     
     def post(self, request, pk):
@@ -70,8 +78,9 @@ class ContactUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
         form = ContactForm(request.user, request.POST, instance=contact)
         email_formset = EmailUpdateFormSet(request.POST, instance=contact)
         phonenumber_formset = PhoneNumberUpdateFormSet(request.POST, instance=contact)
+        walletaddress_formset = WalletAddressUpdateFormSet(request.POST, instance=contact)
 
-        if form.is_valid() and email_formset.is_valid() and phonenumber_formset.is_valid():
+        if form.is_valid() and email_formset.is_valid() and phonenumber_formset.is_valid() and walletaddress_formset.is_valid():
             contact = form.save()
 
             email_formset.instance = contact
@@ -80,6 +89,9 @@ class ContactUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
             phonenumber_formset.instance = contact
             phonenumber_formset.save()
 
+            walletaddress_formset.instance = contact
+            walletaddress_formset.save()
+
             return redirect(reverse("contact-detail", args=[contact.id]))
 
         return render(request, "address_book/contact_form.html", {
@@ -87,6 +99,7 @@ class ContactUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
             "form": form,
             "object": contact,
             "phonenumber_formset": phonenumber_formset,
+            "walletaddress_formset": walletaddress_formset,
         })
 
     def test_func(self) -> bool | None:
