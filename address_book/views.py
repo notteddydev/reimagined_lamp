@@ -93,7 +93,6 @@ class ContactUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
         return Contact.objects.filter(id=self.kwargs['pk'], user=self.request.user).exists()
 
 
-# TODO bin this in favour of a filtered ContactListView
 class TagListView(LoginRequiredMixin, OwnedByUserMixin, ListView):
     model = Tag
 
@@ -121,6 +120,7 @@ class TagCreateView(LoginRequiredMixin, View):
         })
     
 
+# TODO bin this in favour of a filtered ContactListView
 class TagDetailView(LoginRequiredMixin, OwnedByUserMixin, DetailView):
     model = Tag
 
