@@ -90,4 +90,25 @@
             {% endif %}
         </tbody>
     </table>
+    {% if wallet_addresses|length %}
+        <table>
+            <caption>Wallet Addresses</caption>
+            <thead>
+                <tr>
+                    <th>Network</th>
+                    <th>Transmission</th>
+                    <th>Address</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for wallet_address in wallet_addresses %}
+                    <tr>
+                        <td>{{ wallet_address.network }}</td>
+                        <td>{{ wallet_address.transmission_hr }}</td>
+                        <td>{{ wallet_address.address }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
 {% endblock content %}
