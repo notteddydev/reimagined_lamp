@@ -4,14 +4,14 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.generic import DetailView, ListView, View
 from django.urls import reverse
 
-from .forms import ContactForm, EmailCreateFormSet, EmailUpdateFormSet, PhoneNumberCreateFormSet, PhoneNumberUpdateFormSet
-from .models import Contact, Email, PhoneNumber
+from .forms import ContactForm, EmailCreateFormSet, EmailUpdateFormSet, PhoneNumberCreateFormSet, PhoneNumberUpdateFormSet, TagForm
+from .models import Contact, Email, PhoneNumber, Tag
 from app.mixins import OwnedByUserMixin
 
 class ContactListView(LoginRequiredMixin, OwnedByUserMixin, ListView):
     model = Contact
     
-class ContactCreateView(LoginRequiredMixin, OwnedByUserMixin, View):
+class ContactCreateView(LoginRequiredMixin, View):
     def get(self, request):
         return render(request, "address_book/contact_form.html", {
             "email_formset": EmailCreateFormSet,
@@ -36,8 +36,9 @@ class ContactCreateView(LoginRequiredMixin, OwnedByUserMixin, View):
             return redirect("contact-list")
 
         return render(request, "address_book/contact_form.html", {
+            "email_formset": email_formset,
             "form": form,
-            "phonenumber_formset": phonenumber_formset
+            "phonenumber_formset": phonenumber_formset,
         })
     
 
@@ -89,3 +90,38 @@ class ContactUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
 
     def test_func(self) -> bool | None:
         return Contact.objects.filter(id=self.kwargs['pk'], user=self.request.user).exists()
+
+class TagListView(LoginRequiredMixin, OwnedByUserMixin, ListView):
+    model = Tag
+
+
+class TagCreateView(LoginRequiredMixin, View):
+    def get(self, request):
+        return render(request, "address_book/tag_form.html", {
+            "form": TagForm(request.user),
+        })
+    
+    def post(self, request):
+        form = TagForm(request.user, request.POST)
+
+        if form.is_valid():
+            tag = form.save()
+            
+            contacts_selected = form.cleaned_data['contacts']
+            for contact in contacts_selected:
+                contact.tags.add(tag)
+
+            return redirect("tag-list")
+
+        return render(request, "address_book/tag_form.html", {
+            "form": form,
+        })
+    
+
+class TagDetailView(LoginRequiredMixin, OwnedByUserMixin, DetailView):
+    model = Tag
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context['contacts'] = Contact.objects.filter(tags=self.object)
+        return context
