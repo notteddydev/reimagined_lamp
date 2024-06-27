@@ -52,3 +52,16 @@ class PhoneNumberForm(forms.ModelForm):
 
 PhoneNumberCreateFormSet = forms.inlineformset_factory(Contact, PhoneNumber, PhoneNumberForm, extra=3, can_delete=False)
 PhoneNumberUpdateFormSet = forms.inlineformset_factory(Contact, PhoneNumber, PhoneNumberForm, extra=3, can_delete=True)
+
+class TagForm(forms.ModelForm):
+    def __init__(self, user, *args, **kwargs):
+        super(TagForm, self).__init__(*args, **kwargs)
+        self.instance.user_id = user.id
+        self.fields['contacts'] = forms.ModelMultipleChoiceField(
+            queryset=Contact.objects.filter(user=user),
+            widget=forms.CheckboxSelectMultiple
+        )
+
+    class Meta:
+        model = Tag
+        exclude = ['user']
