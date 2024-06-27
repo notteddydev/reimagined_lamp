@@ -1,0 +1,15 @@
+{% extends "address_book/contact_base.html" %}
+
+{% block title %}Create Tag{% endblock title %}
+
+{% block header %}Tag New{% endblock header %}
+
+{% block content %}
+    <form method="POST">
+        {% csrf_token %}
+        <table>
+            {{ form.as_table }}
+        </table>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+{% endblock content %}

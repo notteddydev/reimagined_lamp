@@ -1,0 +1,15 @@
+{% extends "address_book/contact_base.html" %}
+
+{% block title %}Tag List{% endblock title %}
+
+{% block header %}Tag List{% endblock header %}
+
+{% block content %}
+    <ul>
+        {% for tag in object_list %}
+            <li>
+                <a href="{% url "tag-detail" tag.id %}">{{tag}}</a>
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock content %}
