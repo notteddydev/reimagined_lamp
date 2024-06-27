@@ -18,6 +18,11 @@
             {{ email_formset.management_form }}
             {{ email_formset.as_table }}
         </table>
+        <table>
+            <caption>Wallet Address</caption>
+            {{ walletaddress_formset.management_form }}
+            {{ walletaddress_formset.as_table }}
+        </table>
         <button type="submit" class="btn btn-primary">Submit</button>
     </form>
 {% endblock content %}
