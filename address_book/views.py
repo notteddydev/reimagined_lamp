@@ -49,6 +49,7 @@ class ContactDetailView(LoginRequiredMixin, OwnedByUserMixin, DetailView):
         context = super().get_context_data(**kwargs)
         context['emails'] = Email.objects.filter(contact=self.object)
         context['phone_numbers'] = PhoneNumber.objects.filter(contact=self.object)
+        context['tags'] = Tag.objects.filter(contact=self.object)
         return context
     
 

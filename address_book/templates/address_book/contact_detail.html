@@ -14,6 +14,14 @@
              ({{ contact.nickname }})
         {% endif %}
     </h2>
+    {% if tags|length %}
+        <p>
+            <strong>Tags: </strong>
+            {% for tag in tags %}
+                <a href='{% url "tag-detail" tag.id %}'>{{ tag.name }}</a>
+            {% endfor %}
+        </p>
+    {% endif %}
     <h3>Met in {{ contact.year_met }}, known for {{ contact.known_for_years }} years.</h3>
     {% if phone_numbers|length %}
         <table>
