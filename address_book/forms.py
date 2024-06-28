@@ -67,7 +67,7 @@ class ContactForm(forms.ModelForm):
 
     class Meta:
         model = Contact
-        exclude = ['addresses', 'user']
+        exclude = ['user']
 
 class EmailForm(forms.ModelForm):
     class Meta:
