@@ -102,13 +102,31 @@ class PhoneNumber(models.Model):
 class Address(models.Model):
     user=models.ForeignKey(User, on_delete=models.CASCADE)
     address_line_1=models.CharField(max_length=100)
-    address_line_2=models.CharField(max_length=100)
+    address_line_2=models.CharField(blank=True, max_length=100)
+    neighbourhood=models.CharField(blank=True, max_length=100)
+    city=models.CharField(max_length=100)
+    state=models.CharField(blank=True, max_length=100)
     postcode=models.CharField(max_length=20)
-    neighbourhood=models.CharField(max_length=100)
-    state=models.CharField(max_length=100)
     country=models.ForeignKey(Nation, on_delete=models.SET_NULL, null=True)
     notes=models.TextField(blank=True)
     landline=models.OneToOneField(PhoneNumber, on_delete=models.SET_NULL, null=True)
+
+    @property
+    def readable(self):
+        readable = ""
+        address_parts = (self.address_line_1, self.address_line_2, self.neighbourhood, self.city, self.state, self.postcode)
+
+        for address_part in address_parts:
+            if len(address_part):
+                readable += f"{address_part}\n"
+
+        if self.country:
+            readable += f"{self.country.verbose}\n"
+
+        if self.notes:
+            readable += f"\nNotes:\n{self.notes}"
+
+        return readable
 
 class Email(models.Model):
     email=models.EmailField(unique=True)
