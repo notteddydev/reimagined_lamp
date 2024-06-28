@@ -7,4 +7,16 @@
 {% block content %}
     <p>{{ object.landline.number }} <a href="{{ object.landline.tel_href }}" target="_blank">Call Landline</a></p>
     <p>{{ object.readable|linebreaks }}</p>
+    <table>
+        <caption>Tenants</caption>
+        <tbody>
+            {% for contact in object.contact_set.all %}
+                <tr>
+                    <td>
+                        <a href="{% url "contact-detail" contact.id %}">{{ contact }}</a>
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 {% endblock content %}
