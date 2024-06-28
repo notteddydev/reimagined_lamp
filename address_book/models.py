@@ -127,6 +127,12 @@ class Address(models.Model):
             readable += f"\nNotes:\n{self.notes}"
 
         return readable
+    
+    def __str__(self):
+        return f"{self.address_line_1} {self.city}"
+    
+    class Meta:
+        ordering = ["country__verbose", "city", "address_line_1"]
 
 class Email(models.Model):
     email=models.EmailField(unique=True)
