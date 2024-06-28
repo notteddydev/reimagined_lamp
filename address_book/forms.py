@@ -4,7 +4,41 @@ from django import forms
 
 from phonenumber_field.formfields import SplitPhoneNumberField
 
-from .models import Contact, Email, PhoneNumber, Tag, WalletAddress
+from .models import Address, Contact, Email, PhoneNumber, Tag, WalletAddress
+
+
+class AddressForm(forms.ModelForm):
+    def __init__(self, user, *args, **kwargs):
+        super(AddressForm, self).__init__(*args, **kwargs)
+        self.instance.user_id = user.id
+
+        if self.instance and self.instance.landline:
+            self.fields["landline_number"].initial = self.instance.landline.number
+
+    landline_number = SplitPhoneNumberField()
+
+    def save(self, commit=True):
+        address = super().save(commit=False)
+        landline_number = self.cleaned_data["landline_number"]
+
+        if address.landline:
+            landline = address.landline
+            landline.number = landline_number
+        else:
+            landline = PhoneNumber(number=landline_number)
+        
+        address.landline = landline
+
+        if commit:
+            landline.save()
+            address.save()
+
+        return address
+
+    class Meta:
+        model = Address
+        exclude = ['landline', 'user']
+
 
 class ContactForm(forms.ModelForm):
     def get_years_for_dob_and_dod():
