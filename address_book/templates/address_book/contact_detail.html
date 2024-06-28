@@ -14,20 +14,20 @@
              ({{ contact.nickname }})
         {% endif %}
     </h2>
-    {% if tags|length %}
+    {% if contact.tags.all|length %}
         <p>
             <strong>Tags: </strong>
-            {% for tag in tags %}
+            {% for tag in contact.tags.all %}
                 <a href='{% url "tag-detail" tag.id %}'>{{ tag.name }}</a>
             {% endfor %}
         </p>
     {% endif %}
     <h3>Met in {{ contact.year_met }}, known for {{ contact.known_for_years }} years.</h3>
-    {% if phone_numbers|length %}
+    {% if contact.phonenumber_set.all|length %}
         <table>
             <caption>Phone Numbers</caption>
             <tbody>
-                {% for phone_number in phone_numbers %}
+                {% for phone_number in contact.phonenumber_set.all %}
                     <tr>
                         <th>{{ phone_number.number }}</th>
                         <td>
@@ -40,11 +40,11 @@
             </tbody>
         </table>
     {% endif %}
-    {% if emails|length %}
+    {% if contact.email_set.all|length %}
         <table>
             <caption>Email Addresses</caption>
             <tbody>
-                {% for email in emails %}
+                {% for email in contact.email_set.all %}
                     <tr>
                         <th>{{ email.email }}</th>
                         <td>
@@ -90,7 +90,23 @@
             {% endif %}
         </tbody>
     </table>
-    {% if wallet_addresses|length %}
+    {% if contact.addresses.all|length %}
+        <table>
+            <caption>Addresses</caption>
+            <tbody>
+                {% for address in contact.addresses.all %}
+                    <tr>
+                        <td>
+                            <a href="{% url "address-detail" address.id %}">
+                                {{ address.address_line_1 }}
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+    {% if contact.walletaddress_set.all|length %}
         <table>
             <caption>Wallet Addresses</caption>
             <thead>
@@ -101,7 +117,7 @@
                 </tr>
             </thead>
             <tbody>
-                {% for wallet_address in wallet_addresses %}
+                {% for wallet_address in contact.walletaddress_set.all %}
                     <tr>
                         <td>{{ wallet_address.network }}</td>
                         <td>{{ wallet_address.transmission_hr }}</td>

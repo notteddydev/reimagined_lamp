@@ -7,7 +7,7 @@
 {% block content %}
     <h2>{{ tag.name }}</h2>
     <ul>
-        {% for contact in contacts %}
+        {% for contact in tag.contact_set.all %}
             <li>
                 <a href="{% url "contact-detail" contact.id %}">
                     {{ contact.full_name }}

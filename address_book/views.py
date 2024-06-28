@@ -50,14 +50,6 @@ class ContactCreateView(LoginRequiredMixin, View):
 
 class ContactDetailView(LoginRequiredMixin, OwnedByUserMixin, DetailView):
     model = Contact
-
-    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
-        context = super().get_context_data(**kwargs)
-        context['emails'] = self.object.email_set.all()
-        context['phone_numbers'] = self.object.phonenumber_set.all()
-        context['tags'] = self.object.tags.all()
-        context['wallet_addresses'] = self.object.walletaddress_set.all()
-        return context
     
 
 class ContactUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
@@ -136,11 +128,6 @@ class TagCreateView(LoginRequiredMixin, View):
 # TODO bin this in favour of a filtered ContactListView
 class TagDetailView(LoginRequiredMixin, OwnedByUserMixin, DetailView):
     model = Tag
-
-    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
-        context = super().get_context_data(**kwargs)
-        context['contacts'] = Contact.objects.filter(tags=self.object)
-        return context
     
 
 class AddressCreateView(LoginRequiredMixin, View):
