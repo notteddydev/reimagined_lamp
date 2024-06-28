@@ -118,6 +118,16 @@ class Email(models.Model):
     def href(self):
         return f"mailto:{self.email}"
 
+class CryptoNetwork(models.Model):
+    name=models.CharField(max_length=100, unique=True)
+    symbol=models.CharField(max_length=3, unique=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.symbol})"
+
+    class Meta:
+        ordering = ["name"]
+
 class WalletAddress(models.Model):
     TRANSMISSION_CHOICES = [
         (None, "-- Select Transmission --"),
@@ -125,7 +135,7 @@ class WalletAddress(models.Model):
         ("you_receive", "You receive from this address",)
     ]
 
-    network=models.CharField(blank=False, max_length=50)
+    network=models.ForeignKey(CryptoNetwork, on_delete=models.CASCADE)
     transmission=models.CharField(blank=False, choices=TRANSMISSION_CHOICES, max_length=12)
     address=models.CharField(blank=False, max_length=96)
     contact=models.ForeignKey(Contact, on_delete=models.CASCADE)
