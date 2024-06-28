@@ -10,4 +10,7 @@ urlpatterns = [
     path("tags/", views.TagListView.as_view(), name="tag-list"),
     path("tags/new", views.TagCreateView.as_view(), name="tag-create"),
     path("tags/<int:pk>", views.TagDetailView.as_view(), name="tag-detail"),
+    path("addresses/<int:pk>/edit", views.AddressUpdateView.as_view(), name="address-update"),
+    path("addresses/new", views.AddressCreateView.as_view(), name="address-create"),
+    path("addresses/<int:pk>", views.AddressDetailView.as_view(), name="address-detail"),
 ]
