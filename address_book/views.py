@@ -4,8 +4,8 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.generic import DetailView, ListView, View
 from django.urls import reverse
 
-from .forms import ContactForm, EmailCreateFormSet, EmailUpdateFormSet, PhoneNumberCreateFormSet, PhoneNumberUpdateFormSet, TagForm, WalletAddressCreateFormSet, WalletAddressUpdateFormSet
-from .models import Contact, Tag
+from .forms import AddressForm, ContactForm, EmailCreateFormSet, EmailUpdateFormSet, PhoneNumberCreateFormSet, PhoneNumberUpdateFormSet, TagForm, WalletAddressCreateFormSet, WalletAddressUpdateFormSet
+from .models import Address, Contact, Tag
 from app.mixins import OwnedByUserMixin
 
 class ContactListView(LoginRequiredMixin, OwnedByUserMixin, ListView):
@@ -140,4 +140,59 @@ class TagDetailView(LoginRequiredMixin, OwnedByUserMixin, DetailView):
     def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
         context = super().get_context_data(**kwargs)
         context['contacts'] = Contact.objects.filter(tags=self.object)
+        return context
+    
+
+class AddressCreateView(LoginRequiredMixin, View):
+    def get(self, request):
+        return render(request, "address_book/address_form.html", {
+            "form": AddressForm(request.user),
+        })
+    
+    def post(self, request):
+        form = AddressForm(request.user, request.POST)
+
+        if form.is_valid():
+            address = form.save()
+
+            return redirect(reverse("address-detail", args=[address.id]))
+
+        return render(request, "address_book/address_form.html", {
+            "form": form,
+        })
+    
+class AddressUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
+    def get(self, request, pk):
+        address = get_object_or_404(Address, pk=pk)
+
+        # TODO Look at changing the AddressForm so that in this case the user does not need passing in.
+        return render(request, "address_book/address_form.html", {
+            "form": AddressForm(request.user, instance=address),
+            "object": address,
+        })
+    
+    def post(self, request, pk):
+        address = get_object_or_404(Address, pk=pk)
+        form = AddressForm(request.user, request.POST, instance=address)
+
+        if form.is_valid():
+            address = form.save()
+
+            return redirect(reverse("address-detail", args=[address.id]))
+
+        return render(request, "address_book/address_form.html", {
+            "form": form,
+            "object": address,
+        })
+
+    def test_func(self) -> bool | None:
+        return Address.objects.filter(id=self.kwargs['pk'], user=self.request.user).exists()
+    
+
+class AddressDetailView(LoginRequiredMixin, OwnedByUserMixin, DetailView):
+    model = Address
+
+    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        context['contacts'] = self.object.contact_set.all()
         return context
