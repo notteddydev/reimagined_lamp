@@ -20,8 +20,8 @@
     {% if request.resolver_match.url_name == "address-update" %}
         <a href="{% url "address-detail" object.id %}">Address Detail</a>
     {% endif %}
-    {% if request.resolver_match.url_name != "address-create" %}
-        <a href="{% url "address-create" %}">Address Create</a>
+    {% if request.resolver_match.url_name == "contact-detail" %}
+        <a href="{% url "address-create" %}?contact_id={{ object.id }}">Address Create</a>
     {% endif %}
 
     {% if request.resolver_match.url_name != "tag-list" %}
