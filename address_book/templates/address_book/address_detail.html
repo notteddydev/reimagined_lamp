@@ -1,0 +1,10 @@
+{% extends "address_book/address_book_base.html" %}
+
+{% block title %}Address Book{% endblock title %}
+
+{% block header %}Address Detail{% endblock header %}
+
+{% block content %}
+    <p>{{ object.landline.number }} <a href="{{ object.landline.tel_href }}" target="_blank">Call Landline</a></p>
+    <p>{{ object.readable|linebreaks }}</p>
+{% endblock content %}

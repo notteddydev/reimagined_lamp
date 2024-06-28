@@ -1,0 +1,18 @@
+{% extends "address_book/address_book_base.html" %}
+
+{% block title %}Address Form{% endblock title %}
+
+{% block header %}Address Form{% endblock header %}
+
+{% block content %}
+    <form method="POST">
+        {% csrf_token %}
+        <table>
+            {{ form.as_table }}
+        </table>
+        <table>
+            {{ landline_form.as_table }}
+        </table>
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+{% endblock content %}
