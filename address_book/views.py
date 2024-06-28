@@ -132,8 +132,13 @@ class TagDetailView(LoginRequiredMixin, OwnedByUserMixin, DetailView):
 
 class AddressCreateView(LoginRequiredMixin, View):
     def get(self, request):
+        if request.GET.get("contact_id"):
+            form = AddressForm(request.user, initial={"contacts": (request.GET.get("contact_id"))})
+        else:
+            form = AddressForm(request.user)
+
         return render(request, "address_book/address_form.html", {
-            "form": AddressForm(request.user),
+            "form": form,
         })
     
     def post(self, request):
