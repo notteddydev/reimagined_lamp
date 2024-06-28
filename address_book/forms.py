@@ -11,6 +11,10 @@ class AddressForm(forms.ModelForm):
     def __init__(self, user, *args, **kwargs):
         super(AddressForm, self).__init__(*args, **kwargs)
         self.instance.user_id = user.id
+        self.fields["contacts"] = forms.ModelMultipleChoiceField(Contact.objects.filter(user=user))
+
+        if self.instance.pk:
+            self.fields["contacts"].initial = self.instance.contact_set.all()
 
         if self.instance and self.instance.landline:
             self.fields["landline_number"].initial = self.instance.landline.number
@@ -32,6 +36,11 @@ class AddressForm(forms.ModelForm):
         if commit:
             landline.save()
             address.save()
+
+        # Check for PK makes sure this only happens once address has been saved.
+        if address.pk:
+            address.contact_set.set(self.cleaned_data["contacts"])
+            self.save_m2m()
 
         return address
 
