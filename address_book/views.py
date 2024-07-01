@@ -112,10 +112,6 @@ class ContactUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
         return Contact.objects.filter(id=self.kwargs['pk'], user=self.request.user).exists()
 
 
-class TagListView(LoginRequiredMixin, OwnedByUserMixin, ListView):
-    model = Tag
-
-
 class TagCreateView(LoginRequiredMixin, View):
     def get(self, request):
         return render(request, "address_book/tag_form.html", {
