@@ -90,22 +90,6 @@
             {% endif %}
         </tbody>
     </table>
-    {% if contact.addresses.all|length %}
-        <table>
-            <caption>Addresses</caption>
-            <tbody>
-                {% for address in contact.addresses.all %}
-                    <tr>
-                        <td>
-                            <a href="{% url "address-detail" address.id %}">
-                                {{ address.address_line_1 }}
-                            </a>
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% endif %}
     {% if contact.walletaddress_set.all|length %}
         <table>
             <caption>Wallet Addresses</caption>
@@ -126,5 +110,17 @@
                 {% endfor %}
             </tbody>
         </table>
+    {% endif %}
+    {% if contact.addresses.all|length %}
+        <h2>Addresses</h2>
+        <ul>
+            {% for address in contact.addresses.all %}
+                <li>
+                    <a href="{% url "address-detail" address.id %}">
+                        {{ address.address_line_1 }}
+                    </a>
+                </li>
+            {% endfor %}
+        </ul>
     {% endif %}
 {% endblock content %}

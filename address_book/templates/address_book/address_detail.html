@@ -5,18 +5,16 @@
 {% block header %}Address Detail{% endblock header %}
 
 {% block content %}
+    <h2>Landline</h2>
     <p>{{ object.landline.number }} <a href="{{ object.landline.tel_href }}" target="_blank">Call Landline</a></p>
+    <h2>Address</h2>
     <p>{{ object.readable|linebreaks }}</p>
-    <table>
-        <caption>Tenants</caption>
-        <tbody>
-            {% for contact in object.contact_set.all %}
-                <tr>
-                    <td>
-                        <a href="{% url "contact-detail" contact.id %}">{{ contact }}</a>
-                    </td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    <h2>Tenants</h2>
+    <ul>
+        {% for contact in object.contact_set.all %}
+            <li>
+                <a href="{% url "contact-detail" contact.id %}">{{ contact }}</a>
+            </li>
+        {% endfor %}
+    </ul>
 {% endblock content %}
