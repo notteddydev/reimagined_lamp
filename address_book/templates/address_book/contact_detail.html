@@ -18,7 +18,7 @@
         <p>
             <strong>Tags: </strong>
             {% for tag in contact.tags.all %}
-                <a href='{% url "tag-detail" tag.id %}'>{{ tag.name }}</a>
+                <a href='{% url "contact-list" %}?filter_field=tags__name&amp;filter_value={{ tag.name }}'>{{ tag.name }}</a>
             {% endfor %}
         </p>
     {% endif %}

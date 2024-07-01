@@ -5,7 +5,7 @@ from django.views.generic import DetailView, ListView, View
 from django.urls import reverse
 
 from .forms import AddressForm, ContactFilterForm, ContactForm, EmailCreateFormSet, EmailUpdateFormSet, PhoneNumberCreateFormSet, PhoneNumberUpdateFormSet, TagForm, WalletAddressCreateFormSet, WalletAddressUpdateFormSet
-from .models import Address, Contact, Tag
+from .models import Address, Contact
 from app.mixins import OwnedByUserMixin
 
 class ContactListView(LoginRequiredMixin, OwnedByUserMixin, ListView):
@@ -133,11 +133,6 @@ class TagCreateView(LoginRequiredMixin, View):
         return render(request, "address_book/tag_form.html", {
             "form": form,
         })
-    
-
-# TODO bin this in favour of a filtered ContactListView
-class TagDetailView(LoginRequiredMixin, OwnedByUserMixin, DetailView):
-    model = Tag
     
 
 class AddressCreateView(LoginRequiredMixin, View):
