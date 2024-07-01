@@ -5,6 +5,11 @@
 {% block header %}Contact List{% endblock header %}
 
 {% block content %}
+    <form method="GET">
+        {{ filter_form.filter_field }}
+        {{ filter_form.filter_value }}
+        <button type="submit">Filter</button>
+    </form>
     <ul>
         {% for contact in object_list %}
             <li>
