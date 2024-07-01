@@ -9,6 +9,7 @@
         {{ filter_form.filter_field }}
         {{ filter_form.filter_value }}
         <button type="submit">Filter</button>
+        <a href="{% url "contact-list" %}">Reset</a>
     </form>
     <ul>
         {% for contact in object_list %}
