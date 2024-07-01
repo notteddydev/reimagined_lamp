@@ -15,9 +15,9 @@ class ContactListView(LoginRequiredMixin, OwnedByUserMixin, ListView):
         filter_field = self.request.GET.get("filter_field", "")
         filter_value = self.request.GET.get("filter_value", "")
         if not len(filter_value) or not len(filter_field):
-            return Contact.objects.all()
+            return super().get_queryset()
         
-        new_context = Contact.objects.filter(**{filter_field: filter_value})
+        new_context = super().get_queryset().filter(**{filter_field: filter_value})
         return new_context
 
     def get_context_data(self, **kwargs):
