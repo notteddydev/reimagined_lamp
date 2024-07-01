@@ -49,6 +49,24 @@ class AddressForm(forms.ModelForm):
         exclude = ['landline', 'user']
 
 
+class ContactFilterForm(forms.Form):
+    FILTER_FIELD_CHOICES = [
+        ("", "-- Select Field --"),
+        ("email__email", "Email"),
+        ("first_name", "First Name"),
+        ("last_name", "Last Name"),
+        ("nationality__verbose", "Nationality"),
+        ("nickname", "Nickname"),
+        ("phonenumber__number", "Phone Number"),
+        ("profession", "Profession"),
+        ("tags__name", "Tag"),
+        ("walletaddress__address", "Wallet Address"),
+        ("year_met", "Year Met"),
+    ]    
+    filter_field = forms.ChoiceField(choices=FILTER_FIELD_CHOICES, required=False)
+    filter_value = forms.CharField(required=False)
+
+
 class ContactForm(forms.ModelForm):
     def get_years_for_dob_and_dod():
         return [year for year in range(1920, datetime.now().year + 1)][::-1]
