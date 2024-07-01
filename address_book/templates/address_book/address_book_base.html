@@ -4,27 +4,28 @@
     {% if request.resolver_match.url_name != "contact-list" %}
         <a href="{% url "contact-list" %}">Contact List</a>
     {% endif %}
+    {% if request.resolver_match.url_name != "contact-create" %}
+        <a href="{% url "contact-create" %}">Contact Create</a>
+    {% endif %}
+    {% if request.resolver_match.url_name != "tag-create" %}
+        <a href="{% url "tag-create" %}">Tag Create</a>
+    {% endif %}
+{% endblock subnav %}
+
+{% block tertiarynav %}
     {% if request.resolver_match.url_name == "contact-detail" %}
         <a href="{% url "contact-update" object.id %}">Contact Update</a>
     {% endif %}
     {% if request.resolver_match.url_name == "contact-update" %}
         <a href="{% url "contact-detail" object.id %}">Contact Detail</a>
     {% endif %}
-    {% if request.resolver_match.url_name != "contact-create" %}
-        <a href="{% url "contact-create" %}">Contact Create</a>
+    {% if request.resolver_match.url_name == "contact-detail" %}
+        <a href="{% url "address-create" %}?contact_id={{ object.id }}">Address Create</a>
     {% endif %}
-
     {% if request.resolver_match.url_name == "address-detail" %}
         <a href="{% url "address-update" object.id %}">Address Update</a>
     {% endif %}
     {% if request.resolver_match.url_name == "address-update" %}
         <a href="{% url "address-detail" object.id %}">Address Detail</a>
     {% endif %}
-    {% if request.resolver_match.url_name == "contact-detail" %}
-        <a href="{% url "address-create" %}?contact_id={{ object.id }}">Address Create</a>
-    {% endif %}
-
-    {% if request.resolver_match.url_name != "tag-create" %}
-        <a href="{% url "tag-create" %}">Tag Create</a>
-    {% endif %}
-{% endblock subnav %}
+{% endblock tertiarynav %}
