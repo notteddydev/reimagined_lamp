@@ -4,12 +4,26 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.generic import DetailView, ListView, View
 from django.urls import reverse
 
-from .forms import AddressForm, ContactForm, EmailCreateFormSet, EmailUpdateFormSet, PhoneNumberCreateFormSet, PhoneNumberUpdateFormSet, TagForm, WalletAddressCreateFormSet, WalletAddressUpdateFormSet
+from .forms import AddressForm, ContactFilterForm, ContactForm, EmailCreateFormSet, EmailUpdateFormSet, PhoneNumberCreateFormSet, PhoneNumberUpdateFormSet, TagForm, WalletAddressCreateFormSet, WalletAddressUpdateFormSet
 from .models import Address, Contact, Tag
 from app.mixins import OwnedByUserMixin
 
 class ContactListView(LoginRequiredMixin, OwnedByUserMixin, ListView):
     model = Contact
+
+    def get_queryset(self):
+        filter_field = self.request.GET.get("filter_field", "")
+        filter_value = self.request.GET.get("filter_value", "")
+        if not len(filter_value) or not len(filter_field):
+            return Contact.objects.all()
+        
+        new_context = Contact.objects.filter(**{filter_field: filter_value})
+        return new_context
+
+    def get_context_data(self, **kwargs):
+        context = super(ContactListView, self).get_context_data(**kwargs)
+        context["filter_form"] = ContactFilterForm(self.request.GET)
+        return context
     
 class ContactCreateView(LoginRequiredMixin, View):
     def get(self, request):
