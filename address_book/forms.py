@@ -54,6 +54,7 @@ class ContactFilterForm(forms.Form):
         ("", "-- Select Field --"),
         ("email__email", "Email"),
         ("first_name", "First Name"),
+        ("addresses__landline__number", "Landline"),
         ("last_name", "Last Name"),
         ("nationality__verbose", "Nationality"),
         ("nickname", "Nickname"),
