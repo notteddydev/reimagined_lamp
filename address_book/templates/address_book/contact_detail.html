@@ -5,6 +5,7 @@
 {% block header %}Contact Detail{% endblock header %}
 
 {% block content %}
+    <img src="{% url "contact-qrcode" contact.id %}" height="200" width="200">
     <h2>
         {% if contact.is_business %}
             Business: 
