@@ -5,8 +5,10 @@
 {% block header %}Address Detail{% endblock header %}
 
 {% block content %}
-    <h2>Landline</h2>
-    <p>{{ object.landline.number }} <a href="{{ object.landline.tel_href }}" target="_blank">Call Landline</a></p>
+    {% if object.landline_id %}
+        <h2>Landline</h2>
+        <p>{{ object.landline.number }} <a href="{{ object.landline.tel_href }}" target="_blank">Call Landline</a></p>
+    {% endif %}
     <h2>Address</h2>
     <p>{{ object.readable|linebreaks }}</p>
     <h2>Tenants</h2>
