@@ -29,7 +29,7 @@ class AddressForm(forms.ModelForm):
 
         if not len(landline_number):
             landline = None
-        elif address.landline:
+        elif old_landline:
             landline = address.landline
             landline.number = landline_number
         else:
