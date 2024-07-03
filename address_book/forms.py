@@ -19,7 +19,7 @@ class AddressForm(forms.ModelForm):
         if self.instance and self.instance.landline:
             self.fields["landline_number"].initial = self.instance.landline.number
 
-    landline_number = SplitPhoneNumberField()
+    landline_number = SplitPhoneNumberField(**{"required": False})
 
     def save(self, commit=True):
         address = super().save(commit=False)
