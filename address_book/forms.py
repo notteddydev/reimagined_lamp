@@ -75,7 +75,7 @@ class ContactFilterForm(forms.Form):
 
 
 class ContactForm(forms.ModelForm):
-    def get_years_for_dob_and_dod():
+    def get_years_from_1920():
         return [year for year in range(1920, datetime.now().year + 1)][::-1]
 
     def __init__(self, user, *args, **kwargs):
@@ -84,18 +84,25 @@ class ContactForm(forms.ModelForm):
         self.fields['tags'].queryset = Tag.objects.filter(user=user.id)
         self.fields['family_members'].queryset = Contact.objects.filter(user=user.id)
 
+    anniversary = forms.DateField(
+        required=False,
+        widget=forms.widgets.SelectDateWidget(
+            empty_label=("-- Select Year --", "-- Select Month --", "-- Select Day --"),
+            years=get_years_from_1920(),
+        )
+    )
     dob = forms.DateField(
         required=False,
         widget=forms.widgets.SelectDateWidget(
             empty_label=("-- Select Year --", "-- Select Month --", "-- Select Day --"),
-            years=get_years_for_dob_and_dod(),
+            years=get_years_from_1920(),
         )
     )
     dod = forms.DateField(
         required=False,
         widget=forms.widgets.SelectDateWidget(
             empty_label=("-- Select Year --", "-- Select Month --", "-- Select Day --"),
-            years=get_years_for_dob_and_dod(),
+            years=get_years_from_1920(),
         )
     )
 
