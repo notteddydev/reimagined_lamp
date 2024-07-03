@@ -1,5 +1,6 @@
 from typing import Any
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.generic import DetailView, ListView, View
 from django.urls import reverse
@@ -7,6 +8,31 @@ from django.urls import reverse
 from .forms import AddressForm, ContactFilterForm, ContactForm, EmailCreateFormSet, EmailUpdateFormSet, PhoneNumberCreateFormSet, PhoneNumberUpdateFormSet, TagForm, WalletAddressCreateFormSet, WalletAddressUpdateFormSet
 from .models import Address, Contact
 from app.mixins import OwnedByUserMixin
+
+import qrcode
+from io import BytesIO
+
+def contact_qrcode(request, pk):
+    contact = get_object_or_404(Contact, pk=pk)
+
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(contact.vcard)
+    qr.make(fit=True)
+
+    # Create an image from the QR Code instance
+    img = qr.make_image(fill='black', back_color='white')
+
+    # Save it in a bytes buffer
+    buffer = BytesIO()
+    img.save(buffer, format="PNG")
+    buffer.seek(0)
+
+    return HttpResponse(buffer, content_type="image/png")
 
 class ContactListView(LoginRequiredMixin, OwnedByUserMixin, ListView):
     model = Contact
