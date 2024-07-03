@@ -79,6 +79,44 @@ class Contact(models.Model):
             full_name += f" {self.last_name}"
 
         return full_name
+    
+    @property
+    def vcard(self):
+        vcard = f"""
+        BEGIN:VCARD
+        VERSION:3.0
+        ANNIVERSARY:{self.anniversary.strftime("%Y%m%d")}
+        BDAY:{self.dob.strftime("%Y%m%d")}
+        CATEGORIES:{", ".join(self.tags.values_list("name", flat=True))}
+        FN:{self.full_name}
+        GENDER:{self.gender.upper()}
+        KIND:{"organization" if self.is_business else "individual"}
+        N:{self.last_name};{self.first_name};{self.middle_names};;
+        NICKNAME:{self.nickname}
+        NOTE:{self.notes}
+        TITLE:{self.profession}
+        URL:{self.website}
+        """
+
+        for email in self.email_set.values_list("email", flat=True):
+            vcard += f"""
+            EMAIL;TYPE=INTERNET,HOME:{email}
+            """
+
+        for landline in self.addresses.values_list("landline__number", flat=True):
+            vcard += f"""
+            TEL;TYPE=HOME,VOICE:{landline}
+            """
+
+        for phonenumber in self.phonenumber_set.values_list("number", flat=True):
+            vcard += f"""
+            TEL;TYPE=CELL,VOICE:{phonenumber}
+            """
+
+        vcard += """END:VCARD"""
+        vcard = "\n".join(line.strip() for line in vcard.strip().split("\n"))
+
+        return vcard
 
     def get_absolute_url(self):
         return reverse("contact-detail", args=[self.id])
