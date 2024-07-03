@@ -23,9 +23,13 @@ class AddressForm(forms.ModelForm):
 
     def save(self, commit=True):
         address = super().save(commit=False)
+        old_landline = address.landline
         landline_number = self.cleaned_data["landline_number"]
+        address.contact_set.set(self.cleaned_data["contacts"])
 
-        if address.landline:
+        if not len(landline_number):
+            landline = None
+        elif address.landline:
             landline = address.landline
             landline.number = landline_number
         else:
@@ -34,13 +38,15 @@ class AddressForm(forms.ModelForm):
         address.landline = landline
 
         if commit:
-            landline.save()
+            if old_landline and not landline:
+                old_landline.delete()
+            if landline:
+                landline.save()
             address.save()
-
-        # Check for PK makes sure this only happens once address has been saved.
-        if address.pk:
-            address.contact_set.set(self.cleaned_data["contacts"])
-            self.save_m2m()
+            
+            # Check for PK makes sure this only happens once address has been saved.
+            if address.pk:
+                self.save_m2m()
 
         return address
 
