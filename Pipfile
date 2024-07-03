@@ -11,6 +11,7 @@ pymysql = "*"
 python-dateutil = "*"
 django-phonenumber-field = {extras = ["phonenumberslite"], version = "*"}
 babel = "*"
+qrcode = {extras = ["pil"], version = "*"}
 
 [dev-packages]
 
