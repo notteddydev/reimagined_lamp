@@ -29,12 +29,20 @@ class Tag(models.Model):
 
 class Contact(models.Model):
     user=models.ForeignKey(User, on_delete=models.CASCADE)
-    nickname=models.CharField(blank=True, max_length=50)
     first_name=models.CharField(blank=False, max_length=100)
+    middle_names=models.CharField(blank=True, max_length=200)
     last_name=models.CharField(blank=True, max_length=100)
+    nickname=models.CharField(blank=True, max_length=50)
+    gender=models.CharField(
+        choices=[(None, "-- Select Gender --"), ("m", "Male"), ("f", "Female")],
+        max_length=1,
+    )
     dob=models.DateField(blank=True, null=True)
+    dod=models.DateField(blank=True, null=True)
+    anniversary=models.DateField(blank=True, null=True)
     addresses=models.ManyToManyField("Address", blank=True)
     nationality=models.ManyToManyField(Nation, blank=True)
+    
     YEAR_MET_CHOICES = list(map(lambda year: (year, str(year)), range(1996, datetime.now().year + 1)[::-1]))
     year_met=models.SmallIntegerField(
         blank=False,
@@ -46,8 +54,6 @@ class Contact(models.Model):
     family_members=models.ManyToManyField("self", blank=True, symmetrical=True)
     profession=models.CharField(blank=True, max_length=50)
     website=models.CharField(blank=True, max_length=100)
-    dod=models.DateField(blank=True, null=True)
-    middle_names=models.CharField(blank=True, max_length=200)
     notes=models.TextField(blank=True)
 
     @property
