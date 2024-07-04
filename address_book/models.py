@@ -85,8 +85,6 @@ class Contact(models.Model):
         vcard = f"""
         BEGIN:VCARD
         VERSION:3.0
-        ANNIVERSARY:{self.anniversary.strftime("%Y%m%d")}
-        BDAY:{self.dob.strftime("%Y%m%d")}
         CATEGORIES:{", ".join(self.tags.values_list("name", flat=True))}
         FN:{self.full_name}
         GENDER:{self.gender.upper()}
@@ -97,6 +95,16 @@ class Contact(models.Model):
         TITLE:{self.profession}
         URL:{self.website}
         """
+
+        if self.anniversary:
+            vcard += f"""
+            ANNIVERSARY:{self.anniversary.strftime("%Y%m%d")}            
+            """
+
+        if self.dob:
+            vcard += f"""
+            BDAY:{self.dob.strftime("%Y%m%d")}
+            """
 
         for email in self.email_set.values_list("email", flat=True):
             vcard += f"""
