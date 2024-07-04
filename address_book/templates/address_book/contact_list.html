@@ -5,17 +5,32 @@
 {% block header %}Contact List{% endblock header %}
 
 {% block content %}
-    <form method="GET">
-        {{ filter_form.filter_field }}
-        {{ filter_form.filter_value }}
-        <button type="submit">Filter</button>
-        <a href="{% url "contact-list" %}">Reset</a>
-    </form>
-    <ul>
-        {% for contact in object_list %}
-            <li>
-                <a href="{% url "contact-detail" contact.id %}">{{contact}}</a>
-            </li>
-        {% endfor %}
-    </ul>
+    <section>
+        <form method="GET">
+            {{ filter_form.filter_field }}
+            {{ filter_form.filter_value }}
+            <button type="submit">Filter</button>
+            <a href="{% url "contact-list" %}">Reset</a>
+        </form>
+    </section>
+    <section>
+        <table>
+            <tbody>
+                {% for contact in object_list %}
+                    <tr>
+                        <th>{{ contact }}</th>
+                        <td>
+                            <a href="{% url "contact-detail" contact.id %}">View</a>
+                        </td>
+                        <td>
+                            <a href="{% url "contact-update" contact.id %}">Update</a>
+                        </td>
+                        <td>
+                            <a href="{% url "address-create" %}?contact_id={{ contact.id }}">Add Address</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
 {% endblock content %}
