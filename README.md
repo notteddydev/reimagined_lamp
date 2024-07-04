@@ -11,6 +11,7 @@
 - Add copy link to Address in address-detail and contact-detail
 - Add type (home, work, etc.) to email, address, phonenumber and apply to vcard
 - Ermm... maybe... like... add some tests
+- Erm... add docblocks, pattern code, add typehints, refactor code - view classes particularly.
 
 
 ### Handy Links
