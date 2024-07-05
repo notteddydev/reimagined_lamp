@@ -7,22 +7,33 @@
 {% block content %}
     <form method="POST">
         {% csrf_token %}
-        <table>
-            {{ form.as_table }}
-        </table>
-        <table>
-            {{ phonenumber_formset.management_form }}
-            {{ phonenumber_formset.as_table }}
-        </table>
-        <table>
-            {{ email_formset.management_form }}
-            {{ email_formset.as_table }}
-        </table>
-        <table>
-            <caption>Wallet Address</caption>
-            {{ walletaddress_formset.management_form }}
-            {{ walletaddress_formset.as_table }}
-        </table>
+        <section>
+            <table>
+                <caption>General Information</caption>
+                {{ form.as_table }}
+            </table>
+        </section>
+        <section>
+            <table>
+                <caption>Phone Numbers</caption>
+                {{ phonenumber_formset.management_form }}
+                {{ phonenumber_formset.as_table }}
+            </table>
+        </section>
+        <section>
+            <table>
+                <caption>Email Addresses</caption>
+                {{ email_formset.management_form }}
+                {{ email_formset.as_table }}
+            </table>
+        </section>
+        <section>
+            <table>
+                <caption>Wallet Addresses</caption>
+                {{ walletaddress_formset.management_form }}
+                {{ walletaddress_formset.as_table }}
+            </table>
+        </section>
         <button type="submit" class="btn btn-primary">Submit</button>
     </form>
 {% endblock content %}
