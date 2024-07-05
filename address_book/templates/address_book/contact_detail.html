@@ -52,45 +52,53 @@
             </table>
         </section>
     {% endif %}
-    <section>
-        <table>
-            <caption>Further Information</caption>
-            <tbody>
-                {% if contact.website %}
-                    <tr>
-                        <th>Website:</th>
-                        <td>
-                            <a href="{{ contact.website }}" target="_blank">{{ contact.website }}</a>
-                        </td>
-                    </tr>
-                {% endif %}
-                {% if contact.profession %}
-                    <tr>
-                        <th>Profession:</th>
-                        <td>{{ contact.profession }}</td>
-                    </tr>
-                {% endif %}
-                {% if contact.dob %}
-                    <tr>
-                        <th>Born:</th>
-                        <td>{{ contact.dob|date:"l jS F Y" }} ({{ contact.age }} years old)</td>
-                    </tr>
-                {% endif %}
-                {% if contact.dod %}
-                    <tr>
-                        <th>Passed Away:</th>
-                        <td>{{ contact.dod|date:"l jS F Y" }} ({{ contact.age_passed }} years old)</td>
-                    </tr>
-                {% endif %}
-                {% if contact.notes %}
-                    <tr>
-                        <th>Notes:</th>
-                        <td>{{ contact.notes|linebreaks }}</td>
-                    </tr>
-                {% endif %}
-            </tbody>
-        </table>
-    </section>
+    {% if render_further_information %}
+        <section>
+            <table>
+                <caption>Further Information</caption>
+                <tbody>
+                    {% if contact.website %}
+                        <tr>
+                            <th>Website:</th>
+                            <td>
+                                <a href="{{ contact.website }}" target="_blank">{{ contact.website }}</a>
+                            </td>
+                        </tr>
+                    {% endif %}
+                    {% if contact.profession %}
+                        <tr>
+                            <th>Profession:</th>
+                            <td>{{ contact.profession }}</td>
+                        </tr>
+                    {% endif %}
+                    {% if contact.dob %}
+                        <tr>
+                            <th>Born:</th>
+                            <td>{{ contact.dob|date:"l jS F Y" }} ({{ contact.age }} years old)</td>
+                        </tr>
+                    {% endif %}
+                    {% if contact.dod %}
+                        <tr>
+                            <th>Passed Away:</th>
+                            <td>{{ contact.dod|date:"l jS F Y" }} ({{ contact.age_passed }} years old)</td>
+                        </tr>
+                    {% endif %}
+                    {% if contact.anniversary %}
+                        <tr>
+                            <th>Anniversary:</th>
+                            <td>{{ contact.anniversary|date:"l jS F Y" }} ({{ contact.years_married }} years married)</td>
+                        </tr>
+                    {% endif %}
+                    {% if contact.notes %}
+                        <tr>
+                            <th>Notes:</th>
+                            <td>{{ contact.notes|linebreaks }}</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </section>
+    {% endif %}
     {% if contact.walletaddress_set.all|length %}
         <section>
             <table>
