@@ -1,6 +1,5 @@
 {% extends "address_book/address_book_base.html" %}
 {% load getattribute %}
-{% load hasattribute %}
 
 {% block title %}Address Book{% endblock title %}
 
@@ -26,42 +25,42 @@
         <table>
             <caption>Address</caption>
             <tbody>
-                {% if address|hasattribute:"address_line_1" %}
+                {% if address|getattribute:"address_line_1" %}
                     <tr>
                         <td>{{ address.address_line_1 }}</td>
                     </tr>
                 {% endif %}
-                {% if address|hasattribute:"address_line_2" %}
+                {% if address|getattribute:"address_line_2" %}
                     <tr>
                         <td>{{ address.address_line_2 }}</td>
                     </tr>
                 {% endif %}
-                {% if address|hasattribute:"neighbourhood" %}
+                {% if address|getattribute:"neighbourhood" %}
                     <tr>
                         <td>{{ address.neighbourhood }}</td>
                     </tr>
                 {% endif %}
-                {% if address|hasattribute:"city" %}
+                {% if address|getattribute:"city" %}
                     <tr>
                         <td>{{ address.city }}</td>
                     </tr>
                 {% endif %}
-                {% if address|hasattribute:"state" %}
+                {% if address|getattribute:"state" %}
                     <tr>
                         <td>{{ address.state }}</td>
                     </tr>
                 {% endif %}
-                {% if address|hasattribute:"postcode" %}
+                {% if address|getattribute:"postcode" %}
                     <tr>
                         <td>{{ address.postcode }}</td>
                     </tr>
                 {% endif %}
-                {% if address|hasattribute:"country" %}
+                {% if address|getattribute:"country" %}
                     <tr>
                         <td>{{ address.country.verbose }}</td>
                     </tr>
                 {% endif %}
-                {% if address|hasattribute:"notes" %}
+                {% if address|getattribute:"notes" %}
                     <tr>
                         <td>{{ address.notes }}</td>
                     </tr>
