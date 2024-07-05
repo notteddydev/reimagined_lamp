@@ -125,6 +125,10 @@ class Contact(models.Model):
         vcard = "\n".join(line.strip() for line in vcard.strip().split("\n"))
 
         return vcard
+    
+    @property
+    def years_married(self):
+        return relativedelta(date.today(), self.anniversary).years if self.anniversary else None
 
     def get_absolute_url(self):
         return reverse("contact-detail", args=[self.id])
