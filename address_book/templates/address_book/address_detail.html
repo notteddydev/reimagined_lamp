@@ -1,4 +1,6 @@
 {% extends "address_book/address_book_base.html" %}
+{% load getattribute %}
+{% load hasattribute %}
 
 {% block title %}Address Book{% endblock title %}
 
@@ -6,17 +8,83 @@
 
 {% block content %}
     {% if object.landline_id %}
-        <h2>Landline</h2>
-        <p>{{ object.landline.number }} <a href="{{ object.landline.tel_href }}" target="_blank">Call Landline</a></p>
+        <section>
+            <table>
+                <caption>Landline</caption>
+                <tbody>
+                    <tr>
+                        <td>{{ object.landline.number }}</td>
+                        <td>
+                            <a href="{{ object.landline.tel_href }}" target="_blank">Call</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
     {% endif %}
-    <h2>Address</h2>
-    <p>{{ object.readable|linebreaks }}</p>
-    <h2>Tenants</h2>
-    <ul>
-        {% for contact in object.contact_set.all %}
-            <li>
-                <a href="{% url "contact-detail" contact.id %}">{{ contact }}</a>
-            </li>
-        {% endfor %}
-    </ul>
+    <section>
+        <table>
+            <caption>Address</caption>
+            <tbody>
+                {% if address|hasattribute:"address_line_1" %}
+                    <tr>
+                        <td>{{ address.address_line_1 }}</td>
+                    </tr>
+                {% endif %}
+                {% if address|hasattribute:"address_line_2" %}
+                    <tr>
+                        <td>{{ address.address_line_2 }}</td>
+                    </tr>
+                {% endif %}
+                {% if address|hasattribute:"neighbourhood" %}
+                    <tr>
+                        <td>{{ address.neighbourhood }}</td>
+                    </tr>
+                {% endif %}
+                {% if address|hasattribute:"city" %}
+                    <tr>
+                        <td>{{ address.city }}</td>
+                    </tr>
+                {% endif %}
+                {% if address|hasattribute:"state" %}
+                    <tr>
+                        <td>{{ address.state }}</td>
+                    </tr>
+                {% endif %}
+                {% if address|hasattribute:"postcode" %}
+                    <tr>
+                        <td>{{ address.postcode }}</td>
+                    </tr>
+                {% endif %}
+                {% if address|hasattribute:"country" %}
+                    <tr>
+                        <td>{{ address.country.verbose }}</td>
+                    </tr>
+                {% endif %}
+                {% if address|hasattribute:"notes" %}
+                    <tr>
+                        <td>{{ address.notes }}</td>
+                    </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </section>
+    <section>
+        <table>
+            <caption>Tenants</caption>
+            <tbody>
+                {% for contact in object.contact_set.all %}
+                    <tr>
+                        <td>{{ contact }}</td>
+                        <td>
+                            <a href="{% url "contact-detail" contact.id %}">View</a>
+                        </td>
+                        <td>
+                            <a href="{% url "contact-update" contact.id %}">Update</a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </section>
 {% endblock content %}

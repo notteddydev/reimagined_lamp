@@ -15,113 +15,133 @@
              ({{ contact.nickname }})
         {% endif %}
     </h2>
-    {% if contact.tags.all|length %}
-        <p>
-            <strong>Tags: </strong>
-            {% for tag in contact.tags.all %}
-                <a href='{% url "contact-list" %}?filter_field=tags__name&amp;filter_value={{ tag.name }}'>{{ tag.name }}</a>
-            {% endfor %}
-        </p>
-    {% endif %}
     <h3>Met in {{ contact.year_met }}, known for {{ contact.known_for_years }} years.</h3>
     {% if contact.phonenumber_set.all|length %}
-        <table>
-            <caption>Phone Numbers</caption>
-            <tbody>
-                {% for phone_number in contact.phonenumber_set.all %}
-                    <tr>
-                        <th>{{ phone_number.number }}</th>
-                        <td>
-                            <a href="{{ phone_number.sms_href }}" target="_blank">SMS</a>
-                            <a href="{{ phone_number.tel_href }}" target="_blank">Call</a>
-                            <a href="{{ phone_number.wa_href }}" target="_blank">WhatsApp</a>
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <section>
+            <table>
+                <caption>Phone Numbers</caption>
+                <tbody>
+                    {% for phone_number in contact.phonenumber_set.all %}
+                        <tr>
+                            <td>{{ phone_number.number }}</td>
+                            <td>
+                                <a href="{{ phone_number.sms_href }}" target="_blank">SMS</a>
+                                <a href="{{ phone_number.tel_href }}" target="_blank">Call</a>
+                                <a href="{{ phone_number.wa_href }}" target="_blank">WhatsApp</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
     {% endif %}
     {% if contact.email_set.all|length %}
+        <section>
+            <table>
+                <caption>Email Addresses</caption>
+                <tbody>
+                    {% for email in contact.email_set.all %}
+                        <tr>
+                            <td>{{ email.email }}</td>
+                            <td>
+                                <a href="{{ email.href }}" target="_blank">Email</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+    {% endif %}
+    <section>
         <table>
-            <caption>Email Addresses</caption>
+            <caption>Further Information</caption>
             <tbody>
-                {% for email in contact.email_set.all %}
+                {% if contact.website %}
                     <tr>
-                        <th>{{ email.email }}</th>
+                        <th>Website:</th>
                         <td>
-                            <a href="{{ email.href }}" target="_blank">Email</a>
+                            <a href="{{ contact.website }}" target="_blank">{{ contact.website }}</a>
                         </td>
                     </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% endif %}
-    <table>
-        <caption>Further Information</caption>
-        <tbody>
-            {% if contact.website %}
-                <tr>
-                    <th>Website:</th>
-                    <td>{{ contact.website|urlize }}</td>
-                </tr>
-            {% endif %}
-            {% if contact.profession %}
-                <tr>
-                    <th>Profession:</th>
-                    <td>{{ contact.profession }}</td>
-                </tr>
-            {% endif %}
-            {% if contact.dob %}
-                <tr>
-                    <th>Born:</th>
-                    <td>{{ contact.dob|date:"l jS F Y" }} ({{ contact.age }} years old)</td>
-                </tr>
-            {% endif %}
-            {% if contact.dod %}
-                <tr>
-                    <th>Passed Away:</th>
-                    <td>{{ contact.dod|date:"l jS F Y" }} ({{ contact.age_passed }} years old)</td>
-                </tr>
-            {% endif %}
-            {% if contact.notes|length %}
-                <tr>
-                    <th>Notes:</th>
-                    <td>{{ contact.notes|linebreaks }}</td>
-                </tr>
-            {% endif %}
-        </tbody>
-    </table>
-    {% if contact.walletaddress_set.all|length %}
-        <table>
-            <caption>Wallet Addresses</caption>
-            <thead>
-                <tr>
-                    <th>Network</th>
-                    <th>Transmission</th>
-                    <th>Address</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for wallet_address in contact.walletaddress_set.all %}
+                {% endif %}
+                {% if contact.profession %}
                     <tr>
-                        <td>{{ wallet_address.network }}</td>
-                        <td>{{ wallet_address.transmission_hr }}</td>
-                        <td>{{ wallet_address.address }}</td>
+                        <th>Profession:</th>
+                        <td>{{ contact.profession }}</td>
                     </tr>
-                {% endfor %}
+                {% endif %}
+                {% if contact.dob %}
+                    <tr>
+                        <th>Born:</th>
+                        <td>{{ contact.dob|date:"l jS F Y" }} ({{ contact.age }} years old)</td>
+                    </tr>
+                {% endif %}
+                {% if contact.dod %}
+                    <tr>
+                        <th>Passed Away:</th>
+                        <td>{{ contact.dod|date:"l jS F Y" }} ({{ contact.age_passed }} years old)</td>
+                    </tr>
+                {% endif %}
+                {% if contact.notes %}
+                    <tr>
+                        <th>Notes:</th>
+                        <td>{{ contact.notes|linebreaks }}</td>
+                    </tr>
+                {% endif %}
             </tbody>
         </table>
+    </section>
+    {% if contact.walletaddress_set.all|length %}
+        <section>
+            <table>
+                <caption>Wallet Addresses</caption>
+                <tbody>
+                    {% for wallet_address in contact.walletaddress_set.all %}
+                        <tr>
+                            <td>{{ wallet_address.network }}</td>
+                            <td>{{ wallet_address.transmission_hr }}</td>
+                            <td>{{ wallet_address.address }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
     {% endif %}
     {% if contact.addresses.all|length %}
-        <h2>Addresses</h2>
-        <ul>
-            {% for address in contact.addresses.all %}
-                <li>
-                    <a href="{% url "address-detail" address.id %}">
-                        {{ address.address_line_1 }}
-                    </a>
-                </li>
-            {% endfor %}
-        </ul>
+        <section>
+            <table>
+                <caption>Addresses</caption>
+                <tbody>
+                    {% for address in contact.addresses.all %}
+                        <tr>
+                            <td>{{ address.address_line_1 }}</td>
+                            <td>
+                                <a href="{% url "address-detail" address.id %}">View</a>
+                            </td>
+                            <td>
+                                <a href="{% url "address-update" address.id %}">Update</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+    {% endif %}
+    {% if contact.tags.all|length %}
+        <section>
+            <table>
+                <caption>Tags</caption>
+                <tbody>
+                    {% for tag in contact.tags.all %}
+                        <tr>
+                            <td>{{ tag.name }}</td>
+                            <td>
+                                <a href='{% url "contact-list" %}?filter_field=tags__name&amp;filter_value={{ tag.name }}'>View Contacts</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
     {% endif %}
 {% endblock content %}
