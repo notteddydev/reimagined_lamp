@@ -92,6 +92,12 @@ class ContactCreateView(LoginRequiredMixin, View):
 
 class ContactDetailView(LoginRequiredMixin, OwnedByUserMixin, DetailView):
     model = Contact
+
+    def get_context_data(self, **kwargs) -> dict[str, Any]:
+        context = super().get_context_data(**kwargs)
+        further_information = ("anniversary", "dob", "dod", "notes", "profession", "website",)
+        context["render_further_information"] = any(getattr(context["object"], attr) for attr in further_information)
+        return context
     
 
 class ContactUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
