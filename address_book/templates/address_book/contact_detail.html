@@ -123,7 +123,12 @@
     {% if contact.addresses.all|length %}
         <section>
             <table>
-                <caption>Addresses</caption>
+                <caption>
+                    Addresses 
+                    <small>
+                        <a href="{% url "address-create" %}?contact_id={{ object.id }}">Create</a>
+                    </small>
+                </caption>
                 <tbody>
                     {% for address in contact.addresses.all %}
                         <tr>
@@ -143,7 +148,12 @@
     {% if contact.tags.all|length %}
         <section>
             <table>
-                <caption>Tags</caption>
+                <caption>
+                    Tags 
+                    <small>
+                        <a href="{% url "tag-create" %}?contact_id={{ object.id }}">Create</a>
+                    </small>
+                </caption>
                 <tbody>
                     {% for tag in contact.tags.all %}
                         <tr>
