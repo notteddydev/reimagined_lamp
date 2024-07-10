@@ -103,38 +103,26 @@ class Contact(models.Model):
         """
 
         if self.anniversary:
-            vcard += f"""
-            ANNIVERSARY:{self.anniversary.strftime("%Y%m%d")}            
-            """
+            vcard += f"""ANNIVERSARY:{self.anniversary.strftime("%Y%m%d")}\n"""
 
         if self.dob:
-            vcard += f"""
-            BDAY:{self.dob.strftime("%Y%m%d")}
-            """
+            vcard += f"""BDAY:{self.dob.strftime("%Y%m%d")}\n"""
 
         for address in self.addresses.all():
             addr = f"{address.address_line_1};{address.address_line_2};"
             if address.neighbourhood:
                 addr += f"{address.neighbourhood}, "
             addr += f"{address.city};{address.state};{address.postcode};{address.country.verbose}"
-            vcard += f"""
-            ADR:{addr}
-            """
+            vcard += f"""ADR:{addr}\n"""
 
         for email in self.email_set.values_list("email", flat=True):
-            vcard += f"""
-            EMAIL;TYPE=INTERNET,HOME:{email}
-            """
+            vcard += f"""EMAIL;TYPE=INTERNET,HOME:{email}\n"""
 
         for landline in self.addresses.values_list("landline__number", flat=True):
-            vcard += f"""
-            TEL;TYPE=HOME,VOICE:{landline}
-            """
+            vcard += f"""TEL;TYPE=HOME,VOICE:{landline}\n"""
 
         for phonenumber in self.phonenumber_set.values_list("number", flat=True):
-            vcard += f"""
-            TEL;TYPE=CELL,VOICE:{phonenumber}
-            """
+            vcard += f"""TEL;TYPE=CELL,VOICE:{phonenumber}\n"""
 
         vcard += """END:VCARD"""
         vcard = "\n".join(line.strip() for line in vcard.strip().split("\n"))
