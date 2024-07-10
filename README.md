@@ -1,6 +1,5 @@
 ### ToDo (AddressBook)
 
-- Action to download all vcards on display in contact-list - maybe this will mean more stringent filtering
 - Add more filtering to contact-list, such as Address.city, Address.neighbourhood, Address.country.verbose
 - Add "add" buttons by each address, email, and phone numbers on contact-detail, and create views etc. and bin tertiary nav
 - Add "archived" logic for addresses, emails, and phone numbers. Do not show these on vcard, and use strikethrough styling on them in detail views.
@@ -8,6 +7,7 @@
 - Add copy link to WalletAddress.address in contact-detail
 - Add copy link to Address in address-detail and contact-detail
 - Add type (home, work, etc.) to email, address, phonenumber and apply to vcard
+- Merge ContactListView and contact_list_download_view
 - Ermm... maybe... like... add some tests
 - Erm... add docblocks, pattern code, add typehints, refactor code - view classes particularly.
 
