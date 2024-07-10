@@ -11,6 +11,7 @@
             {{ filter_form.filter_value }}
             <button type="submit">Filter</button>
             <a href="{% url "contact-list" %}">Reset</a>
+            <a href="{% url "contacts-download" %}?{{ request.GET.urlencode }}">Download Queryset</a>
         </form>
     </section>
     <section>
