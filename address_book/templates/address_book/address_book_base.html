@@ -7,9 +7,6 @@
     {% if request.resolver_match.url_name != "contact-create" %}
         <a href="{% url "contact-create" %}">Contact Create</a>
     {% endif %}
-    {% if request.resolver_match.url_name != "tag-create" %}
-        <a href="{% url "tag-create" %}">Tag Create</a>
-    {% endif %}
 {% endblock subnav %}
 
 {% block tertiarynav %}
@@ -18,9 +15,6 @@
     {% endif %}
     {% if request.resolver_match.url_name == "contact-update" %}
         <a href="{% url "contact-detail" object.id %}">Contact Detail</a>
-    {% endif %}
-    {% if request.resolver_match.url_name == "contact-detail" %}
-        <a href="{% url "address-create" %}?contact_id={{ object.id }}">Address Create</a>
     {% endif %}
     {% if request.resolver_match.url_name == "address-detail" %}
         <a href="{% url "address-update" object.id %}">Address Update</a>
