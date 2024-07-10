@@ -71,7 +71,7 @@ class ContactListView(LoginRequiredMixin, OwnedByUserMixin, ListView):
         context["filter_form"] = ContactFilterForm(self.request.GET)
         return context
     
-    
+
 @login_required
 def contact_list_download_view(request):
     contacts = ContactListView(**{"request": request}).get_queryset()
@@ -179,8 +179,13 @@ class ContactUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
 
 class TagCreateView(LoginRequiredMixin, View):
     def get(self, request):
+        if request.GET.get("contact_id"):
+            form = TagForm(request.user, initial={"contacts": (request.GET.get("contact_id"))})
+        else:
+            form = TagForm(request.user)
+
         return render(request, "address_book/tag_form.html", {
-            "form": TagForm(request.user),
+            "form": form,
         })
     
     def post(self, request):
