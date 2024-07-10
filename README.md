@@ -6,6 +6,7 @@
 - Add copy link to Address in address-detail and contact-detail
 - Add type (home, work, etc.) to email, address, phonenumber and apply to vcard
 - Merge ContactListView and contact_list_download_view
+- Add Profession as a model
 - Add option to filter by multiple fields to ContactList
 - Ermm... maybe... like... add some tests
 - Erm... add docblocks, pattern code, add typehints, refactor code - view classes particularly.
