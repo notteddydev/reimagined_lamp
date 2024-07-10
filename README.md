@@ -1,6 +1,5 @@
 ### ToDo (AddressBook)
 
-- Action to download vcard for contact
 - Action to download all vcards on display in contact-list - maybe this will mean more stringent filtering
 - Add more filtering to contact-list, such as Address.city, Address.neighbourhood, Address.country.verbose
 - Add "add" buttons by each address, email, and phone numbers on contact-detail, and create views etc. and bin tertiary nav
