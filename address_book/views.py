@@ -71,6 +71,19 @@ class ContactListView(LoginRequiredMixin, OwnedByUserMixin, ListView):
         context["filter_form"] = ContactFilterForm(self.request.GET)
         return context
     
+    
+@login_required
+def contact_list_download_view(request):
+    contacts = ContactListView(**{"request": request}).get_queryset()
+    vcards = [contact.vcard for contact in contacts]
+    vcf = "\n".join(vcards)
+
+    response = HttpResponse(vcf, content_type='text/vcard')
+    response['Content-Disposition'] = 'attachment; filename="contacts.vcf"'
+    
+    return response
+
+
 class ContactCreateView(LoginRequiredMixin, View):
     def get(self, request):
         return render(request, "address_book/contact_form.html", {
