@@ -1,6 +1,5 @@
 ### ToDo (AddressBook)
 
-- Conditionally render further information in contact-detail
 - Action to download vcard for contact
 - Action to download all vcards on display in contact-list - maybe this will mean more stringent filtering
 - Add more filtering to contact-list, such as Address.city, Address.neighbourhood, Address.country.verbose
