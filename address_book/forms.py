@@ -58,14 +58,18 @@ class AddressForm(forms.ModelForm):
 class ContactFilterForm(forms.Form):
     FILTER_FIELD_CHOICES = [
         ("", "-- Select Field --"),
+        ("addresses__city", "City"),
+        ("addresses__country__verbose", "Country"),
         ("email__email", "Email"),
         ("first_name", "First Name"),
         ("addresses__landline__number", "Landline"),
         ("last_name", "Last Name"),
         ("nationality__verbose", "Nationality"),
+        ("addresses__neighbourhood", "Neighbourhood"),
         ("nickname", "Nickname"),
         ("phonenumber__number", "Phone Number"),
         ("profession", "Profession"),
+        ("addresses__state", "State"),
         ("tags__name", "Tag"),
         ("walletaddress__address", "Wallet Address"),
         ("year_met", "Year Met"),
