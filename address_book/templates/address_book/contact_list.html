@@ -20,6 +20,9 @@
                     <tr>
                         <th>{{ contact }}</th>
                         <td>
+                            <a href="{% url "contact-download" contact.id %}">Download</a>
+                        </td>
+                        <td>
                             <a href="{% url "contact-detail" contact.id %}">View</a>
                         </td>
                         <td>
