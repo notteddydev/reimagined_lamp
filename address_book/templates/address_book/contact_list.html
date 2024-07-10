@@ -21,16 +21,10 @@
                     <tr>
                         <th>{{ contact }}</th>
                         <td>
-                            <a href="{% url "contact-download" contact.id %}">Download</a>
-                        </td>
-                        <td>
                             <a href="{% url "contact-detail" contact.id %}">View</a>
                         </td>
                         <td>
                             <a href="{% url "contact-update" contact.id %}">Update</a>
-                        </td>
-                        <td>
-                            <a href="{% url "address-create" %}?contact_id={{ contact.id }}">Add Address</a>
                         </td>
                     </tr>
                 {% endfor %}
