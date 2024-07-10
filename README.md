@@ -10,6 +10,7 @@
 - Merge ContactListView and contact_list_download_view
 - Ermm... maybe... like... add some tests
 - Erm... add docblocks, pattern code, add typehints, refactor code - view classes particularly.
+- Create option to download a "lite" vcard, or customise what is downloaded.
 
 
 ### Handy Links
