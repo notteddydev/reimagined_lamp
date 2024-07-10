@@ -5,7 +5,12 @@
 {% block header %}Contact Detail{% endblock header %}
 
 {% block content %}
-    <img src="{% url "contact-qrcode" contact.id %}" height="200" width="200">
+    <figure>
+        <img src="{% url "contact-qrcode" contact.id %}" height="200" width="200">
+        <figcaption>
+            <a href="{% url "contact-download" contact.id %}">Download VCF</a>
+        </figcaption>
+    </figure>
     <h2>
         {% if contact.is_business %}
             Business: 
@@ -14,9 +19,6 @@
         {% if contact.nickname|length %}
              ({{ contact.nickname }})
         {% endif %}
-        <small>
-            <a href="{% url "contact-download" contact.id %}">Download</a>
-        </small>
     </h2>
     <h3>Met in {{ contact.year_met }}, known for {{ contact.known_for_years }} years.</h3>
     {% if contact.phonenumber_set.all|length %}
