@@ -1,6 +1,5 @@
 ### ToDo (AddressBook)
 
-- Add "add" buttons by each address, email, and phone numbers on contact-detail, and create views etc. and bin tertiary nav
 - Add "archived" logic for addresses, emails, and phone numbers. Do not show these on vcard, and use strikethrough styling on them in detail views.
 - Maybe more effort that it's worth, but attach vcard to email / sms / whatsapp message
 - Add copy link to WalletAddress.address in contact-detail
