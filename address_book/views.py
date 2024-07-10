@@ -25,7 +25,7 @@ def contact_qrcode(request, pk):
         version=1,
         error_correction=qrcode.constants.ERROR_CORRECT_L,
         box_size=10,
-        border=4,
+        border=0,
     )
     qr.add_data(contact.vcard)
     qr.make(fit=True)
