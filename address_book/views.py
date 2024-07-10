@@ -1,17 +1,23 @@
 from typing import Any
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.views.generic import DetailView, ListView, View
+from django.template.defaultfilters import slugify
 from django.urls import reverse
+from django.views.generic import DetailView, ListView, View
 
 from .forms import AddressForm, ContactFilterForm, ContactForm, EmailCreateFormSet, EmailUpdateFormSet, PhoneNumberCreateFormSet, PhoneNumberUpdateFormSet, TagForm, WalletAddressCreateFormSet, WalletAddressUpdateFormSet
 from .models import Address, Contact
+from app.decorators import owned_by_user
 from app.mixins import OwnedByUserMixin
 
 import qrcode
 from io import BytesIO
 
+
+@login_required
+@owned_by_user(Contact)
 def contact_qrcode(request, pk):
     contact = get_object_or_404(Contact, pk=pk)
 
@@ -33,6 +39,18 @@ def contact_qrcode(request, pk):
     buffer.seek(0)
 
     return HttpResponse(buffer, content_type="image/png")
+
+
+@login_required
+@owned_by_user(Contact)
+def contact_download(request, pk):
+    contact = get_object_or_404(Contact, pk=pk)
+
+    response = HttpResponse(contact.vcard, content_type='text/vcard')
+    response['Content-Disposition'] = f"attachment; filename={slugify(contact.full_name)}.vcf"
+
+    return response
+
 
 class ContactListView(LoginRequiredMixin, OwnedByUserMixin, ListView):
     model = Contact
