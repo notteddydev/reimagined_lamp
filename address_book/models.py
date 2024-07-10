@@ -7,6 +7,12 @@ from django.urls import reverse
 
 from phonenumber_field.modelfields import PhoneNumberField
 
+class Archiveable(models.Model):
+    archived = models.BooleanField(default=False, null=False)
+
+    class Meta:
+        abstract = True
+
 class Nation(models.Model):
     code=models.CharField(blank=False, max_length=3)
     verbose=models.CharField(blank=False, max_length=50)
