@@ -106,6 +106,15 @@ class Contact(models.Model):
             BDAY:{self.dob.strftime("%Y%m%d")}
             """
 
+        for address in self.addresses.all():
+            addr = f"{address.address_line_1};{address.address_line_2};"
+            if address.neighbourhood:
+                addr += f"{address.neighbourhood}, "
+            addr += f"{address.city};{address.state};{address.postcode};{address.country.verbose}"
+            vcard += f"""
+            ADR:{addr}
+            """
+
         for email in self.email_set.values_list("email", flat=True):
             vcard += f"""
             EMAIL;TYPE=INTERNET,HOME:{email}
