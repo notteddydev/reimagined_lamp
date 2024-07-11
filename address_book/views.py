@@ -252,8 +252,3 @@ class AddressUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
 
 class AddressDetailView(LoginRequiredMixin, OwnedByUserMixin, DetailView):
     model = Address
-
-    def get_context_data(self, **kwargs: Any) -> dict[str, Any]:
-        context = super().get_context_data(**kwargs)
-        context['contacts'] = self.object.contact_set.all()
-        return context
