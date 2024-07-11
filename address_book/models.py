@@ -34,6 +34,7 @@ class Archiveable(models.Model):
 
     class Meta:
         abstract = True
+        ordering = ["archived"]
 
 
 class Nation(models.Model):
@@ -62,7 +63,7 @@ class ContactAddress(Archiveable):
     contact=models.ForeignKey("Contact", on_delete=models.CASCADE)
     address=models.ForeignKey("Address", on_delete=models.CASCADE)
 
-    class Meta:
+    class Meta(Archiveable.Meta):
         unique_together = ("contact", "address")
         
 
