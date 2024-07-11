@@ -180,20 +180,27 @@ class Contact(models.Model):
 
 
 class PhoneNumber(Archiveable):
-    number=PhoneNumberField(null=False)
-    contact=models.ForeignKey(Contact, on_delete=models.CASCADE, null=True)
+    TYPE_HOME = "HOME"
+    TYPE_WORK = "WORK"
+    TYPE_CELL = "CELL"
+    TYPE_FAX = "FAX"
+    TYPE_PAGER = "PAGER"
+    TYPE_VOICE = "VOICE"
+    TYPE_VIDEO = "VIDEO"
+    TYPE_TEXT = "TEXT"
     TYPE_CHOICES = [
         (None, "-- Select Type --"),
-        ("HOME", "Home",),
-        ("WORK", "Work",),
-        ("CELL", "Mobile",),
-        ("FAX", "Fax",),
-        ("PAGER", "Pager",),
-        ("VOICE", "Voice",),
-        ("VIDEO", "Video",),
-        ("TEXT", "Text",),
+        (TYPE_HOME, "Home",),
+        (TYPE_WORK, "Work",),
+        (TYPE_CELL, "Mobile",),
+        (TYPE_FAX, "Fax",),
+        (TYPE_PAGER, "Pager",),
+        (TYPE_VOICE, "Voice",),
+        (TYPE_VIDEO, "Video",),
+        (TYPE_TEXT, "Text",),
     ]
-
+    number=PhoneNumberField(null=False)
+    contact=models.ForeignKey(Contact, on_delete=models.CASCADE, null=True)
     type=models.CharField(blank=False, choices=TYPE_CHOICES, max_length=5)
     
     @property
@@ -214,6 +221,24 @@ class PhoneNumber(Archiveable):
 
 
 class Address(models.Model):
+    TYPE_HOME = "HOME"
+    TYPE_WORK = "WORK"
+    TYPE_DOM = "DOM"
+    TYPE_INTL = "INTL"
+    TYPE_POSTAL = "POSTAL"
+    TYPE_PARCEL = "PARCEL"
+    TYPE_PREF = "PREF"
+    TYPE_CHOICES = [
+        (None, "-- Select Type --"),
+        (TYPE_HOME, "Home",),
+        (TYPE_WORK, "Work",),
+        (TYPE_DOM, "Domestic",),
+        (TYPE_INTL, "International",),
+        (TYPE_POSTAL, "Postal",),
+        (TYPE_PARCEL, "Parcel",),
+        (TYPE_PREF, "Preferred",),
+    ]
+
     user=models.ForeignKey(User, on_delete=models.CASCADE)
     address_line_1=models.CharField(max_length=100)
     address_line_2=models.CharField(blank=True, max_length=100)
@@ -224,6 +249,7 @@ class Address(models.Model):
     country=models.ForeignKey(Nation, on_delete=models.SET_NULL, null=True)
     notes=models.TextField(blank=True)
     landline=models.OneToOneField(PhoneNumber, on_delete=models.SET_NULL, null=True)
+    type=models.CharField(blank=False, choices=TYPE_CHOICES, max_length=6)
 
     @property
     def readable(self):
@@ -242,6 +268,10 @@ class Address(models.Model):
 
         return readable
     
+    @property
+    def type_hr(self):
+        return dict(self.TYPE_CHOICES).get(self.type)
+    
     def __str__(self):
         return f"{self.address_line_1} {self.city}"
     
@@ -250,15 +280,18 @@ class Address(models.Model):
 
 
 class Email(Archiveable):
-    email=models.EmailField(unique=True)
-    contact=models.ForeignKey(Contact, on_delete=models.CASCADE)
+    TYPE_HOME = "HOME"
+    TYPE_WORK = "WORK"
+    TYPE_PREF = "PREF"
     TYPE_CHOICES = [
         (None, "-- Select Type --"),
-        ("HOME", "Home",),
-        ("WORK", "Work",),
-        ("PREF", "Preferred",),
+        (TYPE_HOME, "Home",),
+        (TYPE_WORK, "Work",),
+        (TYPE_PREF, "Preferred",),
     ]
 
+    email=models.EmailField(unique=True)
+    contact=models.ForeignKey(Contact, on_delete=models.CASCADE)
     type=models.CharField(blank=False, choices=TYPE_CHOICES, max_length=4)
 
     @property
