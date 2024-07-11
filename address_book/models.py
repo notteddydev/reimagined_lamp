@@ -227,15 +227,6 @@ class AddressType(models.Model):
         return self.verbose
 
 
-class AddressAddressType(models.Model):
-    address=models.ForeignKey("Address", on_delete=models.CASCADE)
-    address_type=models.ForeignKey(AddressType, on_delete=models.CASCADE)
-
-    class Meta:
-        db_table = "address_book_address_address_types"
-        unique_together = ("address", "address_type")
-
-
 class Address(models.Model):
     user=models.ForeignKey(User, on_delete=models.CASCADE)
     address_line_1=models.CharField(max_length=100)
@@ -247,7 +238,7 @@ class Address(models.Model):
     country=models.ForeignKey(Nation, on_delete=models.SET_NULL, null=True)
     notes=models.TextField(blank=True)
     landline=models.OneToOneField(PhoneNumber, on_delete=models.SET_NULL, null=True)
-    types=models.ManyToManyField(AddressType, through=AddressAddressType)
+    address_types=models.ManyToManyField(AddressType)
 
     @property
     def readable(self):
@@ -267,12 +258,12 @@ class Address(models.Model):
         return readable
     
     @property
-    def types_hr(self):
-        return ", ".join(self.types.values_list("verbose", flat=True))
+    def address_types_hr(self):
+        return ", ".join(self.address_types.values_list("verbose", flat=True))
     
     @property
     def vcard_entry(self):
-        adr = f"ADR;TYPE={','.join(self.types.values_list('name', flat=True))}:"
+        adr = f"ADR;TYPE={','.join(self.address_types.values_list('name', flat=True))}:"
         adr += f"{self.address_line_1};{self.address_line_2};"
         if self.neighbourhood:
             adr += f"{self.neighbourhood}, "
