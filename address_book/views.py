@@ -1,13 +1,13 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.http import HttpResponse
+from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.defaultfilters import slugify
 from django.urls import reverse
 from django.views.generic import DetailView, ListView, View
 
 from .forms import AddressForm, ContactFilterForm, ContactForm, EmailCreateFormSet, EmailUpdateFormSet, PhoneNumberCreateFormSet, PhoneNumberUpdateFormSet, TagForm, WalletAddressCreateFormSet, WalletAddressUpdateFormSet
-from .models import Address, Contact
+from .models import Address, Contact, ContactAddress
 from app.decorators import owned_by_user
 from app.mixins import OwnedByUserMixin
 
@@ -81,6 +81,18 @@ def contact_list_download_view(request):
     response['Content-Disposition'] = 'attachment; filename="contacts.vcf"'
     
     return response
+
+
+class ContactAddressToggleArchiveView(LoginRequiredMixin, UserPassesTestMixin, View):
+    def post(self, request, pk):
+        contactaddress = get_object_or_404(ContactAddress, pk=pk)
+        contactaddress.archived = not contactaddress.archived
+        contactaddress.save()
+
+        return HttpResponseRedirect(request.META["HTTP_REFERER"])
+
+    def test_func(self) -> bool | None:
+        return ContactAddress.objects.filter(pk=self.kwargs['pk'], contact__user=self.request.user).exists()
 
 
 class ContactCreateView(LoginRequiredMixin, View):
