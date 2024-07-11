@@ -1,4 +1,3 @@
-from typing import Any
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.http import HttpResponse
@@ -222,6 +221,7 @@ class AddressCreateView(LoginRequiredMixin, View):
             "form": form,
         })
     
+
 class AddressUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
     def get(self, request, pk):
         address = get_object_or_404(Address, pk=pk)
