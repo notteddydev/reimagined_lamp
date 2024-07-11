@@ -68,6 +68,8 @@ class ContactAddress(Archiveable):
         
 
 class Contact(models.Model):
+    YEAR_MET_CHOICES = list(map(lambda year: (year, str(year)), range(1996, datetime.now().year + 1)[::-1]))
+
     user=models.ForeignKey(User, on_delete=models.CASCADE)
     first_name=models.CharField(blank=False, max_length=100)
     middle_names=models.CharField(blank=True, max_length=200)
@@ -81,10 +83,7 @@ class Contact(models.Model):
     dod=models.DateField(blank=True, null=True)
     anniversary=models.DateField(blank=True, null=True)
     addresses=models.ManyToManyField("Address", blank=True, through=ContactAddress)
-
     nationality=models.ManyToManyField(Nation, blank=True)
-    
-    YEAR_MET_CHOICES = list(map(lambda year: (year, str(year)), range(1996, datetime.now().year + 1)[::-1]))
     year_met=models.SmallIntegerField(
         blank=False,
         choices=[(None, "-- Select Year --")] + YEAR_MET_CHOICES,
