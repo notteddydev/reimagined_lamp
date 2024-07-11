@@ -17,6 +17,7 @@
                 <caption>Landline</caption>
                 <tbody>
                     <tr>
+                        <th>{{ object.landline.type_hr }}</th>
                         <td>{{ object.landline.number }}</td>
                         <td>
                             <a href="{{ object.landline.tel_href }}" target="_blank">Call</a>
@@ -29,7 +30,7 @@
     <section>
         <table>
             <caption>
-                Address
+                {{ object.type_hr }} Address
                 <small>
                     <a
                         href="javascript:;"
