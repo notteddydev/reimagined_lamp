@@ -151,14 +151,14 @@ class Contact(models.Model):
             addr += f"{address.city};{address.state};{address.postcode};{address.country.verbose}"
             vcard += f"""ADR:{addr}\n"""
 
-        for email in self.email_set.unarchived().values_list("email", flat=True):
-            vcard += f"""EMAIL;TYPE=INTERNET,HOME:{email}\n"""
+        for email in self.email_set.unarchived():
+            vcard += f"""EMAIL;TYPE=INTERNET,{email.type}:{email.email}\n"""
 
-        for landline in self.contactaddress_set.unarchived().exclude(address__landline__isnull=True).values_list("address__landline__number", flat=True):
-            vcard += f"""TEL;TYPE=HOME,VOICE:{landline}\n"""
+        for contactaddress in self.contactaddress_set.unarchived().exclude(address__landline__isnull=True):
+            vcard += f"""TEL;TYPE={contactaddress.address.landline.type}:{contactaddress.address.landline.number}\n"""
 
-        for phonenumber in self.phonenumber_set.unarchived().values_list("number", flat=True):
-            vcard += f"""TEL;TYPE=CELL,VOICE:{phonenumber}\n"""
+        for phonenumber in self.phonenumber_set.unarchived():
+            vcard += f"""TEL;TYPE={phonenumber.type}:{phonenumber.number}\n"""
 
         vcard += """END:VCARD"""
         vcard = "\n".join(line.strip() for line in vcard.strip().split("\n"))
