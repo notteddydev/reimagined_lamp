@@ -35,6 +35,7 @@ class Archiveable(models.Model):
     class Meta:
         abstract = True
 
+
 class Nation(models.Model):
     code=models.CharField(blank=False, max_length=3)
     verbose=models.CharField(blank=False, max_length=50)
@@ -44,6 +45,7 @@ class Nation(models.Model):
 
     class Meta:
         ordering = ["verbose"]
+
 
 class Tag(models.Model):
     user=models.ForeignKey(User, on_delete=models.CASCADE)
@@ -237,6 +239,7 @@ class Email(Archiveable):
     def href(self):
         return f"mailto:{self.email}"
 
+
 class CryptoNetwork(models.Model):
     name=models.CharField(max_length=100, unique=True)
     symbol=models.CharField(max_length=3, unique=True)
@@ -246,6 +249,7 @@ class CryptoNetwork(models.Model):
 
     class Meta:
         ordering = ["name"]
+
 
 class WalletAddress(Archiveable):
     TRANSMISSION_CHOICES = [
