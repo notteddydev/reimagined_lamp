@@ -1,7 +1,5 @@
 ### ToDo (AddressBook)
 
-- Add "archived" logic for addresses, emails, and phone numbers. Do not show these on vcard, and use strikethrough styling on them in detail views.
-- Maybe more effort that it's worth, but attach vcard to email / sms / whatsapp message
 - Add copy link to WalletAddress.address in contact-detail
 - Add copy link to Address in address-detail and contact-detail
 - Add type (home, work, etc.) to email, address, phonenumber and apply to vcard
@@ -13,6 +11,7 @@
 - Create option to download a "lite" vcard, or customise what is downloaded.
 - Deletion logic - contacts, addresses
 - Look into related descriptors and using a custom ManyToManyDescriptor for Addresses to Contacts to make sure that Address always comes prepopulated with the 'archived' db field. As well as a custom object manager.
+- Maybe more effort that it's worth, but attach vcard to email / sms / whatsapp message
 
 
 ### Handy Links
