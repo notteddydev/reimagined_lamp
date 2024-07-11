@@ -11,6 +11,8 @@
 - Ermm... maybe... like... add some tests
 - Erm... add docblocks, pattern code, add typehints, refactor code - view classes particularly.
 - Create option to download a "lite" vcard, or customise what is downloaded.
+- Deletion logic - contacts, addresses
+- Look into related descriptors and using a custom ManyToManyDescriptor for Addresses to Contacts to make sure that Address always comes prepopulated with the 'archived' db field. As well as a custom object manager.
 
 
 ### Handy Links
