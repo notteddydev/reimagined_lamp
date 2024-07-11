@@ -33,14 +33,6 @@ class AddressForm(forms.ModelForm):
             landline.number = landline_number
         else:
             landline = PhoneNumber(number=landline_number)
-
-        if landline != None:
-            if address.type == Address.TYPE_HOME:
-                landline.type = PhoneNumber.TYPE_HOME
-            elif address.type == Address.TYPE_WORK:
-                landline.type = PhoneNumber.TYPE_WORK
-            else:
-                landline.type = PhoneNumber.TYPE_VOICE
         
         address.landline = landline
 
@@ -53,6 +45,8 @@ class AddressForm(forms.ModelForm):
             
             # Check for PK makes sure this only happens once address has been saved.
             if address.pk:
+                self.save_m2m()
+
                 for contactaddress in address.contactaddress_set.all():
                     if contactaddress.contact_id not in self.cleaned_data["contacts"].values_list("id", flat=True):
                         contactaddress.delete()
