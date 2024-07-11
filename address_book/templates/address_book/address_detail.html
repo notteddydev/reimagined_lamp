@@ -72,14 +72,17 @@
         <table>
             <caption>Tenants</caption>
             <tbody>
-                {% for contact in object.contact_set.all %}
+                {% for contactaddress in object.contactaddress_set.all %}
                     <tr>
-                        <td>{{ contact }}</td>
+                        <td {% if contactaddress.archived %}class="linethrough"{% endif %}>{{ contactaddress.contact }}</td>
                         <td>
-                            <a href="{% url "contact-detail" contact.id %}">View</a>
-                        </td>
-                        <td>
-                            <a href="{% url "contact-update" contact.id %}">Update</a>
+                            <a href="{% url "contact-detail" contactaddress.contact.id %}">View</a>
+                            <a href="{% url "contact-update" contactaddress.contact.id %}">Update</a>
+                            {% if contactaddress.archived %}
+                                <a href="">Unarchive</a>
+                            {% else %}
+                                <a href="">Archive</a>
+                            {% endif %}
                         </td>
                     </tr>
                 {% endfor %}
