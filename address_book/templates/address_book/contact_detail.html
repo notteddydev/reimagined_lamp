@@ -140,10 +140,10 @@
                             <td {% if contactaddress.archived %}class="linethrough"{% endif %}>{{ contactaddress.address.address_line_1 }}</td>
                             <td>
                                 <a href="{% url "address-detail" contactaddress.address.id %}">View</a>
+                                <a href="{% url "address-update" contactaddress.address.id %}">Update</a>
                                 {% if contactaddress.archived %}
                                     <a href="">Unarchive</a>
                                 {% else %}
-                                    <a href="{% url "address-update" contactaddress.address.id %}">Update</a>
                                     <a href="">Archive</a>
                                 {% endif %}
                             </td>
