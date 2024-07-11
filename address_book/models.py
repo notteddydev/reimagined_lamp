@@ -272,11 +272,12 @@ class Address(models.Model):
     
     @property
     def vcard_entry(self):
-        adr = f"{self.address_line_1};{self.address_line_2};"
+        adr = f"ADR;TYPE={','.join(self.types.values_list('name', flat=True))}:"
+        adr += f"{self.address_line_1};{self.address_line_2};"
         if self.neighbourhood:
             adr += f"{self.neighbourhood}, "
             
-        return f"ADR:{adr}{self.city};{self.state};{self.postcode};{self.country.verbose}"
+        return f"{adr}{self.city};{self.state};{self.postcode};{self.country.verbose}"
     
     def __str__(self):
         return f"{self.address_line_1} {self.city}"
