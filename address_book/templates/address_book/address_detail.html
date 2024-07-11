@@ -1,7 +1,12 @@
 {% extends "address_book/address_book_base.html" %}
 {% load getattribute %}
+{% load static %}
 
 {% block title %}Address Book{% endblock title %}
+
+{% block scripts %}
+    <script src="{% static "copyToClipboard.js" %}"></script>
+{% endblock scripts %}
 
 {% block header %}Address Detail{% endblock header %}
 
@@ -23,7 +28,17 @@
     {% endif %}
     <section>
         <table>
-            <caption>Address</caption>
+            <caption>
+                Address
+                <small>
+                    <a
+                        href="javascript:;"
+                        onclick="copyToClipboard('{{ address.readable|escapejs }}')"
+                    >
+                        Copy
+                    </a>
+                </small>
+            </caption>
             <tbody>
                 {% if address|getattribute:"address_line_1" %}
                     <tr>
@@ -62,7 +77,7 @@
                 {% endif %}
                 {% if address|getattribute:"notes" %}
                     <tr>
-                        <td>{{ address.notes }}</td>
+                        <td>Notes: {{ address.notes }}</td>
                     </tr>
                 {% endif %}
             </tbody>
