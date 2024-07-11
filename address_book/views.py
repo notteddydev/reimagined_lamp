@@ -17,7 +17,7 @@ from io import BytesIO
 
 @login_required
 @owned_by_user(Contact)
-def contact_qrcode(request, pk):
+def contact_qrcode_view(request, pk):
     contact = get_object_or_404(Contact, pk=pk)
 
     qr = qrcode.QRCode(
@@ -42,7 +42,7 @@ def contact_qrcode(request, pk):
 
 @login_required
 @owned_by_user(Contact)
-def contact_download(request, pk):
+def contact_download_view(request, pk):
     contact = get_object_or_404(Contact, pk=pk)
 
     response = HttpResponse(contact.vcard, content_type='text/vcard')
