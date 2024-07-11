@@ -194,7 +194,7 @@ class PhoneNumber(Archiveable):
         ("TEXT", "Text",),
     ]
 
-    type=models.CharField(blank=False, choices=TYPE_CHOICES, max_length=12)
+    type=models.CharField(blank=False, choices=TYPE_CHOICES, max_length=5)
     
     @property
     def sms_href(self):
@@ -252,10 +252,22 @@ class Address(models.Model):
 class Email(Archiveable):
     email=models.EmailField(unique=True)
     contact=models.ForeignKey(Contact, on_delete=models.CASCADE)
+    TYPE_CHOICES = [
+        (None, "-- Select Type --"),
+        ("HOME", "Home",),
+        ("WORK", "Work",),
+        ("PREF", "Preferred",),
+    ]
+
+    type=models.CharField(blank=False, choices=TYPE_CHOICES, max_length=4)
 
     @property
     def href(self):
         return f"mailto:{self.email}"
+    
+    @property
+    def type_hr(self):
+        return dict(self.TYPE_CHOICES).get(self.type)
 
 
 class CryptoNetwork(models.Model):

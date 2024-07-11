@@ -49,6 +49,7 @@
                 <tbody>
                     {% for email in contact.email_set.all %}
                         <tr>
+                            <th {% if email.archived %} class="linethrough" {% endif %}>{{ email.type_hr }}</th>
                             <td {% if email.archived %} class="linethrough" {% endif %}>{{ email.email }}</td>
                             <td>
                                 {% if not email.archived %}
