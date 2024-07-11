@@ -136,8 +136,8 @@
             {% if contact.contactaddress_set.all|length %}
                 <tbody>
                     {% for contactaddress in contact.contactaddress_set.all %}
-                        <tr {% if contactaddress.archived %}class="linethrough"{% endif %}>
-                            <td>{{ contactaddress.address.address_line_1 }}</td>
+                        <tr>
+                            <td {% if contactaddress.archived %}class="linethrough"{% endif %}>{{ contactaddress.address.address_line_1 }}</td>
                             <td>
                                 {% if not contactaddress.archived %}
                                     <a href="{% url "address-detail" contactaddress.address.id %}">View</a>
