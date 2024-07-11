@@ -39,7 +39,7 @@ class Archiveable(models.Model):
 
 class Nation(models.Model):
     code=models.CharField(blank=False, max_length=3)
-    verbose=models.CharField(blank=False, max_length=50)
+    verbose=models.CharField(blank=False, max_length=52)
 
     def __str__(self):
         return self.verbose
@@ -64,6 +64,7 @@ class ContactAddress(Archiveable):
     address=models.ForeignKey("Address", on_delete=models.CASCADE)
 
     class Meta(Archiveable.Meta):
+        db_table = "address_book_contact_addresses"
         unique_together = ("contact", "address")
         
 
@@ -216,27 +217,26 @@ class PhoneNumber(Archiveable):
     @property
     def wa_href(self):
         return f"https://wa.me/{self.number}"
+    
+
+class AddressType(models.Model):
+    name=models.CharField(max_length=6)
+    verbose=models.CharField(max_length=15)
+
+    def __str__(self):
+        return self.verbose
+
+
+class AddressAddressType(models.Model):
+    address=models.ForeignKey("Address", on_delete=models.CASCADE)
+    address_type=models.ForeignKey(AddressType, on_delete=models.CASCADE)
+
+    class Meta:
+        db_table = "address_book_address_address_types"
+        unique_together = ("address", "address_type")
 
 
 class Address(models.Model):
-    TYPE_HOME = "HOME"
-    TYPE_WORK = "WORK"
-    TYPE_DOM = "DOM"
-    TYPE_INTL = "INTL"
-    TYPE_POSTAL = "POSTAL"
-    TYPE_PARCEL = "PARCEL"
-    TYPE_PREF = "PREF"
-    TYPE_CHOICES = [
-        (None, "-- Select Type --"),
-        (TYPE_HOME, "Home",),
-        (TYPE_WORK, "Work",),
-        (TYPE_DOM, "Domestic",),
-        (TYPE_INTL, "International",),
-        (TYPE_POSTAL, "Postal",),
-        (TYPE_PARCEL, "Parcel",),
-        (TYPE_PREF, "Preferred",),
-    ]
-
     user=models.ForeignKey(User, on_delete=models.CASCADE)
     address_line_1=models.CharField(max_length=100)
     address_line_2=models.CharField(blank=True, max_length=100)
@@ -247,7 +247,7 @@ class Address(models.Model):
     country=models.ForeignKey(Nation, on_delete=models.SET_NULL, null=True)
     notes=models.TextField(blank=True)
     landline=models.OneToOneField(PhoneNumber, on_delete=models.SET_NULL, null=True)
-    type=models.CharField(blank=False, choices=TYPE_CHOICES, max_length=6)
+    types=models.ManyToManyField(AddressType, through=AddressAddressType)
 
     @property
     def readable(self):
@@ -267,8 +267,8 @@ class Address(models.Model):
         return readable
     
     @property
-    def type_hr(self):
-        return dict(self.TYPE_CHOICES).get(self.type)
+    def types_hr(self):
+        return ", ".join(self.types.values_list("verbose", flat=True))
     
     @property
     def vcard_entry(self):
