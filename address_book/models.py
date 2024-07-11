@@ -182,6 +182,19 @@ class Contact(models.Model):
 class PhoneNumber(Archiveable):
     number=PhoneNumberField(null=False)
     contact=models.ForeignKey(Contact, on_delete=models.CASCADE, null=True)
+    TYPE_CHOICES = [
+        (None, "-- Select Type --"),
+        ("HOME", "Home",),
+        ("WORK", "Work",),
+        ("CELL", "Mobile",),
+        ("FAX", "Fax",),
+        ("PAGER", "Pager",),
+        ("VOICE", "Voice",),
+        ("VIDEO", "Video",),
+        ("TEXT", "Text",),
+    ]
+
+    type=models.CharField(blank=False, choices=TYPE_CHOICES, max_length=12)
     
     @property
     def sms_href(self):
@@ -190,6 +203,10 @@ class PhoneNumber(Archiveable):
     @property
     def tel_href(self):
         return f"tel:{self.number}"
+    
+    @property
+    def type_hr(self):
+        return dict(self.TYPE_CHOICES).get(self.type)
     
     @property
     def wa_href(self):
