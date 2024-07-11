@@ -144,21 +144,16 @@ class Contact(models.Model):
             vcard += f"""BDAY:{self.dob.strftime("%Y%m%d")}\n"""
 
         for contactaddress in self.contactaddress_set.unarchived():
-            address = contactaddress.address
-            addr = f"{address.address_line_1};{address.address_line_2};"
-            if address.neighbourhood:
-                addr += f"{address.neighbourhood}, "
-            addr += f"{address.city};{address.state};{address.postcode};{address.country.verbose}"
-            vcard += f"""ADR:{addr}\n"""
+            vcard += f"{contactaddress.address.vcard_entry}\n"
 
         for email in self.email_set.unarchived():
-            vcard += f"""EMAIL;TYPE=INTERNET,{email.type}:{email.email}\n"""
+            vcard += f"{email.vcard_entry}\n"
 
         for contactaddress in self.contactaddress_set.unarchived().exclude(address__landline__isnull=True):
-            vcard += f"""TEL;TYPE={contactaddress.address.landline.type}:{contactaddress.address.landline.number}\n"""
+            vcard += f"{contactaddress.address.landline.vcard_entry}\n"
 
         for phonenumber in self.phonenumber_set.unarchived():
-            vcard += f"""TEL;TYPE={phonenumber.type}:{phonenumber.number}\n"""
+            vcard += f"{phonenumber.vcard_entry}\n"
 
         vcard += """END:VCARD"""
         vcard = "\n".join(line.strip() for line in vcard.strip().split("\n"))
@@ -214,6 +209,10 @@ class PhoneNumber(Archiveable):
     @property
     def type_hr(self):
         return dict(self.TYPE_CHOICES).get(self.type)
+    
+    @property
+    def vcard_entry(self):
+        return f"TEL;TYPE={self.type}:{self.number}"
     
     @property
     def wa_href(self):
@@ -272,6 +271,14 @@ class Address(models.Model):
     def type_hr(self):
         return dict(self.TYPE_CHOICES).get(self.type)
     
+    @property
+    def vcard_entry(self):
+        adr = f"{self.address_line_1};{self.address_line_2};"
+        if self.neighbourhood:
+            adr += f"{self.neighbourhood}, "
+            
+        return f"ADR:{adr}{self.city};{self.state};{self.postcode};{self.country.verbose}"
+    
     def __str__(self):
         return f"{self.address_line_1} {self.city}"
     
@@ -301,6 +308,10 @@ class Email(Archiveable):
     @property
     def type_hr(self):
         return dict(self.TYPE_CHOICES).get(self.type)
+    
+    @property
+    def vcard_entry(self):
+        return f"EMAIL;TYPE=INTERNET,{self.type}:{self.email}"
 
 
 class CryptoNetwork(models.Model):
