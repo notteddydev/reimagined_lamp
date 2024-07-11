@@ -141,11 +141,20 @@
                             <td>
                                 <a href="{% url "address-detail" contactaddress.address.id %}">View</a>
                                 <a href="{% url "address-update" contactaddress.address.id %}">Update</a>
-                                {% if contactaddress.archived %}
-                                    <a href="">Unarchive</a>
-                                {% else %}
-                                    <a href="">Archive</a>
-                                {% endif %}
+                                <form
+                                    action="{% url "contactaddress-toggle-archive" contactaddress.id %}"
+                                    class="inline"
+                                    id="contactaddress-toggle-archived-form-{{ contactaddress.id }}"
+                                    method="POST"
+                                >
+                                    {% csrf_token %}
+                                    <a
+                                        href="javascript:;"
+                                        onclick="document.getElementById('contactaddress-toggle-archived-form-{{ contactaddress.id }}').submit()"
+                                    >
+                                        {% if contactaddress.archived %}Unarchive{% else %}Archive{% endif %}
+                                    </a>
+                                </form>
                             </td>
                         </tr>
                     {% endfor %}
