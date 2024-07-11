@@ -32,7 +32,7 @@
             font-weight: normal;
         }
 
-        #logout-form {
+        .inline {
             display: inline;
         }
 
@@ -57,7 +57,7 @@
     <nav>
         {% if user.is_authenticated %}
             <a href="{% url "home" %}">Home</a>
-            <form action="{% url "logout" %}" id="logout-form" method="POST">
+            <form action="{% url "logout" %}" class="inline" id="logout-form" method="POST">
                 {% csrf_token %}
                 <a href="javascript:;" onclick="document.getElementById('logout-form').submit()">Logout</a>
             </form>
