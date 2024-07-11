@@ -1,6 +1,7 @@
 ### ToDo (AddressBook)
 
 - Add type (home, work, etc.) to email, address, phonenumber and apply to vcard
+- Swap landline for manyToMany phone number to address. Allows for fax, landline, archiving, etc.
 - vcard_line properties for phone number, address, email
 - vcard object for setting / getting properties of a vcard? Useful for import / export
 - Merge ContactListView and contact_list_download_view
