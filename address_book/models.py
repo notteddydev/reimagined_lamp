@@ -140,20 +140,21 @@ class Contact(models.Model):
         if self.dob:
             vcard += f"""BDAY:{self.dob.strftime("%Y%m%d")}\n"""
 
-        for address in self.addresses.all():
+        for contactaddress in self.contactaddress_set.unarchived():
+            address = contactaddress.address
             addr = f"{address.address_line_1};{address.address_line_2};"
             if address.neighbourhood:
                 addr += f"{address.neighbourhood}, "
             addr += f"{address.city};{address.state};{address.postcode};{address.country.verbose}"
             vcard += f"""ADR:{addr}\n"""
 
-        for email in self.email_set.values_list("email", flat=True):
+        for email in self.email_set.unarchived().values_list("email", flat=True):
             vcard += f"""EMAIL;TYPE=INTERNET,HOME:{email}\n"""
 
-        for landline in self.addresses.values_list("landline__number", flat=True):
+        for landline in self.contactaddress_set.unarchived().exclude(address__landline__isnull=True).values_list("address__landline__number", flat=True):
             vcard += f"""TEL;TYPE=HOME,VOICE:{landline}\n"""
 
-        for phonenumber in self.phonenumber_set.values_list("number", flat=True):
+        for phonenumber in self.phonenumber_set.unarchived().values_list("number", flat=True):
             vcard += f"""TEL;TYPE=CELL,VOICE:{phonenumber}\n"""
 
         vcard += """END:VCARD"""
