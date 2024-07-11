@@ -7,8 +7,30 @@ from django.urls import reverse
 
 from phonenumber_field.modelfields import PhoneNumberField
 
+
+class ArchiveableQuerySet(models.QuerySet):
+    def archived(self):
+        return self.filter(archived=True)
+    
+    def unarchived(self):
+        return self.filter(archived=False)
+    
+
+class ArchiveableManager(models.Manager):
+    def get_queryset(self):
+        return ArchiveableQuerySet(self.model, using=self._db)
+
+    def archived(self):
+        return self.get_queryset().archived()
+
+    def unarchived(self):
+        return self.get_queryset().unarchived()
+
+
 class Archiveable(models.Model):
     archived = models.BooleanField(default=False, null=False)
+
+    objects = ArchiveableManager()
 
     class Meta:
         abstract = True
