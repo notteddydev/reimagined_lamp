@@ -27,11 +27,13 @@
                 <tbody>
                     {% for phone_number in contact.phonenumber_set.all %}
                         <tr>
-                            <td>{{ phone_number.number }}</td>
+                            <td {% if phone_number.archived %} class="linethrough" {% endif %}>{{ phone_number.number }}</td>
                             <td>
-                                <a href="{{ phone_number.sms_href }}" target="_blank">SMS</a>
-                                <a href="{{ phone_number.tel_href }}" target="_blank">Call</a>
-                                <a href="{{ phone_number.wa_href }}" target="_blank">WhatsApp</a>
+                                {% if not phone_number.archived %}
+                                    <a href="{{ phone_number.sms_href }}" target="_blank">SMS</a>
+                                    <a href="{{ phone_number.tel_href }}" target="_blank">Call</a>
+                                    <a href="{{ phone_number.wa_href }}" target="_blank">WhatsApp</a>
+                                {% endif %}
                             </td>
                         </tr>
                     {% endfor %}
@@ -46,9 +48,11 @@
                 <tbody>
                     {% for email in contact.email_set.all %}
                         <tr>
-                            <td>{{ email.email }}</td>
+                            <td {% if email.archived %} class="linethrough" {% endif %}>{{ email.email }}</td>
                             <td>
-                                <a href="{{ email.href }}" target="_blank">Email</a>
+                                {% if not email.archived %}
+                                    <a href="{{ email.href }}" target="_blank">Email</a>
+                                {% endif %}
                             </td>
                         </tr>
                     {% endfor %}
@@ -111,7 +115,7 @@
                 <caption>Wallet Addresses</caption>
                 <tbody>
                     {% for wallet_address in contact.walletaddress_set.all %}
-                        <tr>
+                        <tr {% if wallet_address.archived %} class="linethrough" {% endif %}>
                             <td>{{ wallet_address.network }}</td>
                             <td>{{ wallet_address.transmission_hr }}</td>
                             <td>{{ wallet_address.address }}</td>
@@ -121,40 +125,43 @@
             </table>
         </section>
     {% endif %}
-    {% if contact.addresses.all|length %}
-        <section>
-            <table>
-                <caption>
-                    Addresses 
-                    <small>
-                        <a href="{% url "address-create" %}?contact_id={{ object.id }}">Create</a>
-                    </small>
-                </caption>
+    <section>
+        <table>
+            <caption>
+                Addresses 
+                <small>
+                    <a href="{% url "address-create" %}?contact_id={{ object.id }}">Create</a>
+                </small>
+            </caption>
+            {% if contact.contactaddress_set.all|length %}
                 <tbody>
-                    {% for address in contact.addresses.all %}
-                        <tr>
-                            <td>{{ address.address_line_1 }}</td>
+                    {% for contactaddress in contact.contactaddress_set.all %}
+                        <tr {% if contactaddress.archived %}class="linethrough"{% endif %}>
+                            <td>{{ contactaddress.address.address_line_1 }}</td>
                             <td>
-                                <a href="{% url "address-detail" address.id %}">View</a>
-                            </td>
-                            <td>
-                                <a href="{% url "address-update" address.id %}">Update</a>
+                                {% if not contactaddress.archived %}
+                                    <a href="{% url "address-detail" contactaddress.address.id %}">View</a>
+                                    <a href="{% url "address-update" contactaddress.address.id %}">Update</a>
+                                    <a href="">Archive</a>
+                                {% else %}
+                                    <a href="">Unarchive</a>
+                                {% endif %}
                             </td>
                         </tr>
                     {% endfor %}
                 </tbody>
-            </table>
-        </section>
-    {% endif %}
-    {% if contact.tags.all|length %}
-        <section>
-            <table>
-                <caption>
-                    Tags 
-                    <small>
-                        <a href="{% url "tag-create" %}?contact_id={{ object.id }}">Create</a>
-                    </small>
-                </caption>
+            {% endif %}
+        </table>
+    </section>
+    <section>
+        <table>
+            <caption>
+                Tags 
+                <small>
+                    <a href="{% url "tag-create" %}?contact_id={{ object.id }}">Create</a>
+                </small>
+            </caption>
+            {% if contact.tags.all|length %}
                 <tbody>
                     {% for tag in contact.tags.all %}
                         <tr>
@@ -165,7 +172,7 @@
                         </tr>
                     {% endfor %}
                 </tbody>
-            </table>
-        </section>
-    {% endif %}
+            {% endif %}
+        </table>
+    </section>
 {% endblock content %}
