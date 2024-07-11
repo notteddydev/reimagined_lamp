@@ -4,7 +4,7 @@ from django import forms
 
 from phonenumber_field.formfields import SplitPhoneNumberField
 
-from .models import Address, Contact, Email, PhoneNumber, Tag, WalletAddress
+from .models import Address, Contact, ContactAddress, Email, PhoneNumber, Tag, WalletAddress
 
 
 class AddressForm(forms.ModelForm):
@@ -25,7 +25,6 @@ class AddressForm(forms.ModelForm):
         address = super().save(commit=False)
         old_landline = address.landline
         landline_number = self.cleaned_data["landline_number"]
-        address.contact_set.set(self.cleaned_data["contacts"])
 
         if not len(landline_number):
             landline = None
@@ -46,7 +45,8 @@ class AddressForm(forms.ModelForm):
             
             # Check for PK makes sure this only happens once address has been saved.
             if address.pk:
-                self.save_m2m()
+                for contact in self.cleaned_data["contacts"]:
+                    ContactAddress.objects.create(address=address, contact=contact)
 
         return address
 
