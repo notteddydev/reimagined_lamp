@@ -122,7 +122,7 @@ class ContactCreateView(LoginRequiredMixin, View):
             walletaddress_formset.instance = contact
             walletaddress_formset.save()
 
-            return redirect("contact-list")
+            return redirect(reverse("contact-detail", args=[contact.id]))
 
         return render(request, "address_book/contact_form.html", {
             "email_formset": email_formset,
