@@ -27,6 +27,7 @@
                 <tbody>
                     {% for phone_number in contact.phonenumber_set.all %}
                         <tr>
+                            <th {% if phone_number.archived %} class="linethrough" {% endif %}>{{ phone_number.type_hr }}</th>
                             <td {% if phone_number.archived %} class="linethrough" {% endif %}>{{ phone_number.number }}</td>
                             <td>
                                 {% if not phone_number.archived %}
