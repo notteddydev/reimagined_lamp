@@ -1,8 +1,8 @@
 ### ToDo (AddressBook)
 
-- Add type (home, work, etc.) to email, address, phonenumber and apply to vcard
 - Swap landline for manyToMany phone number to address. Allows for fax, landline, archiving, etc.
-- vcard_line properties for phone number, address, email
+- Swap typing for ManyToManyField. 
+- Find out why profession seems to get overridden by email address when scanning qr code on iphone.
 - vcard object for setting / getting properties of a vcard? Useful for import / export
 - Merge ContactListView and contact_list_download_view
 - Add Profession as a model
@@ -24,3 +24,4 @@
 - [Django naming conventions](https://stackoverflow.com/questions/31816624/naming-convention-for-django-url-templates-models-and-views)
 - [Setting up a django project with pipenv](https://python.plainenglish.io/setting-up-a-basic-django-project-with-pipenv-7c58fa2ec631)
 - [Creating a vcard qrcode in python](https://www.joshfinnie.com/blog/creating-a-vcard-qr-code-in-python/)
+- [Countries with regional codes](https://github.com/lukes/ISO-3166-Countries-with-Regional-Codes/blob/master/all/all.csv)
