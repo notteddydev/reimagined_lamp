@@ -1,0 +1,46 @@
+table th {
+    vertical-align: text-top;
+    text-align: left;
+}
+
+td p:first-child {
+    margin-top: 0px;
+}
+
+td p:last-child {
+    margin-bottom: 0px;
+}
+
+.subnav {
+    margin-top: 10px;
+}
+
+caption {
+    text-align: left;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+caption small {
+    font-weight: normal;
+}
+
+.inline {
+    display: inline;
+}
+
+section:not(:last-of-type) {
+    margin-bottom: 1.5rem;
+}
+
+button[type="submit"] {
+    margin-top: 1rem;
+}
+
+figure {
+    margin-left: 0px;
+}
+
+.linethrough {
+    text-decoration: line-through;
+}

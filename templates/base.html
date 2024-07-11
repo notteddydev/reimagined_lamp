@@ -1,63 +1,25 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Give Me A Title{% endblock title %}</title>
-    <style>
-        table th {
-            vertical-align: text-top;
-            text-align: left;
-        }
-
-        td p:first-child {
-            margin-top: 0px;
-        }
-
-        td p:last-child {
-            margin-bottom: 0px;
-        }
-
-        .subnav {
-            margin-top: 10px;
-        }
-
-        caption {
-            text-align: left;
-            font-size: 1.2rem;
-            font-weight: bold;
-        }
-
-        caption small {
-            font-weight: normal;
-        }
-
-        .inline {
-            display: inline;
-        }
-
-        section:not(:last-of-type) {
-            margin-bottom: 1.5rem;
-        }
-
-        button[type="submit"] {
-            margin-top: 1rem;
-        }
-
-        figure {
-            margin-left: 0px;
-        }
-
-        .linethrough {
-            text-decoration: line-through;
-        }
-    </style>
+    <link rel="stylesheet" href="{% static "base.css" %}">
+    {% block scripts %}
+    
+    {% endblock scripts %}
 </head>
 <body>
     <nav>
         {% if user.is_authenticated %}
             <a href="{% url "home" %}">Home</a>
-            <form action="{% url "logout" %}" class="inline" id="logout-form" method="POST">
+            <form
+                action="{% url "logout" %}"
+                class="inline"
+                id="logout-form"
+                method="POST"
+            >
                 {% csrf_token %}
                 <a href="javascript:;" onclick="document.getElementById('logout-form').submit()">Logout</a>
             </form>
