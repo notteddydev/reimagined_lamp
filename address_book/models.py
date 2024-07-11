@@ -33,6 +33,15 @@ class Tag(models.Model):
     class Meta:
         ordering = ["name"]
 
+
+class ContactAddress(Archiveable):
+    contact=models.ForeignKey("Contact", on_delete=models.CASCADE)
+    address=models.ForeignKey("Address", on_delete=models.CASCADE)
+
+    class Meta:
+        unique_together = ("contact", "address")
+        
+
 class Contact(models.Model):
     user=models.ForeignKey(User, on_delete=models.CASCADE)
     first_name=models.CharField(blank=False, max_length=100)
@@ -46,7 +55,8 @@ class Contact(models.Model):
     dob=models.DateField(blank=True, null=True)
     dod=models.DateField(blank=True, null=True)
     anniversary=models.DateField(blank=True, null=True)
-    addresses=models.ManyToManyField("Address", blank=True)
+    addresses=models.ManyToManyField("Address", blank=True, through=ContactAddress)
+
     nationality=models.ManyToManyField(Nation, blank=True)
     
     YEAR_MET_CHOICES = list(map(lambda year: (year, str(year)), range(1996, datetime.now().year + 1)[::-1]))
@@ -142,7 +152,8 @@ class Contact(models.Model):
     class Meta:
         ordering = ["first_name"]
 
-class PhoneNumber(models.Model):
+
+class PhoneNumber(Archiveable):
     number=PhoneNumberField(null=False)
     contact=models.ForeignKey(Contact, on_delete=models.CASCADE, null=True)
     
@@ -157,6 +168,7 @@ class PhoneNumber(models.Model):
     @property
     def wa_href(self):
         return f"https://wa.me/{self.number}"
+
 
 class Address(models.Model):
     user=models.ForeignKey(User, on_delete=models.CASCADE)
@@ -193,7 +205,8 @@ class Address(models.Model):
     class Meta:
         ordering = ["country__verbose", "city", "address_line_1"]
 
-class Email(models.Model):
+
+class Email(Archiveable):
     email=models.EmailField(unique=True)
     contact=models.ForeignKey(Contact, on_delete=models.CASCADE)
 
@@ -211,7 +224,7 @@ class CryptoNetwork(models.Model):
     class Meta:
         ordering = ["name"]
 
-class WalletAddress(models.Model):
+class WalletAddress(Archiveable):
     TRANSMISSION_CHOICES = [
         (None, "-- Select Transmission --"),
         ("they_receive", "They receive to this address",),
