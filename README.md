@@ -1,7 +1,5 @@
 ### ToDo (AddressBook)
 
-- Add copy link to WalletAddress.address in contact-detail
-- Add copy link to Address in address-detail and contact-detail
 - Add type (home, work, etc.) to email, address, phonenumber and apply to vcard
 - Merge ContactListView and contact_list_download_view
 - Add Profession as a model
@@ -12,6 +10,8 @@
 - Deletion logic - contacts, addresses
 - Look into related descriptors and using a custom ManyToManyDescriptor for Addresses to Contacts to make sure that Address always comes prepopulated with the 'archived' db field. As well as a custom object manager.
 - Maybe more effort that it's worth, but attach vcard to email / sms / whatsapp message
+- Add a site-wide button which hides archived items from all views.
+- Allow importing of contacts from .vcf files.
 
 
 ### Handy Links
