@@ -1,6 +1,5 @@
 ### ToDo (AddressBook)
 
-- Swap landline for manyToMany phone number to address. Allows for fax, landline, archiving, etc.
 - Swap typing for ManyToManyField. 
 - Find out why profession seems to get overridden by email address when scanning qr code on iphone.
 - vcard object for setting / getting properties of a vcard? Useful for import / export
