@@ -16,50 +16,24 @@ class AddressForm(forms.ModelForm):
         if self.instance.pk:
             self.fields["contacts"].initial = self.instance.contact_set.all()
 
-        if self.instance and self.instance.landline:
-            self.fields["landline_number"].initial = self.instance.landline.number
-
-    landline_number = SplitPhoneNumberField(**{"required": False})
-
     def save(self, commit=True):
-        address = super().save(commit=False)
-        old_landline = address.landline
-        landline_number = self.cleaned_data["landline_number"]
+        address = super().save(commit=commit)
 
-        if not len(landline_number):
-            landline = None
-        elif old_landline:
-            landline = address.landline
-            landline.number = landline_number
-        else:
-            landline = PhoneNumber(number=landline_number)
-        
-        address.landline = landline
+        # Check for PK makes sure this only happens once address has been saved.
+        if commit and address.pk:
+            for contactaddress in address.contactaddress_set.all():
+                if contactaddress.contact_id not in self.cleaned_data["contacts"].values_list("id", flat=True):
+                    contactaddress.delete()
 
-        if commit:
-            if old_landline and not landline:
-                old_landline.delete()
-            if landline:
-                landline.save()
-            address.save()
-            
-            # Check for PK makes sure this only happens once address has been saved.
-            if address.pk:
-                self.save_m2m()
-
-                for contactaddress in address.contactaddress_set.all():
-                    if contactaddress.contact_id not in self.cleaned_data["contacts"].values_list("id", flat=True):
-                        contactaddress.delete()
-
-                for contact in self.cleaned_data["contacts"]:
-                    if contact.id not in address.contactaddress_set.values_list("contact_id", flat=True):
-                        ContactAddress.objects.create(address=address, contact=contact)
+            for contact in self.cleaned_data["contacts"]:
+                if contact.id not in address.contactaddress_set.values_list("contact_id", flat=True):
+                    ContactAddress.objects.create(address=address, contact=contact)
 
         return address
 
     class Meta:
         model = Address
-        exclude = ['landline', 'user']
+        exclude = ['user']
 
 
 class ContactFilterForm(forms.Form):
@@ -136,8 +110,10 @@ class PhoneNumberForm(forms.ModelForm):
         model = PhoneNumber
         exclude = ['contact']
 
-PhoneNumberCreateFormSet = forms.inlineformset_factory(Contact, PhoneNumber, PhoneNumberForm, extra=3, can_delete=False)
-PhoneNumberUpdateFormSet = forms.inlineformset_factory(Contact, PhoneNumber, PhoneNumberForm, extra=3, can_delete=True)
+ContactPhoneNumberCreateFormSet = forms.inlineformset_factory(Contact, PhoneNumber, PhoneNumberForm, extra=3, can_delete=False)
+ContactPhoneNumberUpdateFormSet = forms.inlineformset_factory(Contact, PhoneNumber, PhoneNumberForm, extra=3, can_delete=True)
+AddressPhoneNumberCreateFormSet = forms.inlineformset_factory(Address, PhoneNumber, PhoneNumberForm, extra=2, can_delete=False)
+AddressPhoneNumberUpdateFormSet = forms.inlineformset_factory(Address, PhoneNumber, PhoneNumberForm, extra=2, can_delete=True)
 
 class TagForm(forms.ModelForm):
     def __init__(self, user, *args, **kwargs):
