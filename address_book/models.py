@@ -149,9 +149,6 @@ class Contact(models.Model):
         for email in self.email_set.unarchived():
             vcard += f"{email.vcard_entry}\n"
 
-        for contactaddress in self.contactaddress_set.unarchived().exclude(address__landline__isnull=True):
-            vcard += f"{contactaddress.address.landline.vcard_entry}\n"
-
         for phonenumber in self.phonenumber_set.unarchived():
             vcard += f"{phonenumber.vcard_entry}\n"
 
