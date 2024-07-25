@@ -7,12 +7,19 @@
 {% block content %}
     <form method="POST">
         {% csrf_token %}
-        <table>
-            {{ form.as_table }}
-        </table>
-        <table>
-            {{ landline_form.as_table }}
-        </table>
+        <section>
+            <table>
+                <caption>Address</caption>
+                {{ form.as_table }}
+            </table>
+        </section>
+        <section>
+            <table>
+                <caption>Phone Numbers</caption>
+                {{ phonenumber_formset.management_form }}
+                {{ phonenumber_formset.as_table }}
+            </table>
+        </section>
         <button type="submit" class="btn btn-primary">Submit</button>
     </form>
 {% endblock content %}
