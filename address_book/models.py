@@ -7,6 +7,8 @@ from django.urls import reverse
 
 from phonenumber_field.modelfields import PhoneNumberField
 
+from . import constants
+
 
 class ArchiveableQuerySet(models.QuerySet):
     def archived(self):
@@ -35,6 +37,38 @@ class Archiveable(models.Model):
     class Meta:
         abstract = True
         ordering = ["archived"]
+
+
+class ContactableType(models.Model):
+    name=models.CharField(max_length=9)
+    verbose=models.CharField(max_length=15)
+
+    def __str__(self):
+        return self.verbose
+
+    class Meta:
+        abstract = True
+
+
+class Contactable(models.Model):
+    @property
+    def contactable_types(self):
+        return getattr(self, f"{self._meta.object_name.lower()}_types")
+    
+    @property
+    def preferred(self):
+        return getattr(constants, f"{self._meta.object_name.upper()}_TYPE__NAME_PREF") in self.contactable_types.values_list("name", flat=True)
+    
+    @property
+    def readable_types(self):
+        return ", ".join(self.contactable_types.values_list("verbose", flat=True))
+
+    @property
+    def types_for_vcard(self):
+        return ",".join(self.contactable_types.values_list("name", flat=True))
+
+    class Meta:
+        abstract = True
 
 
 class Nation(models.Model):
@@ -174,30 +208,15 @@ class Contact(models.Model):
         ordering = ["first_name"]
 
 
-class PhoneNumber(Archiveable):
-    TYPE_HOME = "HOME"
-    TYPE_WORK = "WORK"
-    TYPE_CELL = "CELL"
-    TYPE_FAX = "FAX"
-    TYPE_PAGER = "PAGER"
-    TYPE_VOICE = "VOICE"
-    TYPE_VIDEO = "VIDEO"
-    TYPE_TEXT = "TEXT"
-    TYPE_CHOICES = [
-        (None, "-- Select Type --"),
-        (TYPE_HOME, "Home",),
-        (TYPE_WORK, "Work",),
-        (TYPE_CELL, "Mobile",),
-        (TYPE_FAX, "Fax",),
-        (TYPE_PAGER, "Pager",),
-        (TYPE_VOICE, "Voice",),
-        (TYPE_VIDEO, "Video",),
-        (TYPE_TEXT, "Text",),
-    ]
+class PhoneNumberType(ContactableType):
+    pass
+    
+
+class PhoneNumber(Archiveable, Contactable):
     number=PhoneNumberField(null=False)
     address=models.ForeignKey("Address", on_delete=models.CASCADE, null=True)
     contact=models.ForeignKey(Contact, on_delete=models.CASCADE, null=True)
-    type=models.CharField(blank=False, choices=TYPE_CHOICES, max_length=5)
+    phonenumber_types=models.ManyToManyField(PhoneNumberType)
     
     @property
     def sms_href(self):
@@ -208,27 +227,19 @@ class PhoneNumber(Archiveable):
         return f"tel:{self.number}"
     
     @property
-    def type_hr(self):
-        return dict(self.TYPE_CHOICES).get(self.type)
-    
-    @property
     def vcard_entry(self):
-        return f"TEL;TYPE={self.type}:{self.number}"
+        return f"TEL;TYPE={self.types_for_vcard}:{self.number}"
     
     @property
     def wa_href(self):
         return f"https://wa.me/{self.number}"
     
 
-class AddressType(models.Model):
-    name=models.CharField(max_length=6)
-    verbose=models.CharField(max_length=15)
-
-    def __str__(self):
-        return self.verbose
+class AddressType(ContactableType):
+    pass
 
 
-class Address(models.Model):
+class Address(Contactable):
     user=models.ForeignKey(User, on_delete=models.CASCADE)
     address_line_1=models.CharField(max_length=100)
     address_line_2=models.CharField(blank=True, max_length=100)
@@ -258,12 +269,8 @@ class Address(models.Model):
         return readable
     
     @property
-    def address_types_hr(self):
-        return ", ".join(self.address_types.values_list("verbose", flat=True))
-    
-    @property
     def vcard_entry(self):
-        adr = f"ADR;TYPE={','.join(self.address_types.values_list('name', flat=True))}:"
+        adr = f"ADR;TYPE={self.types_for_vcard}:"
         adr += f"{self.address_line_1};{self.address_line_2};"
         if self.neighbourhood:
             adr += f"{self.neighbourhood}, "
@@ -275,34 +282,24 @@ class Address(models.Model):
     
     class Meta:
         ordering = ["country__verbose", "city", "address_line_1"]
+    
+
+class EmailType(ContactableType):
+    pass
 
 
-class Email(Archiveable):
-    TYPE_HOME = "HOME"
-    TYPE_WORK = "WORK"
-    TYPE_PREF = "PREF"
-    TYPE_CHOICES = [
-        (None, "-- Select Type --"),
-        (TYPE_HOME, "Home",),
-        (TYPE_WORK, "Work",),
-        (TYPE_PREF, "Preferred",),
-    ]
-
+class Email(Archiveable, Contactable):
     email=models.EmailField(unique=True)
     contact=models.ForeignKey(Contact, on_delete=models.CASCADE)
-    type=models.CharField(blank=False, choices=TYPE_CHOICES, max_length=4)
+    email_types=models.ManyToManyField(EmailType)
 
     @property
     def href(self):
         return f"mailto:{self.email}"
     
     @property
-    def type_hr(self):
-        return dict(self.TYPE_CHOICES).get(self.type)
-    
-    @property
     def vcard_entry(self):
-        return f"EMAIL;TYPE=INTERNET,{self.type}:{self.email}"
+        return f"EMAIL;TYPE=INTERNET,{self.types_for_vcard}:{self.email}"
 
 
 class CryptoNetwork(models.Model):
