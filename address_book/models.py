@@ -195,6 +195,7 @@ class PhoneNumber(Archiveable):
         (TYPE_TEXT, "Text",),
     ]
     number=PhoneNumberField(null=False)
+    address=models.ForeignKey("Address", on_delete=models.CASCADE, null=True)
     contact=models.ForeignKey(Contact, on_delete=models.CASCADE, null=True)
     type=models.CharField(blank=False, choices=TYPE_CHOICES, max_length=5)
     
@@ -237,7 +238,6 @@ class Address(models.Model):
     postcode=models.CharField(max_length=20)
     country=models.ForeignKey(Nation, on_delete=models.SET_NULL, null=True)
     notes=models.TextField(blank=True)
-    landline=models.OneToOneField(PhoneNumber, on_delete=models.SET_NULL, null=True)
     address_types=models.ManyToManyField(AddressType)
 
     @property
