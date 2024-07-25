@@ -11,18 +11,22 @@
 {% block header %}Address Detail{% endblock header %}
 
 {% block content %}
-    {% if object.landline_id %}
+    {% if address.phonenumber_set.all|length %}
         <section>
             <table>
-                <caption>Landline</caption>
+                <caption>Phone Numbers</caption>
                 <tbody>
-                    <tr>
-                        <th>{{ object.landline.type_hr }}</th>
-                        <td>{{ object.landline.number }}</td>
-                        <td>
-                            <a href="{{ object.landline.tel_href }}" target="_blank">Call</a>
-                        </td>
-                    </tr>
+                    {% for phone_number in address.phonenumber_set.all %}
+                        <tr>
+                            <th {% if phone_number.archived %} class="linethrough" {% endif %}>{{ phone_number.type_hr }}</th>
+                            <td {% if phone_number.archived %} class="linethrough" {% endif %}>{{ phone_number.number }}</td>
+                            <td>
+                                {% if not phone_number.archived %}
+                                    <a href="{{ phone_number.tel_href }}" target="_blank">Call</a>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
                 </tbody>
             </table>
         </section>
