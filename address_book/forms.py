@@ -108,7 +108,7 @@ class PhoneNumberForm(forms.ModelForm):
 
     class Meta:
         model = PhoneNumber
-        exclude = ['contact']
+        exclude = ['address', 'contact']
 
 ContactPhoneNumberCreateFormSet = forms.inlineformset_factory(Contact, PhoneNumber, PhoneNumberForm, extra=3, can_delete=False)
 ContactPhoneNumberUpdateFormSet = forms.inlineformset_factory(Contact, PhoneNumber, PhoneNumberForm, extra=3, can_delete=True)
