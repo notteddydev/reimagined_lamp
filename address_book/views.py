@@ -6,7 +6,7 @@ from django.template.defaultfilters import slugify
 from django.urls import reverse
 from django.views.generic import DetailView, ListView, View
 
-from .forms import AddressForm, ContactFilterForm, ContactForm, EmailCreateFormSet, EmailUpdateFormSet, PhoneNumberCreateFormSet, PhoneNumberUpdateFormSet, TagForm, WalletAddressCreateFormSet, WalletAddressUpdateFormSet
+from .forms import AddressForm, AddressPhoneNumberCreateFormSet, AddressPhoneNumberUpdateFormSet, ContactFilterForm, ContactForm, ContactPhoneNumberCreateFormSet, ContactPhoneNumberUpdateFormSet, EmailCreateFormSet, EmailUpdateFormSet, TagForm, WalletAddressCreateFormSet, WalletAddressUpdateFormSet
 from .models import Address, Contact, ContactAddress
 from app.decorators import owned_by_user
 from app.mixins import OwnedByUserMixin
@@ -100,14 +100,14 @@ class ContactCreateView(LoginRequiredMixin, View):
         return render(request, "address_book/contact_form.html", {
             "email_formset": EmailCreateFormSet,
             "form": ContactForm(request.user),
-            "phonenumber_formset": PhoneNumberCreateFormSet,
+            "phonenumber_formset": ContactPhoneNumberCreateFormSet,
             "walletaddress_formset": WalletAddressCreateFormSet,
         })
     
     def post(self, request):
         form = ContactForm(request.user, request.POST)
         email_formset = EmailCreateFormSet(request.POST)
-        phonenumber_formset = PhoneNumberCreateFormSet(request.POST)
+        phonenumber_formset = ContactPhoneNumberCreateFormSet(request.POST)
         walletaddress_formset = WalletAddressCreateFormSet(request.POST)
 
         if form.is_valid() and email_formset.is_valid() and phonenumber_formset.is_valid() and walletaddress_formset.is_valid():
@@ -145,7 +145,7 @@ class ContactUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
             "email_formset": EmailUpdateFormSet(instance=contact),
             "form": ContactForm(request.user, instance=contact),
             "object": contact,
-            "phonenumber_formset": PhoneNumberUpdateFormSet(instance=contact),
+            "phonenumber_formset": ContactPhoneNumberUpdateFormSet(instance=contact),
             "walletaddress_formset": WalletAddressUpdateFormSet(instance=contact),
         })
     
@@ -153,7 +153,7 @@ class ContactUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
         contact = get_object_or_404(Contact, pk=pk)
         form = ContactForm(request.user, request.POST, instance=contact)
         email_formset = EmailUpdateFormSet(request.POST, instance=contact)
-        phonenumber_formset = PhoneNumberUpdateFormSet(request.POST, instance=contact)
+        phonenumber_formset = ContactPhoneNumberUpdateFormSet(request.POST, instance=contact)
         walletaddress_formset = WalletAddressUpdateFormSet(request.POST, instance=contact)
 
         if form.is_valid() and email_formset.is_valid() and phonenumber_formset.is_valid() and walletaddress_formset.is_valid():
@@ -219,18 +219,24 @@ class AddressCreateView(LoginRequiredMixin, View):
 
         return render(request, "address_book/address_form.html", {
             "form": form,
+            "phonenumber_formset": AddressPhoneNumberCreateFormSet,
         })
     
     def post(self, request):
         form = AddressForm(request.user, request.POST)
+        phonenumber_formset = AddressPhoneNumberCreateFormSet(request.POST)
 
-        if form.is_valid():
+        if form.is_valid() and phonenumber_formset.is_valid():
             address = form.save()
+
+            phonenumber_formset.instance = address
+            phonenumber_formset.save()
 
             return redirect(reverse("address-detail", args=[address.id]))
 
         return render(request, "address_book/address_form.html", {
             "form": form,
+            "phonenumber_formset": phonenumber_formset,
         })
     
 
@@ -242,20 +248,26 @@ class AddressUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
         return render(request, "address_book/address_form.html", {
             "form": AddressForm(request.user, instance=address),
             "object": address,
+            "phonenumber_formset": AddressPhoneNumberUpdateFormSet(instance=address),
         })
     
     def post(self, request, pk):
         address = get_object_or_404(Address, pk=pk)
         form = AddressForm(request.user, request.POST, instance=address)
+        phonenumber_formset = AddressPhoneNumberUpdateFormSet(request.POST, instance=address)
 
-        if form.is_valid():
+        if form.is_valid() and phonenumber_formset.is_valid():
             address = form.save()
+
+            phonenumber_formset.instance = address
+            phonenumber_formset.save()
 
             return redirect(reverse("address-detail", args=[address.id]))
 
         return render(request, "address_book/address_form.html", {
             "form": form,
             "object": address,
+            "phonenumber_formset": phonenumber_formset,
         })
 
     def test_func(self) -> bool | None:
