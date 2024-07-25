@@ -27,7 +27,7 @@
                 <tbody>
                     {% for phone_number in contact.phonenumber_set.all %}
                         <tr>
-                            <th {% if phone_number.archived %} class="linethrough" {% endif %}>{{ phone_number.type_hr }}</th>
+                            <th {% if phone_number.archived %} class="linethrough" {% endif %}>{{ phone_number.readable_types }}</th>
                             <td {% if phone_number.archived %} class="linethrough" {% endif %}>{{ phone_number.number }}</td>
                             <td>
                                 {% if not phone_number.archived %}
@@ -49,7 +49,7 @@
                 <tbody>
                     {% for email in contact.email_set.all %}
                         <tr>
-                            <th {% if email.archived %} class="linethrough" {% endif %}>{{ email.type_hr }}</th>
+                            <th {% if email.archived %} class="linethrough" {% endif %}>{{ email.readable_types }}</th>
                             <td {% if email.archived %} class="linethrough" {% endif %}>{{ email.email }}</td>
                             <td>
                                 {% if not email.archived %}

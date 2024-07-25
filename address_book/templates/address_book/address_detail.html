@@ -18,7 +18,7 @@
                 <tbody>
                     {% for phone_number in address.phonenumber_set.all %}
                         <tr>
-                            <th {% if phone_number.archived %} class="linethrough" {% endif %}>{{ phone_number.type_hr }}</th>
+                            <th {% if phone_number.archived %} class="linethrough" {% endif %}>{{ phone_number.readable_types }}</th>
                             <td {% if phone_number.archived %} class="linethrough" {% endif %}>{{ phone_number.number }}</td>
                             <td>
                                 {% if not phone_number.archived %}
@@ -34,7 +34,7 @@
     <section>
         <table>
             <caption>
-                Address ({{ object.address_types_hr }})
+                Address ({{ object.readable_types }})
                 <small>
                     <a
                         href="javascript:;"
