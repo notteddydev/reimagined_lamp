@@ -1,6 +1,5 @@
 ### ToDo (AddressBook)
 
-- Validate that only one of any Address, Email, or PhoneNumber is 'PREF' type for any given contact.
 - Remove 'PREF' type from any item that is archived when archiving
 - Find out why profession seems to get overridden by email address when scanning qr code on iphone.
 - vcard object for setting / getting properties of a vcard? Useful for import / export
