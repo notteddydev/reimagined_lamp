@@ -59,6 +59,8 @@ class ContactFilterForm(forms.Form):
     filter_field = forms.ChoiceField(choices=FILTER_FIELD_CHOICES, required=False)
     filter_value = forms.CharField(required=False)
 
+ContactFilterFormSet = forms.formset_factory(ContactFilterForm, extra=2)
+
 
 class ContactForm(forms.ModelForm):
     def get_years_from_1920():
