@@ -1,6 +1,5 @@
 ### ToDo (AddressBook)
 
-- Add Profession as a model
 - Add option to filter by multiple fields to ContactList
 - Ermm... maybe... like... add some tests
 - Erm... add docblocks, pattern code, add typehints, refactor code - view classes particularly.
