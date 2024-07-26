@@ -87,6 +87,37 @@ def remove_phonenumber_types(apps, schema_editor):
     PhoneNumberType = apps.get_model("address_book", "PhoneNumberType")
 
     PhoneNumberType.objects.all().delete()
+    
+    
+def insert_professions(apps, schema_editor):
+    Profession = apps.get_model("address_book", "Profession")
+
+    professions = {
+        "Accountant",
+        "Architect",
+        "Businessman",
+        "Content Creator",
+        "Dentist",
+        "Electrician",
+        "English Teacher",
+        "Entrepeneur",
+        "Estate Agent",
+        "Footvolley Professor",
+        "Graphic Designer",
+        "Osteopath",
+        "Physiotherapist",
+        "Salesman",
+        "Software Developer",
+        "Writer",
+    }
+
+    for profession in professions:
+        Profession.objects.create(name=profession)
+
+def remove_professions(apps, schema_editor):
+    Profession = apps.get_model("address_book", "Profession")
+
+    Profession.objects.all().delete()
 
 
 class Migration(migrations.Migration):
@@ -100,4 +131,5 @@ class Migration(migrations.Migration):
         migrations.RunPython(insert_email_types, remove_email_types),
         migrations.RunPython(insert_nations, remove_nations),
         migrations.RunPython(insert_phonenumber_types, remove_phonenumber_types),
+        migrations.RunPython(insert_professions, remove_professions),
     ]
