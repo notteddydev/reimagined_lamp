@@ -143,7 +143,7 @@ class Contact(models.Model):
     is_business=models.BooleanField(default=False, null=False)
     tags=models.ManyToManyField(Tag, blank=True, symmetrical=True)
     family_members=models.ManyToManyField("self", blank=True, symmetrical=True)
-    profession=models.CharField(blank=True, max_length=50)
+    profession=models.ForeignKey("Profession", on_delete=models.SET_NULL, null=True)
     website=models.CharField(blank=True, max_length=100)
     notes=models.TextField(blank=True)
 
@@ -344,3 +344,13 @@ class WalletAddress(Archiveable):
     @property
     def transmission_hr(self):
         return " ".join(self.transmission.split('_')).capitalize()
+
+
+class Profession(models.Model):
+    name=models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+    
+    class Meta:
+        ordering = ["name"]
