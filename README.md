@@ -1,6 +1,5 @@
 ### ToDo (AddressBook)
 
-- Remove 'PREF' type from any item that is archived when archiving
 - Find out why profession seems to get overridden by email address when scanning qr code on iphone.
 - vcard object for setting / getting properties of a vcard? Useful for import / export
 - Merge ContactListView and contact_list_download_view
@@ -9,6 +8,7 @@
 - Ermm... maybe... like... add some tests
 - Erm... add docblocks, pattern code, add typehints, refactor code - view classes particularly.
 - Check form validation
+- Consolidate VERY NOT DRY code in Email and Phone Forms and Formsets.
 - Create option to download a "lite" vcard, or customise what is downloaded.
 - Deletion logic - contacts, addresses
 - Look into related descriptors and using a custom ManyToManyDescriptor for Addresses to Contacts to make sure that Address always comes prepopulated with the 'archived' db field. As well as a custom object manager.
