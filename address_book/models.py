@@ -27,6 +27,7 @@ class ArchiveableManager(models.Manager):
 
     def unarchived(self):
         return self.get_queryset().unarchived()
+    
 
 
 class Archiveable(models.Model):
@@ -48,16 +49,28 @@ class ContactableType(models.Model):
 
     class Meta:
         abstract = True
+    
+
+class PreferableQuerySet(models.QuerySet):
+    def preferred(self):
+        model_name = self.model._meta.object_name
+        name_field = f"{model_name.lower()}_types__name"
+        pref_name = getattr(constants, f"{model_name.upper()}_TYPE__NAME_PREF")
+        
+        return self.filter(**{name_field: pref_name})
+
+
+class PreferableManager(ArchiveableManager):
+    def get_queryset(self):
+        return PreferableQuerySet(self.model, using=self._db).preferred()
 
 
 class Contactable(models.Model):
+    preferred = PreferableManager()
+
     @property
     def contactable_types(self):
         return getattr(self, f"{self._meta.object_name.lower()}_types")
-    
-    @property
-    def preferred(self):
-        return getattr(constants, f"{self._meta.object_name.upper()}_TYPE__NAME_PREF") in self.contactable_types.values_list("name", flat=True)
     
     @property
     def readable_types(self):
