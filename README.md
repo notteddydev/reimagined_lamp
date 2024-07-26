@@ -15,6 +15,7 @@
 - Maybe more effort that it's worth, but attach vcard to email / sms / whatsapp message
 - Add a site-wide button which hides archived items from all views.
 - Allow importing of contacts from .vcf files.
+- Determine how to deal with Address / AddressType issue. i.e. an Address can have AddressType of 'PREF'... but that doesn't specify which Contact the Address is the preferred for. Maybe AddressType should be related to ContactAddress instead? Not a big deal though. Sort it later.
 
 
 ### Handy Links
