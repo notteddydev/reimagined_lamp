@@ -4,7 +4,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.defaultfilters import slugify
 from django.urls import reverse
-from django.views.generic import DetailView, ListView, View
+from django.views.generic import DetailView, View
 
 from .forms import AddressForm, AddressPhoneNumberCreateFormSet, AddressPhoneNumberUpdateFormSet, ContactFilterForm, ContactForm, ContactPhoneNumberCreateFormSet, ContactPhoneNumberUpdateFormSet, EmailCreateFormSet, EmailUpdateFormSet, TagForm, WalletAddressCreateFormSet, WalletAddressUpdateFormSet
 from .models import Address, Contact, ContactAddress
