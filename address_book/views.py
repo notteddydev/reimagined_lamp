@@ -51,36 +51,29 @@ def contact_download_view(request, pk):
     return response
 
 
-class ContactListView(LoginRequiredMixin, OwnedByUserMixin, ListView):
-    model = Contact
-
-    def get_queryset(self):
-        queryset = super().get_queryset()
-
-        filter_field = self.request.GET.get("filter_field", "")
-        filter_value = self.request.GET.get("filter_value", "")
-        if not len(filter_value) or not len(filter_field):
-            return queryset
-        
-        new_context = queryset.filter(**{filter_field: filter_value})
-        return new_context
-
-    def get_context_data(self, **kwargs):
-        context = super(ContactListView, self).get_context_data(**kwargs)
-        context["filter_form"] = ContactFilterForm(self.request.GET)
-        return context
-    
-
 @login_required
-def contact_list_download_view(request):
-    contacts = ContactListView(**{"request": request}).get_queryset()
-    vcards = [contact.vcard for contact in contacts]
-    vcf = "\n".join(vcards)
+def contact_list_view(request):
+    contacts = Contact.objects.filter(user=request.user)
 
-    response = HttpResponse(vcf, content_type='text/vcard')
-    response['Content-Disposition'] = 'attachment; filename="contacts.vcf"'
+    filter_field = request.GET.get("filter_field", "")
+    filter_value = request.GET.get("filter_value", "")
     
-    return response
+    if len(filter_value) and len(filter_field):
+        contacts = contacts.filter(**{filter_field: filter_value})
+
+    if bool(request.GET.get("download", False)):
+        vcards = [contact.vcard for contact in contacts]
+        vcf = "\n".join(vcards)
+
+        response = HttpResponse(vcf, content_type='text/vcard')
+        response['Content-Disposition'] = 'attachment; filename="contacts.vcf"'
+        return response
+
+    return render(request, "address_book/contact_list.html", {
+        "object_list": contacts,
+        "filter_form": ContactFilterForm(request.GET),
+    })
+
 
 
 class ContactAddressToggleArchiveView(LoginRequiredMixin, UserPassesTestMixin, View):
