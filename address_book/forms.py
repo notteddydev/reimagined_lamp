@@ -4,7 +4,8 @@ from django import forms
 
 from phonenumber_field.formfields import SplitPhoneNumberField
 
-from .models import Address, Contact, ContactAddress, Email, PhoneNumber, Tag, WalletAddress
+from .constants import PHONENUMBER_TYPE__NAME_PREF
+from .models import Address, Contact, ContactAddress, Email, PhoneNumber, PhoneNumberType, Tag, WalletAddress
 
 
 class AddressForm(forms.ModelForm):
@@ -103,17 +104,71 @@ class EmailForm(forms.ModelForm):
 EmailCreateFormSet = forms.inlineformset_factory(Contact, Email, EmailForm, extra=3, can_delete=False)
 EmailUpdateFormSet = forms.inlineformset_factory(Contact, Email, EmailForm, extra=3, can_delete=True)
 
+
 class PhoneNumberForm(forms.ModelForm):
     number = SplitPhoneNumberField()
+
+    def clean(self):
+        super().clean()
+        phonenumber_types = self.cleaned_data.get('phonenumber_types', [])
+        if len(phonenumber_types) == 1 and phonenumber_types[0].name == PHONENUMBER_TYPE__NAME_PREF:
+            self.add_error("phonenumber_types", "'Preferred' is not allowed as the only type.")
 
     class Meta:
         model = PhoneNumber
         exclude = ['address', 'contact']
 
-ContactPhoneNumberCreateFormSet = forms.inlineformset_factory(Contact, PhoneNumber, PhoneNumberForm, extra=3, can_delete=False)
-ContactPhoneNumberUpdateFormSet = forms.inlineformset_factory(Contact, PhoneNumber, PhoneNumberForm, extra=3, can_delete=True)
-AddressPhoneNumberCreateFormSet = forms.inlineformset_factory(Address, PhoneNumber, PhoneNumberForm, extra=2, can_delete=False)
-AddressPhoneNumberUpdateFormSet = forms.inlineformset_factory(Address, PhoneNumber, PhoneNumberForm, extra=2, can_delete=True)
+
+class BasePhoneNumberInlineFormSet(forms.BaseInlineFormSet):
+    def clean(self):
+        super().clean()
+        pref_type = PhoneNumberType.objects.filter(name='PREF').first()
+        if pref_type:
+            pref_count = 0
+
+            for form in self.forms:
+                if not form.cleaned_data or form.cleaned_data.get('DELETE', False):
+                    continue
+
+                if pref_type in form.cleaned_data.get('phonenumber_types', []):
+                    pref_count += 1
+
+            if pref_count > 1:
+                raise forms.ValidationError(f"Only one phone number may be designated as 'preferred'.")
+
+
+ContactPhoneNumberCreateFormSet = forms.inlineformset_factory(
+    Contact,
+    PhoneNumber,
+    form=PhoneNumberForm,
+    formset=BasePhoneNumberInlineFormSet,
+    extra=3,
+    can_delete=False
+)
+ContactPhoneNumberUpdateFormSet = forms.inlineformset_factory(
+    Contact,
+    PhoneNumber,
+    form=PhoneNumberForm,
+    formset=BasePhoneNumberInlineFormSet,
+    extra=3,
+    can_delete=True
+)
+AddressPhoneNumberCreateFormSet = forms.inlineformset_factory(
+    Address,
+    PhoneNumber,
+    form=PhoneNumberForm,
+    formset=BasePhoneNumberInlineFormSet,
+    extra=2,
+    can_delete=False
+)
+AddressPhoneNumberUpdateFormSet = forms.inlineformset_factory(
+    Address,
+    PhoneNumber,
+    form=PhoneNumberForm,
+    formset=BasePhoneNumberInlineFormSet,
+    extra=2,
+    can_delete=True
+)
 
 class TagForm(forms.ModelForm):
     def __init__(self, user, *args, **kwargs):
