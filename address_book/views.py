@@ -6,7 +6,7 @@ from django.template.defaultfilters import slugify
 from django.urls import reverse
 from django.views.generic import DetailView, View
 
-from .forms import AddressForm, AddressPhoneNumberCreateFormSet, AddressPhoneNumberUpdateFormSet, ContactFilterForm, ContactForm, ContactPhoneNumberCreateFormSet, ContactPhoneNumberUpdateFormSet, EmailCreateFormSet, EmailUpdateFormSet, TagForm, WalletAddressCreateFormSet, WalletAddressUpdateFormSet
+from .forms import AddressForm, AddressPhoneNumberCreateFormSet, AddressPhoneNumberUpdateFormSet, ContactFilterFormSet, ContactForm, ContactPhoneNumberCreateFormSet, ContactPhoneNumberUpdateFormSet, EmailCreateFormSet, EmailUpdateFormSet, TagForm, WalletAddressCreateFormSet, WalletAddressUpdateFormSet
 from .models import Address, Contact, ContactAddress
 from app.decorators import owned_by_user
 from app.mixins import OwnedByUserMixin
@@ -54,12 +54,15 @@ def contact_download_view(request, pk):
 @login_required
 def contact_list_view(request):
     contacts = Contact.objects.filter(user=request.user)
+    filter_formset = ContactFilterFormSet(request.GET or None)
 
-    filter_field = request.GET.get("filter_field", "")
-    filter_value = request.GET.get("filter_value", "")
-    
-    if len(filter_value) and len(filter_field):
-        contacts = contacts.filter(**{filter_field: filter_value})
+    if filter_formset.is_valid():
+        for form in filter_formset:
+            filter_field = form.cleaned_data.get("filter_field")
+            filter_value = form.cleaned_data.get("filter_value")
+            
+            if filter_field and filter_value:
+                contacts = contacts.filter(**{f"{filter_field}__icontains": filter_value})
 
     if bool(request.GET.get("download", False)):
         vcards = [contact.vcard for contact in contacts]
@@ -71,7 +74,7 @@ def contact_list_view(request):
 
     return render(request, "address_book/contact_list.html", {
         "object_list": contacts,
-        "filter_form": ContactFilterForm(request.GET),
+        "filter_formset": filter_formset,
     })
 
 
