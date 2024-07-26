@@ -4,8 +4,8 @@ from django import forms
 
 from phonenumber_field.formfields import SplitPhoneNumberField
 
-from .constants import PHONENUMBER_TYPE__NAME_PREF
-from .models import Address, Contact, ContactAddress, Email, PhoneNumber, PhoneNumberType, Tag, WalletAddress
+from .constants import EMAIL_TYPE__NAME_PREF, PHONENUMBER_TYPE__NAME_PREF
+from .models import Address, Contact, ContactAddress, Email, EmailType, PhoneNumber, PhoneNumberType, Tag, WalletAddress
 
 
 class AddressForm(forms.ModelForm):
@@ -97,12 +97,62 @@ class ContactForm(forms.ModelForm):
         exclude = ['user']
 
 class EmailForm(forms.ModelForm):
+    def clean(self):
+        super().clean()
+        pref_type = EmailType.objects.filter(name=EMAIL_TYPE__NAME_PREF).first()
+        if pref_type:
+            email_types = self.cleaned_data.get("email_types", [])
+            if pref_type in email_types:
+                if self.cleaned_data.get("archived", False):
+                    self.add_error("email_types", "An email may not be 'preferred', and archived.")
+                if len(email_types) == 1:
+                    self.add_error("email_types", "'Preferred' is not allowed as the only type.")
+
     class Meta:
         model = Email
         exclude = ['contact']
 
-EmailCreateFormSet = forms.inlineformset_factory(Contact, Email, EmailForm, extra=3, can_delete=False)
-EmailUpdateFormSet = forms.inlineformset_factory(Contact, Email, EmailForm, extra=3, can_delete=True)
+
+class BaseEmailInlineFormSet(forms.BaseInlineFormSet):
+    def clean(self):
+        super().clean()
+        pref_type = EmailType.objects.filter(name=EMAIL_TYPE__NAME_PREF).first()
+        if pref_type:
+            pref_count = 0
+            unarchived_count = 0
+
+            for form in self.forms:
+                if not form.cleaned_data or form.cleaned_data.get("DELETE", False):
+                    continue
+
+                if pref_type in form.cleaned_data.get("email_types", []):
+                    pref_count += 1
+
+                if not form.cleaned_data.get("archived", False):
+                    unarchived_count += 1
+
+            if pref_count > 1:
+                raise forms.ValidationError(f"Only one email may be designated as 'preferred'.")
+            
+            if pref_count < 1 <= unarchived_count:
+                raise forms.ValidationError(f"One email must be designated as 'preferred'.")
+
+EmailCreateFormSet = forms.inlineformset_factory(
+    Contact,
+    Email,
+    form=EmailForm,
+    formset=BaseEmailInlineFormSet,
+    extra=3,
+    can_delete=False
+)
+EmailUpdateFormSet = forms.inlineformset_factory(
+    Contact,
+    Email,
+    form=EmailForm,
+    formset=BaseEmailInlineFormSet,
+    extra=3,
+    can_delete=True
+)
 
 
 class PhoneNumberForm(forms.ModelForm):
@@ -110,7 +160,7 @@ class PhoneNumberForm(forms.ModelForm):
 
     def clean(self):
         super().clean()
-        pref_type = PhoneNumberType.objects.filter(name="PREF").first()
+        pref_type = PhoneNumberType.objects.filter(name=PHONENUMBER_TYPE__NAME_PREF).first()
         if pref_type:
             phonenumber_types = self.cleaned_data.get("phonenumber_types", [])
             if pref_type in phonenumber_types:
@@ -127,7 +177,7 @@ class PhoneNumberForm(forms.ModelForm):
 class BasePhoneNumberInlineFormSet(forms.BaseInlineFormSet):
     def clean(self):
         super().clean()
-        pref_type = PhoneNumberType.objects.filter(name="PREF").first()
+        pref_type = PhoneNumberType.objects.filter(name=PHONENUMBER_TYPE__NAME_PREF).first()
         if pref_type:
             pref_count = 0
             unarchived_count = 0
@@ -145,7 +195,7 @@ class BasePhoneNumberInlineFormSet(forms.BaseInlineFormSet):
             if pref_count > 1:
                 raise forms.ValidationError(f"Only one phone number may be designated as 'preferred'.")
             
-            if pref_count < 1 and 1 < unarchived_count:
+            if pref_count < 1 <= unarchived_count:
                 raise forms.ValidationError(f"One phone number must be designated as 'preferred'.")
 
 
