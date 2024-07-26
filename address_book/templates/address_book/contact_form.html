@@ -29,6 +29,9 @@
                 {{ email_formset.management_form }}
                 {{ email_formset.as_table }}
             </table>
+            {% if email_formset.non_form_errors %}
+                {{ email_formset.non_form_errors }}
+            {% endif %}
         </section>
         <section>
             <table>
