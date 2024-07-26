@@ -1,9 +1,10 @@
 ### ToDo (AddressBook)
 
-- Add option to filter by multiple fields to ContactList
+- Change blank option on Profession select.
 - Ermm... maybe... like... add some tests
 - Erm... add docblocks, pattern code, add typehints, refactor code - view classes particularly.
 - Check form validation
+- Add JavaScript for adding / removing forms from formsets for tidier forms.
 - Consolidate VERY NOT DRY code in Email and Phone Forms and Formsets.
 - Create option to download a "lite" vcard, or customise what is downloaded.
 - Deletion logic - contacts, addresses
