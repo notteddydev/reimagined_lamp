@@ -62,11 +62,14 @@ class PreferableQuerySet(models.QuerySet):
 
 class PreferableManager(ArchiveableManager):
     def get_queryset(self):
-        return PreferableQuerySet(self.model, using=self._db).preferred()
+        return PreferableQuerySet(self.model, using=self._db)
+    
+    def preferred(self):
+        return self.get_queryset().preferred()
 
 
 class Contactable(models.Model):
-    preferred = PreferableManager()
+    objects = PreferableManager()
 
     @property
     def contactable_types(self):
