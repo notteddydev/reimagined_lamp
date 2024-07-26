@@ -6,12 +6,19 @@
 
 {% block content %}
     <section>
-        <form method="GET">
-            {{ filter_form.filter_field }}
-            {{ filter_form.filter_value }}
-            <button type="submit">Filter</button>
-            <a href="{% url "contact-list" %}">Reset</a>
+        <div class="mb-1">
+            <a href="{% url "contact-list" %}">Reset Filter</a>
             <a href="{% url "contact-list" %}?{{ request.GET.urlencode }}&amp;download=True">Download Queryset</a>
+        </div>
+        <form method="GET">
+            {{ filter_formset.management_form }}
+            {% for form in filter_formset %}
+                <div>
+                    {{ form.filter_field }}
+                    {{ form.filter_value }}
+                </div>
+            {% endfor %}
+            <button type="submit">Filter</button>
         </form>
     </section>
     <section>
