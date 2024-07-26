@@ -110,9 +110,14 @@ class PhoneNumberForm(forms.ModelForm):
 
     def clean(self):
         super().clean()
-        phonenumber_types = self.cleaned_data.get('phonenumber_types', [])
-        if len(phonenumber_types) == 1 and phonenumber_types[0].name == PHONENUMBER_TYPE__NAME_PREF:
-            self.add_error("phonenumber_types", "'Preferred' is not allowed as the only type.")
+        pref_type = PhoneNumberType.objects.filter(name="PREF").first()
+        if pref_type:
+            phonenumber_types = self.cleaned_data.get("phonenumber_types", [])
+            if pref_type in phonenumber_types:
+                if self.cleaned_data.get("archived", False):
+                    self.add_error("phonenumber_types", "A phone number may not be 'preferred', and archived.")
+                if len(phonenumber_types) == 1:
+                    self.add_error("phonenumber_types", "'Preferred' is not allowed as the only type.")
 
     class Meta:
         model = PhoneNumber
@@ -122,19 +127,26 @@ class PhoneNumberForm(forms.ModelForm):
 class BasePhoneNumberInlineFormSet(forms.BaseInlineFormSet):
     def clean(self):
         super().clean()
-        pref_type = PhoneNumberType.objects.filter(name='PREF').first()
+        pref_type = PhoneNumberType.objects.filter(name="PREF").first()
         if pref_type:
             pref_count = 0
+            unarchived_count = 0
 
             for form in self.forms:
-                if not form.cleaned_data or form.cleaned_data.get('DELETE', False):
+                if not form.cleaned_data or form.cleaned_data.get("DELETE", False):
                     continue
 
-                if pref_type in form.cleaned_data.get('phonenumber_types', []):
+                if pref_type in form.cleaned_data.get("phonenumber_types", []):
                     pref_count += 1
+
+                if not form.cleaned_data.get("archived", False):
+                    unarchived_count += 1
 
             if pref_count > 1:
                 raise forms.ValidationError(f"Only one phone number may be designated as 'preferred'.")
+            
+            if pref_count < 1 and 1 < unarchived_count:
+                raise forms.ValidationError(f"One phone number must be designated as 'preferred'.")
 
 
 ContactPhoneNumberCreateFormSet = forms.inlineformset_factory(
