@@ -1,8 +1,5 @@
 ### ToDo (AddressBook)
 
-- Find out why profession seems to get overridden by email address when scanning qr code on iphone.
-- vcard object for setting / getting properties of a vcard? Useful for import / export
-- Merge ContactListView and contact_list_download_view
 - Add Profession as a model
 - Add option to filter by multiple fields to ContactList
 - Ermm... maybe... like... add some tests
@@ -16,6 +13,8 @@
 - Add a site-wide button which hides archived items from all views.
 - Allow importing of contacts from .vcf files.
 - Determine how to deal with Address / AddressType issue. i.e. an Address can have AddressType of 'PREF'... but that doesn't specify which Contact the Address is the preferred for. Maybe AddressType should be related to ContactAddress instead? Not a big deal though. Sort it later.
+- Find out why profession seems to get overridden by email address when scanning qr code on iphone.
+- vcard object for setting / getting properties of a vcard? Useful for import / export
 
 
 ### Handy Links
