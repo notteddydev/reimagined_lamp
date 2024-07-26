@@ -44,3 +44,7 @@ figure {
 .linethrough {
     text-decoration: line-through;
 }
+
+.mb-1 {
+    margin-bottom: 1rem;
+}
