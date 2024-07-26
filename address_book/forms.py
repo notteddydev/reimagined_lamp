@@ -50,7 +50,7 @@ class ContactFilterForm(forms.Form):
         ("addresses__neighbourhood", "Neighbourhood"),
         ("nickname", "Nickname"),
         ("phonenumber__number", "Phone Number"),
-        ("profession", "Profession"),
+        ("profession__name", "Profession"),
         ("addresses__state", "State"),
         ("tags__name", "Tag"),
         ("walletaddress__address", "Wallet Address"),
