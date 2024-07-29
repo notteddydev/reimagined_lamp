@@ -6,6 +6,8 @@ Python and Django personal organiser (currently just address book).
 - Ermm... maybe... like... add some tests
 - Erm... add docblocks, pattern code, add typehints, refactor code - view classes particularly.
 - Check form validation
+- Change look of login page if logged in / redirect.
+- Setup GitHub pipeline.
 - Add JavaScript for adding / removing forms from formsets for tidier forms.
 - Consolidate VERY NOT DRY code in Email and Phone Forms and Formsets.
 - Create option to download a "lite" vcard, or customise what is downloaded.
@@ -17,6 +19,7 @@ Python and Django personal organiser (currently just address book).
 - Determine how to deal with Address / AddressType issue. i.e. an Address can have AddressType of 'PREF'... but that doesn't specify which Contact the Address is the preferred for. Maybe AddressType should be related to ContactAddress instead? Not a big deal though. Sort it later.
 - Find out why profession seems to get overridden by email address when scanning qr code on iphone.
 - vcard object for setting / getting properties of a vcard? Useful for import / export
+- Set up with nginx on local
 
 
 ### Long-term
