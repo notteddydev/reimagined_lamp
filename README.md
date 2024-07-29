@@ -8,6 +8,7 @@ Python and Django personal organiser (currently just address book).
 - Check form validation
 - Change look of login page if logged in / redirect.
 - Setup GitHub pipeline.
+- Swap single quotes for double quotes throughout project.
 - Add JavaScript for adding / removing forms from formsets for tidier forms.
 - Consolidate VERY NOT DRY code in Email and Phone Forms and Formsets.
 - Create option to download a "lite" vcard, or customise what is downloaded.
