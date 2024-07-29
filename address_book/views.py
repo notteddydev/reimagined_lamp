@@ -64,12 +64,12 @@ def contact_list_view(request):
             if filter_field and filter_value:
                 contacts = contacts.filter(**{f"{filter_field}__icontains": filter_value})
 
-    if bool(request.GET.get("download", False)):
+    if request.GET.get("download", "false").lower() == "true":
         vcards = [contact.vcard for contact in contacts]
         vcf = "\n".join(vcards)
 
         response = HttpResponse(vcf, content_type='text/vcard')
-        response['Content-Disposition'] = 'attachment; filename="contacts.vcf"'
+        response['Content-Disposition'] = "attachment; filename=contacts.vcf"
         return response
 
     return render(request, "address_book/contact_list.html", {
