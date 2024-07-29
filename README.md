@@ -3,7 +3,6 @@ Python and Django personal organiser (currently just address book).
 
 ### ToDo (AddressBook)
 
-- Change blank option on Profession select.
 - Ermm... maybe... like... add some tests
 - Erm... add docblocks, pattern code, add typehints, refactor code - view classes particularly.
 - Check form validation
