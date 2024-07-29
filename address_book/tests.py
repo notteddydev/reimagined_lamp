@@ -14,9 +14,10 @@ class TestContactListView(TestCase):
         )
         self.url = reverse("contact-list")
 
-    def _login_and_get_response(self):
+    def _login_and_get_response(self, url=None):
+        get_url = self.url if url == None else url
         self.client.login(username="tess_ting", password="password")
-        response = self.client.get(self.url)
+        response = self.client.get(get_url)
         return response
     
     def test_redirect_if_not_logged_in(self):
@@ -36,6 +37,7 @@ class TestContactListView(TestCase):
         response = self._login_and_get_response()
         self.assertEqual(response.status_code, 200)
         self.assertIn("object_list", response.context)
+        self.assertIn("filter_formset", response.context)
 
     def test_user_contact_present_in_context_data(self):
         contact = Contact.objects.create(
@@ -88,3 +90,6 @@ class TestContactListView(TestCase):
         self.assertIn("object_list", response.context)
         self.assertQuerySetEqual(response.context["object_list"], [])
 
+    def test_normal_view_returned_if_download_false(self):
+        response = self._login_and_get_response(f"{self.url}?download=false")
+        self.assertTemplateUsed(response, "address_book/contact_list.html")
