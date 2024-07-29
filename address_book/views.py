@@ -1,6 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.defaultfilters import slugify
 from django.urls import reverse
@@ -65,10 +65,13 @@ def contact_list_view(request):
                 contacts = contacts.filter(**{f"{filter_field}__icontains": filter_value})
 
     if request.GET.get("download", "false").lower() == "true":
+        if not contacts.exists():
+            raise Http404("No contacts were found for download.")
+
         vcards = [contact.vcard for contact in contacts]
         vcf = "\n".join(vcards)
 
-        response = HttpResponse(vcf, content_type='text/vcard')
+        response = HttpResponse(vcf, content_type="text/vcard")
         response['Content-Disposition'] = "attachment; filename=contacts.vcf"
         return response
 
