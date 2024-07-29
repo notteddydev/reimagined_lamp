@@ -1,8 +1,10 @@
 from datetime import datetime
 
 from django import forms
+from django.conf import settings
+from django.utils import translation
 
-from phonenumber_field.formfields import SplitPhoneNumberField
+from phonenumber_field.formfields import localized_choices, PrefixChoiceField, SplitPhoneNumberField
 
 from .constants import EMAIL_TYPE__NAME_PREF, PHONENUMBER_TYPE__NAME_PREF
 from .models import Address, Contact, ContactAddress, Email, EmailType, PhoneNumber, PhoneNumberType, Tag, WalletAddress
@@ -12,6 +14,7 @@ class AddressForm(forms.ModelForm):
     def __init__(self, user, *args, **kwargs):
         super(AddressForm, self).__init__(*args, **kwargs)
         self.instance.user_id = user.id
+        self.fields["country"].empty_label = "-- Select Country --"
         self.fields["contacts"] = forms.ModelMultipleChoiceField(Contact.objects.filter(user=user))
 
         if self.instance.pk:
@@ -69,6 +72,7 @@ class ContactForm(forms.ModelForm):
     def __init__(self, user, *args, **kwargs):
         super(ContactForm, self).__init__(*args, **kwargs)
         self.instance.user_id = user.id
+        self.fields["profession"].empty_label = "-- Select Profession --"
         self.fields['tags'].queryset = Tag.objects.filter(user=user.id)
         self.fields['family_members'].queryset = Contact.objects.filter(user=user.id)
 
@@ -157,8 +161,18 @@ EmailUpdateFormSet = forms.inlineformset_factory(
 )
 
 
+class CustomSplitPhoneNumberField(SplitPhoneNumberField):
+    def prefix_field(self):
+        language = translation.get_language() or settings.LANGUAGE_CODE
+        choices = localized_choices(language)
+        choices[0] = ("", "-- Select Country Prefix --")
+        choices.sort(key=lambda item: item[1])
+
+        return PrefixChoiceField(choices=choices)
+
+
 class PhoneNumberForm(forms.ModelForm):
-    number = SplitPhoneNumberField()
+    number = CustomSplitPhoneNumberField()
 
     def clean(self):
         super().clean()
@@ -249,6 +263,10 @@ class TagForm(forms.ModelForm):
 
 
 class WalletAddressForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(WalletAddressForm, self).__init__(*args, **kwargs)
+        self.fields["network"].empty_label = "-- Select Network --"
+
     class Meta:
         model = WalletAddress
         exclude = ['contact']
