@@ -1,3 +1,6 @@
+# reimagined_lamp
+Python and Django personal organiser (currently just address book).
+
 ### ToDo (AddressBook)
 
 - Change blank option on Profession select.
@@ -15,6 +18,20 @@
 - Determine how to deal with Address / AddressType issue. i.e. an Address can have AddressType of 'PREF'... but that doesn't specify which Contact the Address is the preferred for. Maybe AddressType should be related to ContactAddress instead? Not a big deal though. Sort it later.
 - Find out why profession seems to get overridden by email address when scanning qr code on iphone.
 - vcard object for setting / getting properties of a vcard? Useful for import / export
+
+
+### Long-term
+
+- Calendar (hourly)
+- Notes
+- Lists
+- Journaling
+- Finance tracking
+- Locations list
+  - Emergency numbers
+  - Plug type
+  - Interactive map
+- Weather forecast
 
 
 ### Handy Links
