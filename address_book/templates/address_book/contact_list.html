@@ -8,7 +8,9 @@
     <section>
         <div class="mb-1">
             <a href="{% url "contact-list" %}">Reset Filter</a>
-            <a href="{% url "contact-list" %}?{{ request.GET.urlencode }}&amp;download=True">Download Queryset</a>
+            {% if object_list|length %}
+                <a href="{% url "contact-list" %}?{{ request.GET.urlencode }}&amp;download=True">Download List</a>
+            {% endif %}
         </div>
         <form method="GET">
             {{ filter_formset.management_form }}
