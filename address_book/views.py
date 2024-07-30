@@ -4,7 +4,7 @@ from django.http import Http404, HttpResponse, HttpResponseRedirect
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.defaultfilters import slugify
 from django.urls import reverse
-from django.views.generic import DetailView, View
+from django.views.generic import DetailView, ListView, View
 
 from .forms import AddressForm, AddressPhoneNumberCreateFormSet, AddressPhoneNumberUpdateFormSet, ContactFilterFormSet, ContactForm, ContactPhoneNumberCreateFormSet, ContactPhoneNumberUpdateFormSet, EmailCreateFormSet, EmailUpdateFormSet, TagForm, WalletAddressCreateFormSet, WalletAddressUpdateFormSet
 from .models import Address, Contact, ContactAddress
@@ -57,28 +57,30 @@ def contact_list_view(request):
     filter_formset = ContactFilterFormSet(request.GET or None)
 
     if filter_formset.is_valid():
-        for form in filter_formset:
-            filter_field = form.cleaned_data.get("filter_field")
-            filter_value = form.cleaned_data.get("filter_value")
-            
-            if filter_field and filter_value:
-                contacts = contacts.filter(**{f"{filter_field}__icontains": filter_value})
-
-    if request.GET.get("download", "false").lower() == "true":
-        if not contacts.exists():
-            raise Http404("No contacts were found for download.")
-
-        vcards = [contact.vcard for contact in contacts]
-        vcf = "\n".join(vcards)
-
-        response = HttpResponse(vcf, content_type="text/vcard")
-        response['Content-Disposition'] = "attachment; filename=contacts.vcf"
-        return response
+        contacts = filter_formset.apply_filters(contacts)
 
     return render(request, "address_book/contact_list.html", {
         "object_list": contacts,
         "filter_formset": filter_formset,
     })
+
+
+@login_required
+def contact_list_download_view(request):
+    contacts = Contact.objects.filter(user=request.user)
+    filter_formset = ContactFilterFormSet(request.GET or None)
+
+    if filter_formset.is_valid():
+        contacts = filter_formset.apply_filters(contacts)
+
+    if not contacts.exists():
+        raise Http404("No contacts were found for download.")
+
+    vcards = [contact.vcard for contact in contacts]
+    vcf = "\n".join(vcards)
+    response = HttpResponse(vcf, content_type="text/vcard")
+    response['Content-Disposition'] = "attachment; filename=contacts.vcf"
+    return response
 
 
 
