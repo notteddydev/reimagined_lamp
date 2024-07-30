@@ -62,7 +62,24 @@ class ContactFilterForm(forms.Form):
     filter_field = forms.ChoiceField(choices=FILTER_FIELD_CHOICES, required=False)
     filter_value = forms.CharField(required=False)
 
-ContactFilterFormSet = forms.formset_factory(ContactFilterForm, extra=2)
+    def apply_filter(self, queryset):
+        filter_field = self.cleaned_data.get("filter_field")
+        filter_value = self.cleaned_data.get("filter_value")
+            
+        if filter_field and filter_value:
+            queryset = queryset.filter(**{f"{filter_field}__icontains": filter_value})
+
+        return queryset
+
+
+class BaseContactFilterFormSet(forms.BaseFormSet):
+    def apply_filters(self, queryset):
+        for form in self:
+            queryset = form.apply_filter(queryset)
+
+        return queryset
+
+ContactFilterFormSet = forms.formset_factory(ContactFilterForm, BaseContactFilterFormSet, extra=2)
 
 
 class ContactForm(forms.ModelForm):
