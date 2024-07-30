@@ -26,13 +26,12 @@ class TestContactListView(TestCase):
             year_met=2000
         )
 
-    def _login_and_get_response(self, url=None):
+    def _login_and_get_response(self):
         """
         Logs the user in, attempts to access the contact-list view, and returns the response.
         """
-        get_url = self.url if url == None else url
         self.client.login(username="tess_ting", password="password")
-        response = self.client.get(get_url)
+        response = self.client.get(self.url)
         return response
     
     def test_redirect_if_not_logged_in(self):
@@ -125,30 +124,65 @@ class TestContactListView(TestCase):
         self.assertIn("object_list", response.context)
         self.assertQuerySetEqual(response.context["object_list"], [])
 
-    def test_normal_view_returned_if_download_false(self):
-        """
-        Make sure that if the download param is passed to the request as false,
-        the normal view and associated template are returned.
-        """
-        response = self._login_and_get_response(f"{self.url}?download=false")
-        self.assertEqual(response["Content-Type"], "text/html; charset=utf-8")
-        self.assertTemplateUsed(response, "address_book/contact_list.html")
 
-    def test_successful_download_if_true_and_contacts_exist(self):
+class TestContactListDownloadView(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(
+            username="tess_ting", email="tess@ting.com", password="password"
+        )
+        self.url = reverse("contact-list-download")
+
+    def _create_contact_for_user(self):
         """
-        Make sure that if the download param is passed to the request as true,
-        and there are Contacts present, the response is a download.
+        Creates a Contact for the user.
+        """
+        return Contact.objects.create(
+            first_name="Wanted",
+            middle_names="In",
+            last_name="Response",
+            user=self.user,
+            year_met=2000
+        )
+
+    def _login_and_get_response(self):
+        """
+        Logs the user in, attempts to access the contact-list-download view, and returns the response.
+        """
+        self.client.login(username="tess_ting", password="password")
+        response = self.client.get(self.url)
+        return response
+    
+    def test_redirect_if_not_logged_in(self):
+        """
+        Make sure that if a non logged in user attempts to access the contact-list-download view,
+        they are redirected to the login page. 
+        """
+        response = self.client.get(self.url)
+        self.assertRedirects(response, f"{settings.LOGIN_URL}?next={self.url}")
+
+    def test_view_url_exists_for_logged_in_user_with_contacts(self):
+        """
+        Make sure that if a logged in user attempts to access the contact-list-download view,
+        they can do with success.
         """
         self._create_contact_for_user()
-        response = self._login_and_get_response(f"{self.url}?download=true")
+        response = self._login_and_get_response()
+        self.assertEqual(response.status_code, 200)
+
+    def test_successful_download_if_contacts_exist(self):
+        """
+        Make sure that if there are Contacts present, the response is a download.
+        """
+        self._create_contact_for_user()
+        response = self._login_and_get_response()
         self.assertIn("Content-Disposition", response)
         self.assertEqual(response["Content-Disposition"], "attachment; filename=contacts.vcf")
         self.assertEqual(response["Content-Type"], "text/vcard")
 
-    def test_status_404_if_download_forced_for_no_contacts(self):
+    def test_status_404_if_no_contacts(self):
         """
-        Make sure there is a 404 status code if someone types download=true into the
-        address bar even though there are no Contacts listed.
+        Make sure there is a 404 status code if there are no Contacts listed.
         """
-        response = self._login_and_get_response(f"{self.url}?download=true")
+        response = self._login_and_get_response()
         self.assertEqual(response.status_code, 404)
