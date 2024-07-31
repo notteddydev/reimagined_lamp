@@ -6,6 +6,95 @@ from django.urls import reverse
 from .models import Contact
 
 
+class TestContactListDownloadView(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(
+            username="tess_ting", email="tess@ting.com", password="password"
+        )
+        self.url = reverse("contact-list-download")
+
+    def _create_contact_for_user(self):
+        """
+        Creates a Contact for the user.
+        """
+        return Contact.objects.create(
+            first_name="Wanted",
+            middle_names="In",
+            last_name="Response",
+            user=self.user,
+            year_met=2000
+        )
+
+    def _login_and_get_response(self):
+        """
+        Logs the user in, attempts to access the contact-list-download view, and returns the response.
+        """
+        self.client.login(username="tess_ting", password="password")
+        response = self.client.get(self.url)
+        return response
+    
+    def test_redirect_if_not_logged_in(self):
+        """
+        Make sure that if a non logged in user attempts to access the contact-list-download view,
+        they are redirected to the login page. 
+        """
+        response = self.client.get(self.url)
+        self.assertRedirects(response, f"{settings.LOGIN_URL}?next={self.url}")
+
+    def test_view_url_exists_for_logged_in_user_with_contacts(self):
+        """
+        Make sure that if a logged in user attempts to access the contact-list-download view,
+        they can do with success.
+        """
+        self._create_contact_for_user()
+        response = self._login_and_get_response()
+        self.assertEqual(response.status_code, 200)
+
+    def test_successful_download_if_contacts_exist(self):
+        """
+        Make sure that if there are Contacts present, the response is a download.
+        """
+        self._create_contact_for_user()
+        response = self._login_and_get_response()
+        self.assertIn("Content-Disposition", response)
+        self.assertEqual(response["Content-Disposition"], "attachment; filename=contacts.vcf")
+        self.assertEqual(response["Content-Type"], "text/vcard")
+
+    def test_status_404_if_no_contacts(self):
+        """
+        Make sure there is a 404 status code if there are no Contacts listed.
+        """
+        response = self._login_and_get_response()
+        self.assertEqual(response.status_code, 404)
+
+    def test_other_user_contacts_not_present_in_download(self):
+        """
+        Make sure that if there are Contacts present for other users,
+        they are not included in the download.
+        """
+        other_user = User.objects.create(
+            username="tess_ting2",
+            email="tess@ting2.com",
+            password="password"
+        )
+        Contact.objects.create(
+            first_name="Nobody",
+            middle_names="Likes",
+            last_name="Me",
+            user=other_user,
+            year_met=2000
+        )
+        self._create_contact_for_user()
+        response = self._login_and_get_response()
+        self.assertIn("Content-Disposition", response)
+        self.assertEqual(response["Content-Disposition"], "attachment; filename=contacts.vcf")
+        self.assertEqual(response["Content-Type"], "text/vcard")
+        vcard_data = response.content.decode("utf-8")
+        self.assertIn("Wanted In Response", vcard_data)
+        self.assertNotIn("Nobody Likes Me", vcard_data)
+
+
 class TestContactListView(TestCase):
     def setUp(self):
         self.client = Client()
@@ -125,25 +214,20 @@ class TestContactListView(TestCase):
         self.assertQuerySetEqual(response.context["object_list"], [])
 
 
-class TestContactListDownloadView(TestCase):
+class TestContactQrCodeView(TestCase):
     def setUp(self):
         self.client = Client()
         self.user = User.objects.create_user(
             username="tess_ting", email="tess@ting.com", password="password"
         )
-        self.url = reverse("contact-list-download")
-
-    def _create_contact_for_user(self):
-        """
-        Creates a Contact for the user.
-        """
-        return Contact.objects.create(
+        self.contact = Contact.objects.create(
             first_name="Wanted",
             middle_names="In",
             last_name="Response",
             user=self.user,
             year_met=2000
         )
+        self.url = reverse("contact-qrcode", args=[self.contact.id])
 
     def _login_and_get_response(self):
         """
@@ -160,55 +244,13 @@ class TestContactListDownloadView(TestCase):
         """
         response = self.client.get(self.url)
         self.assertRedirects(response, f"{settings.LOGIN_URL}?next={self.url}")
-
-    def test_view_url_exists_for_logged_in_user_with_contacts(self):
+    
+    def test_redirect_if_logged_in_as_other_user(self):
         """
-        Make sure that if a logged in user attempts to access the contact-list-download view,
-        they can do with success.
+        Make sure that if a non logged in user attempts to access the contact-list-download view,
+        they are redirected to the login page. 
         """
-        self._create_contact_for_user()
-        response = self._login_and_get_response()
-        self.assertEqual(response.status_code, 200)
-
-    def test_successful_download_if_contacts_exist(self):
-        """
-        Make sure that if there are Contacts present, the response is a download.
-        """
-        self._create_contact_for_user()
-        response = self._login_and_get_response()
-        self.assertIn("Content-Disposition", response)
-        self.assertEqual(response["Content-Disposition"], "attachment; filename=contacts.vcf")
-        self.assertEqual(response["Content-Type"], "text/vcard")
-
-    def test_status_404_if_no_contacts(self):
-        """
-        Make sure there is a 404 status code if there are no Contacts listed.
-        """
-        response = self._login_and_get_response()
-        self.assertEqual(response.status_code, 404)
-
-    def test_other_user_contacts_not_present_in_download(self):
-        """
-        Make sure that if there are Contacts present for other users,
-        they are not included in the download.
-        """
-        other_user = User.objects.create(
-            username="tess_ting2",
-            email="tess@ting2.com",
-            password="password"
-        )
-        Contact.objects.create(
-            first_name="Nobody",
-            middle_names="Likes",
-            last_name="Me",
-            user=other_user,
-            year_met=2000
-        )
-        self._create_contact_for_user()
-        response = self._login_and_get_response()
-        self.assertIn("Content-Disposition", response)
-        self.assertEqual(response["Content-Disposition"], "attachment; filename=contacts.vcf")
-        self.assertEqual(response["Content-Type"], "text/vcard")
-        vcard_data = response.content.decode("utf-8")
-        self.assertIn("Wanted In Response", vcard_data)
-        self.assertNotIn("Nobody Likes Me", vcard_data)
+        User.objects.create(username="tess_ting2", email="tess@ting2.com", password="password")
+        self.client.login(username="tess_ting2", password="password")
+        response = self.client.get(self.url)
+        self.assertRedirects(response, f"{settings.LOGIN_URL}?next={self.url}")
