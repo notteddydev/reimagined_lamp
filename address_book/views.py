@@ -20,8 +20,8 @@ from io import BytesIO
 def contact_download_view(request, pk):
     contact = get_object_or_404(Contact, pk=pk)
 
-    response = HttpResponse(contact.vcard, content_type='text/vcard')
-    response['Content-Disposition'] = f"attachment; filename={slugify(contact.full_name)}.vcf"
+    response = HttpResponse(contact.vcard, content_type="text/vcard")
+    response["Content-Disposition"] = f"attachment; filename={slugify(contact.full_name)}.vcf"
 
     return response
 
@@ -73,7 +73,7 @@ def contact_qrcode_view(request, pk):
     qr.make(fit=True)
 
     # Create an image from the QR Code instance
-    img = qr.make_image(fill='black', back_color='white')
+    img = qr.make_image(fill="black", back_color="white")
 
     # Save it in a bytes buffer
     buffer = BytesIO()
