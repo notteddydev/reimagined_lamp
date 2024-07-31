@@ -73,7 +73,7 @@ class TestContactListDownloadView(TestCase):
         Make sure that if there are Contacts present for other users,
         they are not included in the download.
         """
-        other_user = User.objects.create(
+        other_user = User.objects.create_user(
             username="tess_ting2",
             email="tess@ting2.com",
             password="password"
@@ -196,7 +196,7 @@ class TestContactListView(TestCase):
         Make sure that Contacts belonging to another User are not present in the contexts
         object_list.
         """
-        other_user = User.objects.create(
+        other_user = User.objects.create_user(
             username="tess_ting2",
             email="tess@ting2.com",
             password="password"
@@ -250,7 +250,7 @@ class TestContactQrCodeView(TestCase):
         Make sure that if a non logged in user attempts to access the contact-list-download view,
         they are redirected to the login page. 
         """
-        User.objects.create(username="tess_ting2", email="tess@ting2.com", password="password")
+        User.objects.create_user(username="tess_ting2", email="tess@ting2.com", password="password")
         self.client.login(username="tess_ting2", password="password")
         response = self.client.get(self.url)
         self.assertRedirects(response, f"{settings.LOGIN_URL}?next={self.url}")
