@@ -6,6 +6,31 @@ from django.urls import reverse
 from .models import Contact
 
 
+class TestAddressCreateView(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(
+            username="tess_ting", email="tess@ting.com", password="password"
+        )
+        self.url = reverse("address-create")
+
+    def _login_and_get_response(self):
+        """
+        Logs the user in, attempts to access the contact-list-download view, and returns the response.
+        """
+        self.client.login(username="tess_ting", password="password")
+        response = self.client.get(self.url)
+        return response
+    
+    def test_redirect_if_not_logged_in(self):
+        """
+        Make sure that if a non logged in user attempts to access the contact-list-download view,
+        they are redirected to the login page. 
+        """
+        response = self.client.get(self.url)
+        self.assertRedirects(response, f"{settings.LOGIN_URL}?next={self.url}")    
+
+
 class TestContactListDownloadView(TestCase):
     def setUp(self):
         self.client = Client()
@@ -231,26 +256,50 @@ class TestContactQrCodeView(TestCase):
 
     def _login_and_get_response(self):
         """
-        Logs the user in, attempts to access the contact-list-download view, and returns the response.
+        Logs the user in, attempts to access the contact-qrcode view, and returns the response.
         """
         self.client.login(username="tess_ting", password="password")
         response = self.client.get(self.url)
         return response
+
+    def test_view_url_exists_for_logged_in_user_who_owns_contact(self):
+        """
+        Make sure that if a logged in user attempts to access the contact-list view,
+        they can do with success.
+        """
+        response = self._login_and_get_response()
+        self.assertEqual(response.status_code, 200)
     
     def test_redirect_if_not_logged_in(self):
         """
-        Make sure that if a non logged in user attempts to access the contact-list-download view,
+        Make sure that if a non logged in user attempts to access the contact-qrcode view,
         they are redirected to the login page. 
         """
         response = self.client.get(self.url)
         self.assertRedirects(response, f"{settings.LOGIN_URL}?next={self.url}")
     
-    def test_redirect_if_logged_in_as_other_user(self):
+    def test_404_if_logged_in_as_other_user(self):
         """
-        Make sure that if a non logged in user attempts to access the contact-list-download view,
-        they are redirected to the login page. 
+        Make sure that if a logged in user attempts to access the contact-qrcode view
+        for a contact that does not belong to them, they are given a great big 404 right in their face. 
         """
         User.objects.create_user(username="tess_ting2", email="tess@ting2.com", password="password")
         self.client.login(username="tess_ting2", password="password")
         response = self.client.get(self.url)
-        self.assertRedirects(response, f"{settings.LOGIN_URL}?next={self.url}")
+        self.assertEqual(response.status_code, 404)
+
+    def test_png_returned_if_logged_in_as_owner(self):
+        """
+        Make sure that if logged in as owner and Contact exists, image/png is returned.
+        """
+        response = self._login_and_get_response()
+        self.assertEqual(response["Content-Type"], "image/png")
+
+    def test_404_if_contact_not_exists(self):
+        """
+        Make sure that if a Contact does not exist with the pk provided in the URL
+        that the response status code is 404.
+        """
+        self.client.login(username="tess_ting", password="password")
+        response = self.client.get(reverse("contact-qrcode", args=[self.contact.id + 1]))
+        self.assertEqual(response.status_code, 404)
