@@ -4,6 +4,7 @@ from django.test import Client, TestCase
 from django.urls import reverse
 
 from .models import Contact
+from .utils import vcard_dict_from_vcard
 
 
 class TestContactListView(TestCase):
@@ -186,3 +187,29 @@ class TestContactListDownloadView(TestCase):
         """
         response = self._login_and_get_response()
         self.assertEqual(response.status_code, 404)
+
+    def test_other_user_contacts_not_present_in_download(self):
+        """
+        Make sure that if there are Contacts present for other users,
+        they are not included in the download.
+        """
+        other_user = User.objects.create(
+            username="tess_ting2",
+            email="tess@ting2.com",
+            password="password"
+        )
+        Contact.objects.create(
+            first_name="Nobody",
+            middle_names="Likes",
+            last_name="Me",
+            user=other_user,
+            year_met=2000
+        )
+        self._create_contact_for_user()
+        response = self._login_and_get_response()
+        self.assertIn("Content-Disposition", response)
+        self.assertEqual(response["Content-Disposition"], "attachment; filename=contacts.vcf")
+        self.assertEqual(response["Content-Type"], "text/vcard")
+        vcard_data = response.content.decode("utf-8")
+        self.assertIn("Wanted In Response", vcard_data)
+        self.assertNotIn("Nobody Likes Me", vcard_data)
