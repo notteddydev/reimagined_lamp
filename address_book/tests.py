@@ -4,7 +4,6 @@ from django.test import Client, TestCase
 from django.urls import reverse
 
 from .models import Contact
-from .utils import vcard_dict_from_vcard
 
 
 class TestContactListView(TestCase):
