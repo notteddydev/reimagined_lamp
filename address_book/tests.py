@@ -16,7 +16,7 @@ class TestAddressCreateView(TestCase):
 
     def _login_and_get_response(self):
         """
-        Logs the user in, attempts to access the contact-list-download view, and returns the response.
+        Logs the user in, attempts to access the address-create view, and returns the response.
         """
         self.client.login(username="tess_ting", password="password")
         response = self.client.get(self.url)
@@ -24,11 +24,47 @@ class TestAddressCreateView(TestCase):
     
     def test_redirect_if_not_logged_in(self):
         """
-        Make sure that if a non logged in user attempts to access the contact-list-download view,
+        Make sure that if a non logged in user attempts to access the address-create view,
         they are redirected to the login page. 
         """
         response = self.client.get(self.url)
-        self.assertRedirects(response, f"{settings.LOGIN_URL}?next={self.url}")    
+        self.assertRedirects(response, f"{settings.LOGIN_URL}?next={self.url}")
+
+    def test_get_view_for_logged_in_user(self):
+        """
+        Test correct template is used and appropriate keys are passed to the context
+        when a logged in user attempts to access the address-create view. Assert that
+        the forms initial value is empty.
+        """
+        response = self._login_and_get_response()
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "address_book/address_form.html")
+        self.assertIn("form", response.context)
+        self.assertIn("phonenumber_formset", response.context)
+        self.assertEqual({}, response.context["form"].initial)
+
+    def test_get_view_with_valid_contact_id_param_for_logged_in_user(self):
+        """
+        Test correct template is used and appropriate keys are passed to the context
+        when a logged in user attempts to access the address-create view. Assert that
+        the forms initial value contains the valid contact_id passed in params.
+        """
+        contact = Contact.objects.create(
+            first_name="Wanted",
+            middle_names="In",
+            last_name="Response",
+            user=self.user,
+            year_met=2000
+        )
+        self.client.login(username="tess_ting", password="password")
+        response = self.client.get(f"{self.url}?contact_id={contact.id}")
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "address_book/address_form.html")
+        self.assertIn("phonenumber_formset", response.context)
+        self.assertIn("form", response.context)
+        self.assertIn("contacts", response.context["form"].initial)
+        self.assertEqual(1, len(response.context["form"].initial.get("contacts")))
+        self.assertEqual(contact.id, response.context["form"].initial.get("contacts")[0])
 
 
 class TestContactListDownloadView(TestCase):
@@ -69,8 +105,8 @@ class TestContactListDownloadView(TestCase):
 
     def test_view_url_exists_for_logged_in_user_with_contacts(self):
         """
-        Make sure that if a logged in user attempts to access the contact-list-download view,
-        they can do with success.
+        Make sure that if a logged in user with contacts attempts to access the contact-list-download
+        view, they can do with success.
         """
         self._create_contact_for_user()
         response = self._login_and_get_response()
