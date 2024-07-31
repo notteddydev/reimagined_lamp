@@ -17,6 +17,49 @@ from io import BytesIO
 
 @login_required
 @owned_by_user(Contact)
+def contact_download_view(request, pk):
+    contact = get_object_or_404(Contact, pk=pk)
+
+    response = HttpResponse(contact.vcard, content_type='text/vcard')
+    response['Content-Disposition'] = f"attachment; filename={slugify(contact.full_name)}.vcf"
+
+    return response
+
+
+@login_required
+def contact_list_download_view(request):
+    contacts = Contact.objects.filter(user=request.user)
+    filter_formset = ContactFilterFormSet(request.GET or None)
+
+    if filter_formset.is_valid():
+        contacts = filter_formset.apply_filters(contacts)
+
+    if not contacts.exists():
+        raise Http404("No contacts were found for download.")
+
+    vcards = [contact.vcard for contact in contacts]
+    vcf = "\n".join(vcards)
+    response = HttpResponse(vcf, content_type="text/vcard")
+    response['Content-Disposition'] = "attachment; filename=contacts.vcf"
+    return response
+
+
+@login_required
+def contact_list_view(request):
+    contacts = Contact.objects.filter(user=request.user)
+    filter_formset = ContactFilterFormSet(request.GET or None)
+
+    if filter_formset.is_valid():
+        contacts = filter_formset.apply_filters(contacts)
+
+    return render(request, "address_book/contact_list.html", {
+        "object_list": contacts,
+        "filter_formset": filter_formset,
+    })
+
+
+@login_required
+@owned_by_user(Contact)
 def contact_qrcode_view(request, pk):
     contact = get_object_or_404(Contact, pk=pk)
 
@@ -38,50 +81,74 @@ def contact_qrcode_view(request, pk):
     buffer.seek(0)
 
     return HttpResponse(buffer, content_type="image/png")
+    
 
+class AddressCreateView(LoginRequiredMixin, View):
+    def get(self, request):
+        if request.GET.get("contact_id"):
+            form = AddressForm(request.user, initial={"contacts": (request.GET.get("contact_id"))})
+        else:
+            form = AddressForm(request.user)
 
-@login_required
-@owned_by_user(Contact)
-def contact_download_view(request, pk):
-    contact = get_object_or_404(Contact, pk=pk)
+        return render(request, "address_book/address_form.html", {
+            "form": form,
+            "phonenumber_formset": AddressPhoneNumberCreateFormSet,
+        })
+    
+    def post(self, request):
+        form = AddressForm(request.user, request.POST)
+        phonenumber_formset = AddressPhoneNumberCreateFormSet(request.POST)
 
-    response = HttpResponse(contact.vcard, content_type='text/vcard')
-    response['Content-Disposition'] = f"attachment; filename={slugify(contact.full_name)}.vcf"
+        if form.is_valid() and phonenumber_formset.is_valid():
+            address = form.save()
 
-    return response
+            phonenumber_formset.instance = address
+            phonenumber_formset.save()
 
+            return redirect(reverse("address-detail", args=[address.id]))
 
-@login_required
-def contact_list_view(request):
-    contacts = Contact.objects.filter(user=request.user)
-    filter_formset = ContactFilterFormSet(request.GET or None)
+        return render(request, "address_book/address_form.html", {
+            "form": form,
+            "phonenumber_formset": phonenumber_formset,
+        })
+    
 
-    if filter_formset.is_valid():
-        contacts = filter_formset.apply_filters(contacts)
+class AddressDetailView(LoginRequiredMixin, OwnedByUserMixin, DetailView):
+    model = Address
+    
 
-    return render(request, "address_book/contact_list.html", {
-        "object_list": contacts,
-        "filter_formset": filter_formset,
-    })
+class AddressUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
+    def get(self, request, pk):
+        address = get_object_or_404(Address, pk=pk)
 
+        # TODO Look at changing the AddressForm so that in this case the user does not need passing in.
+        return render(request, "address_book/address_form.html", {
+            "form": AddressForm(request.user, instance=address),
+            "object": address,
+            "phonenumber_formset": AddressPhoneNumberUpdateFormSet(instance=address),
+        })
+    
+    def post(self, request, pk):
+        address = get_object_or_404(Address, pk=pk)
+        form = AddressForm(request.user, request.POST, instance=address)
+        phonenumber_formset = AddressPhoneNumberUpdateFormSet(request.POST, instance=address)
 
-@login_required
-def contact_list_download_view(request):
-    contacts = Contact.objects.filter(user=request.user)
-    filter_formset = ContactFilterFormSet(request.GET or None)
+        if form.is_valid() and phonenumber_formset.is_valid():
+            address = form.save()
 
-    if filter_formset.is_valid():
-        contacts = filter_formset.apply_filters(contacts)
+            phonenumber_formset.instance = address
+            phonenumber_formset.save()
 
-    if not contacts.exists():
-        raise Http404("No contacts were found for download.")
+            return redirect(reverse("address-detail", args=[address.id]))
 
-    vcards = [contact.vcard for contact in contacts]
-    vcf = "\n".join(vcards)
-    response = HttpResponse(vcf, content_type="text/vcard")
-    response['Content-Disposition'] = "attachment; filename=contacts.vcf"
-    return response
+        return render(request, "address_book/address_form.html", {
+            "form": form,
+            "object": address,
+            "phonenumber_formset": phonenumber_formset,
+        })
 
+    def test_func(self) -> bool | None:
+        return Address.objects.filter(id=self.kwargs['pk'], user=self.request.user).exists()
 
 
 class ContactAddressToggleArchiveView(LoginRequiredMixin, UserPassesTestMixin, View):
@@ -209,71 +276,3 @@ class TagCreateView(LoginRequiredMixin, View):
         return render(request, "address_book/tag_form.html", {
             "form": form,
         })
-    
-
-class AddressCreateView(LoginRequiredMixin, View):
-    def get(self, request):
-        if request.GET.get("contact_id"):
-            form = AddressForm(request.user, initial={"contacts": (request.GET.get("contact_id"))})
-        else:
-            form = AddressForm(request.user)
-
-        return render(request, "address_book/address_form.html", {
-            "form": form,
-            "phonenumber_formset": AddressPhoneNumberCreateFormSet,
-        })
-    
-    def post(self, request):
-        form = AddressForm(request.user, request.POST)
-        phonenumber_formset = AddressPhoneNumberCreateFormSet(request.POST)
-
-        if form.is_valid() and phonenumber_formset.is_valid():
-            address = form.save()
-
-            phonenumber_formset.instance = address
-            phonenumber_formset.save()
-
-            return redirect(reverse("address-detail", args=[address.id]))
-
-        return render(request, "address_book/address_form.html", {
-            "form": form,
-            "phonenumber_formset": phonenumber_formset,
-        })
-    
-
-class AddressUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
-    def get(self, request, pk):
-        address = get_object_or_404(Address, pk=pk)
-
-        # TODO Look at changing the AddressForm so that in this case the user does not need passing in.
-        return render(request, "address_book/address_form.html", {
-            "form": AddressForm(request.user, instance=address),
-            "object": address,
-            "phonenumber_formset": AddressPhoneNumberUpdateFormSet(instance=address),
-        })
-    
-    def post(self, request, pk):
-        address = get_object_or_404(Address, pk=pk)
-        form = AddressForm(request.user, request.POST, instance=address)
-        phonenumber_formset = AddressPhoneNumberUpdateFormSet(request.POST, instance=address)
-
-        if form.is_valid() and phonenumber_formset.is_valid():
-            address = form.save()
-
-            phonenumber_formset.instance = address
-            phonenumber_formset.save()
-
-            return redirect(reverse("address-detail", args=[address.id]))
-
-        return render(request, "address_book/address_form.html", {
-            "form": form,
-            "object": address,
-            "phonenumber_formset": phonenumber_formset,
-        })
-
-    def test_func(self) -> bool | None:
-        return Address.objects.filter(id=self.kwargs['pk'], user=self.request.user).exists()
-    
-
-class AddressDetailView(LoginRequiredMixin, OwnedByUserMixin, DetailView):
-    model = Address
