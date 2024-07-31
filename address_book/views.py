@@ -85,10 +85,16 @@ def contact_qrcode_view(request, pk):
 
 class AddressCreateView(LoginRequiredMixin, View):
     def get(self, request):
-        if request.GET.get("contact_id"):
-            form = AddressForm(request.user, initial={"contacts": (request.GET.get("contact_id"))})
-        else:
-            form = AddressForm(request.user)
+        contact_id = request.GET.get("contact_id")
+        initial_data = {}
+
+        if contact_id:
+            user_owns_contact = Contact.objects.filter(user=request.user, pk=contact_id).exists()
+
+            if user_owns_contact:
+                initial_data = {"contacts": (int(contact_id),)}
+
+        form = AddressForm(request.user, initial=initial_data)
 
         return render(request, "address_book/address_form.html", {
             "form": form,
