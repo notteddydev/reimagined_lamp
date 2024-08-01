@@ -108,8 +108,11 @@ class AddressCreateView(LoginRequiredMixin, View):
         if form.is_valid() and phonenumber_formset.is_valid():
             address = form.save()
 
-            phonenumber_formset.instance = address
-            phonenumber_formset.save()
+            phonenumber_formset_is_empty = all(not form.cleaned_data for form in phonenumber_formset if form.is_valid())
+
+            if not phonenumber_formset_is_empty:
+                phonenumber_formset.instance = address
+                phonenumber_formset.save()
 
             return redirect(reverse("address-detail", args=[address.id]))
 
