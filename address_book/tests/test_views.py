@@ -1,3 +1,4 @@
+from collections import Counter
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.test import Client, TestCase
@@ -70,9 +71,11 @@ class TestAddressCreateView(TestCase):
         self.assertTemplateUsed(response, "address_book/address_form.html")
         self.assertIn("phonenumber_formset", response.context)
         self.assertIn("form", response.context)
-        self.assertIn("contacts", response.context["form"].initial)
-        self.assertEqual(1, len(response.context["form"].initial.get("contacts")))
-        self.assertEqual(contact.id, response.context["form"].initial.get("contacts")[0])
+
+        initial_form_data = response.context["form"].initial
+        self.assertIn("contacts", initial_form_data)
+        self.assertEqual(1, len(initial_form_data.get("contacts")))
+        self.assertEqual(contact.id, initial_form_data.get("contacts")[0])
         self.assertContains(response, f'<option value="{contact.id}" selected>{contact}')
 
     def test_post_with_valid_data(self):
@@ -117,6 +120,60 @@ class TestAddressCreateView(TestCase):
         self.assertEqual(response.status_code, 302)
         address = Address.objects.get(address_line_1="1 easily identifiable road")
         self.assertRedirects(response, reverse("address-detail", args=[address.id]))
+
+    def test_post_with_invalid_data(self):
+        """
+        Test that posting invalid data is unsuccessful and renders the address-create
+        template again displaying errors.
+        """
+        self.client.login(username="tess_ting", password="password")
+        invalid_form_data = {
+            "address_line_1": "",
+            "address_line_2": "apartment 100",
+            "neighbourhood": "Mayfair",
+            "city": "London",
+            "state": "London",
+            "postcode": "SN1 8GB",
+            "country": 99999,
+            "notes": "Not a real address tbh",
+            "address_types": [7],
+            "contacts": [],
+            'phonenumber_set-TOTAL_FORMS': ['2', '2'],
+            'phonenumber_set-INITIAL_FORMS': ['0', '0'],
+            'phonenumber_set-MIN_NUM_FORMS': ['0', '0'],
+            'phonenumber_set-MAX_NUM_FORMS': ['1000', '1000'],
+            'phonenumber_set-0-number_0': ['GB'],
+            'phonenumber_set-0-number_1': [''],
+            'phonenumber_set-0-phonenumber_types': ['1', '10'],
+            'phonenumber_set-0-id': [''],
+            'phonenumber_set-0-address': [''],
+            'phonenumber_set-1-number_0': ['GB'],
+            'phonenumber_set-1-number_1': [''],
+            'phonenumber_set-1-id': [''],
+            'phonenumber_set-1-address': ['']
+        }
+        response = self.client.post(self.url, invalid_form_data)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(reverse("address-create"))
+        self.assertIn("form", response.context)
+        self.assertIn("phonenumber_formset", response.context)
+        self.assertEqual(
+            Counter(["address_line_1", "address_types", "contacts", "country"]),
+            Counter(list(response.context["form"].errors.as_data()))
+        )
+
+        phonenumber_formset_errors = response.context["phonenumber_formset"].errors
+        self.assertDictEqual(
+            {"number": ["This field is required."]},
+            phonenumber_formset_errors[0]
+        )
+        self.assertDictEqual(
+            {
+                "number": ["This field is required."],
+                "phonenumber_types": ["This field is required."],
+            },
+            phonenumber_formset_errors[1]
+        )
 
 
 class TestContactListDownloadView(TestCase):
