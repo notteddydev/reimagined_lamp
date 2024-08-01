@@ -27,6 +27,7 @@ Python and Django personal organiser (currently just address book).
 - Find out why profession seems to get overridden by email address when scanning qr code on iphone.
 - vcard object for setting / getting properties of a vcard? Useful for import / export
 - Set up with nginx on local
+- Prevent 'profession' from being a required field.
 
 
 ### Long-term
