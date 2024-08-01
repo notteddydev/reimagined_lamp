@@ -6,8 +6,8 @@ from django.utils import translation
 
 from phonenumber_field.formfields import localized_choices, PrefixChoiceField, SplitPhoneNumberField
 
-from .constants import EMAIL_TYPE__NAME_PREF, PHONENUMBER_TYPE__NAME_PREF
-from .models import Address, Contact, ContactAddress, Email, EmailType, PhoneNumber, PhoneNumberType, Tag, WalletAddress
+from .constants import ADDRESS_TYPE__NAME_PREF, EMAIL_TYPE__NAME_PREF, PHONENUMBER_TYPE__NAME_PREF
+from .models import Address, AddressType, Contact, ContactAddress, Email, EmailType, PhoneNumber, PhoneNumberType, Tag, WalletAddress
 
 
 class AddressForm(forms.ModelForm):
@@ -19,6 +19,17 @@ class AddressForm(forms.ModelForm):
 
         if self.instance.pk:
             self.fields["contacts"].initial = self.instance.contact_set.all()
+
+    def clean(self):
+        super().clean()
+        pref_type = AddressType.objects.filter(name=ADDRESS_TYPE__NAME_PREF).first()
+        if pref_type:
+            address_types = self.cleaned_data.get("address_types", [])
+            if pref_type in address_types:
+                # if self.cleaned_data.get("archived", False):
+                    # self.add_error("address_types", "An address may not be 'preferred', and archived.")
+                if len(address_types) == 1:
+                    self.add_error("address_types", "'Preferred' is not allowed as the only type.")
 
     def save(self, commit=True):
         address = super().save(commit=commit)
