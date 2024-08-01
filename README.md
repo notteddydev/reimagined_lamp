@@ -28,6 +28,7 @@ Python and Django personal organiser (currently just address book).
 - vcard object for setting / getting properties of a vcard? Useful for import / export
 - Set up with nginx on local
 - Prevent 'profession' from being a required field.
+- Create method on ContactableType / QuerySet / something to find the 'preferred' type. REPLACE the horrible methods in test_views.py
 
 
 ### Long-term
