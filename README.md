@@ -10,7 +10,7 @@ Python and Django personal organiser (currently just address book).
 - Setup GitHub pipeline.
 - Swap single quotes for double quotes throughout project.
 - Add JavaScript for adding / removing forms from formsets for tidier forms.
-- Consolidate VERY NOT DRY code in Email and Phone Forms and Formsets.
+- Consolidate VERY NOT DRY code in Email and Phone Forms and Formsets. And Address. cleaning types.
 - Create option to download a "lite" vcard, or customise what is downloaded.
 - Deletion logic - contacts, addresses
 - Look into related descriptors and using a custom ManyToManyDescriptor for Addresses to Contacts to make sure that Address always comes prepopulated with the 'archived' db field. As well as a custom object manager.
