@@ -3,6 +3,11 @@ Python and Django personal organiser (currently just address book).
 
 ### ToDo (AddressBook)
 
+- Bin AddressDetail view, in favour of a TenantDetail view.
+- TenantDetail view shows all the same stuff as the AddressDetail view as well as the TENANT-SPECIFIC AddressType, and it's archived state for that Tenant.
+- Add TenantInlineFormSet to AddressForm
+- Bin ToggleTenantArchived view in favour of TenantUpdate view.
+
 - Ermm... maybe... like... add some tests
 - Erm... add docblocks, pattern code, add typehints, refactor code - view classes particularly.
 - Check form validation; validate that an address is always associated with at least one contact.
