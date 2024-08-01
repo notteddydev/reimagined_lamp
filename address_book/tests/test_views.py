@@ -101,7 +101,6 @@ class TestAddressCreateView(TestCase):
             "postcode": "SN1 8GB",
             "country": 56,
             "notes": "Not a real address tbh",
-            "address_types": [1, 7],
             "contacts": [contact.id],
             "phonenumber_set-TOTAL_FORMS": ["2", "2"],
             "phonenumber_set-INITIAL_FORMS": ["0", "0"],
@@ -137,7 +136,6 @@ class TestAddressCreateView(TestCase):
             "postcode": "SN1 8GB",
             "country": 99999,
             "notes": "Not a real address tbh",
-            "address_types": [7],
             "contacts": [],
             "phonenumber_set-TOTAL_FORMS": ["2", "2"],
             "phonenumber_set-INITIAL_FORMS": ["0", "0"],
@@ -159,7 +157,7 @@ class TestAddressCreateView(TestCase):
         self.assertIn("form", response.context)
         self.assertIn("phonenumber_formset", response.context)
         self.assertEqual(
-            Counter(["address_line_1", "address_types", "contacts", "country"]),
+            Counter(["address_line_1", "contacts", "country"]),
             Counter(list(response.context["form"].errors.as_data()))
         )
 

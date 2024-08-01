@@ -135,26 +135,26 @@
                     <a href="{% url "address-create" %}?contact_id={{ object.id }}">Create</a>
                 </small>
             </caption>
-            {% if contact.tenant_set.all|length %}
+            {% if contact.tenancy_set.all|length %}
                 <tbody>
-                    {% for tenant in contact.tenant_set.all %}
+                    {% for tenancy in contact.tenancy_set.all %}
                         <tr>
-                            <td {% if tenant.archived %}class="linethrough"{% endif %}>{{ tenant.address.address_line_1 }}</td>
+                            <td {% if tenancy.archived %}class="linethrough"{% endif %}>{{ tenancy.address.address_line_1 }}</td>
                             <td>
-                                <a href="{% url "address-detail" tenant.address.id %}">View</a>
-                                <a href="{% url "address-update" tenant.address.id %}">Update</a>
+                                <a href="{% url "address-detail" tenancy.address.id %}">View</a>
+                                <a href="{% url "address-update" tenancy.address.id %}">Update</a>
                                 <form
-                                    action="{% url "tenant-toggle-archive" tenant.id %}"
+                                    action="{% url "tenancy-toggle-archive" tenancy.id %}"
                                     class="inline"
-                                    id="tenant-toggle-archived-form-{{ tenant.id }}"
+                                    id="tenancy-toggle-archived-form-{{ tenancy.id }}"
                                     method="POST"
                                 >
                                     {% csrf_token %}
                                     <a
                                         href="javascript:;"
-                                        onclick="document.getElementById('tenant-toggle-archived-form-{{ tenant.id }}').submit()"
+                                        onclick="document.getElementById('tenancy-toggle-archived-form-{{ tenancy.id }}').submit()"
                                     >
-                                        {% if tenant.archived %}Unarchive{% else %}Archive{% endif %}
+                                        {% if tenancy.archived %}Unarchive{% else %}Archive{% endif %}
                                     </a>
                                 </form>
                             </td>

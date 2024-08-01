@@ -109,9 +109,10 @@ class Tag(models.Model):
         ordering = ["name"]
 
 
-class Tenant(Archiveable):
+class Tenancy(Archiveable, Contactable):
     contact=models.ForeignKey("Contact", on_delete=models.CASCADE)
     address=models.ForeignKey("Address", on_delete=models.CASCADE)
+    address_types=models.ManyToManyField("AddressType")
 
     class Meta(Archiveable.Meta):
         unique_together = ("contact", "address")
@@ -132,7 +133,7 @@ class Contact(models.Model):
     dob=models.DateField(blank=True, null=True)
     dod=models.DateField(blank=True, null=True)
     anniversary=models.DateField(blank=True, null=True)
-    addresses=models.ManyToManyField("Address", blank=True, through=Tenant)
+    addresses=models.ManyToManyField("Address", blank=True, through=Tenancy)
     nationality=models.ManyToManyField(Nation, blank=True)
     year_met=models.SmallIntegerField(
         blank=False,
@@ -192,10 +193,10 @@ class Contact(models.Model):
         if self.dob:
             vcard += f"""BDAY:{self.dob.strftime("%Y%m%d")}\n"""
 
-        for tenant in self.tenant_set.unarchived():
-            vcard += f"{tenant.address.vcard_entry}\n"
+        for tenancy in self.tenancy_set.unarchived():
+            vcard += f"{tenancy.address.vcard_entry}\n"
 
-            for phonenumber in tenant.address.phonenumber_set.unarchived():
+            for phonenumber in tenancy.address.phonenumber_set.unarchived():
                 vcard += f"{phonenumber.vcard_entry}\n"
 
         for email in self.email_set.unarchived():
@@ -254,7 +255,7 @@ class AddressType(ContactableType):
     pass
 
 
-class Address(Contactable):
+class Address(models.Model):
     user=models.ForeignKey(User, on_delete=models.CASCADE)
     address_line_1=models.CharField(max_length=100)
     address_line_2=models.CharField(blank=True, max_length=100)
@@ -264,7 +265,6 @@ class Address(Contactable):
     postcode=models.CharField(max_length=20)
     country=models.ForeignKey(Nation, on_delete=models.SET_NULL, null=True)
     notes=models.TextField(blank=True)
-    address_types=models.ManyToManyField(AddressType)
 
     @property
     def readable(self):
