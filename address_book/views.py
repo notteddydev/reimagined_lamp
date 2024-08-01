@@ -18,6 +18,9 @@ from io import BytesIO
 @login_required
 @owned_by_user(Contact)
 def contact_download_view(request, pk):
+    """
+    Downloads all non-archived vcardable Contact data as a .vcf file for a single Contact.
+    """
     contact = get_object_or_404(Contact, pk=pk)
 
     response = HttpResponse(contact.vcard, content_type="text/vcard")
@@ -28,6 +31,9 @@ def contact_download_view(request, pk):
 
 @login_required
 def contact_list_download_view(request):
+    """
+    Downloads all non-archived vcardable Contact data as a .vcf file for a list of Contacts.
+    """
     contacts = Contact.objects.filter(user=request.user)
     filter_formset = ContactFilterFormSet(request.GET or None)
 
@@ -46,6 +52,9 @@ def contact_list_download_view(request):
 
 @login_required
 def contact_list_view(request):
+    """
+    Lists Contacts for the logged in User; applying selected filters.
+    """
     contacts = Contact.objects.filter(user=request.user)
     filter_formset = ContactFilterFormSet(request.GET or None)
 
@@ -61,6 +70,10 @@ def contact_list_view(request):
 @login_required
 @owned_by_user(Contact)
 def contact_qrcode_view(request, pk):
+    """
+    Returns a PNG image of a QR code which stores all non-archived vcardable Contact data
+    for a given Contact.
+    """
     contact = get_object_or_404(Contact, pk=pk)
 
     qr = qrcode.QRCode(
@@ -85,6 +98,10 @@ def contact_qrcode_view(request, pk):
 
 class AddressCreateView(LoginRequiredMixin, View):
     def get(self, request):
+        """
+        Return the address_form template for creating an Address, pre-populating the associated
+        contacts with any valid contact_id passed in the URL params.
+        """
         contact_id = request.GET.get("contact_id")
         initial_data = {}
 
@@ -102,6 +119,11 @@ class AddressCreateView(LoginRequiredMixin, View):
         })
     
     def post(self, request):
+        """
+        Creates an Address with valid data and redirects to the corresponding AddressDetail view;
+        or, if incorrect data provided, returns the address_form template once again displaying
+        errors.
+        """
         form = AddressForm(request.user, request.POST)
         phonenumber_formset = AddressPhoneNumberCreateFormSet(request.POST)
 
@@ -125,11 +147,17 @@ class AddressCreateView(LoginRequiredMixin, View):
     
 
 class AddressDetailView(LoginRequiredMixin, OwnedByUserMixin, DetailView):
+    """
+    Display details of a given Address.
+    """
     model = Address
     
 
 class AddressUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
     def get(self, request, pk):
+        """
+        Return the address_form template for updating an Address, displaying any existing values.
+        """
         address = get_object_or_404(Address, pk=pk)
 
         # TODO Look at changing the AddressForm so that in this case the user does not need passing in.
@@ -140,6 +168,11 @@ class AddressUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
         })
     
     def post(self, request, pk):
+        """
+        Updates an Address with valid data and redirects to the corresponding AddressDetail view;
+        or, if incorrect data provided, returns the address_form template once again displaying
+        errors.
+        """
         address = get_object_or_404(Address, pk=pk)
         form = AddressForm(request.user, request.POST, instance=address)
         phonenumber_formset = AddressPhoneNumberUpdateFormSet(request.POST, instance=address)
@@ -181,6 +214,9 @@ class TenancyToggleArchiveView(LoginRequiredMixin, UserPassesTestMixin, View):
 
 class ContactCreateView(LoginRequiredMixin, View):
     def get(self, request):
+        """
+        Return the contact_form template for creating an Contact.
+        """
         return render(request, "address_book/contact_form.html", {
             "email_formset": EmailCreateFormSet,
             "form": ContactForm(request.user),
@@ -189,6 +225,11 @@ class ContactCreateView(LoginRequiredMixin, View):
         })
     
     def post(self, request):
+        """
+        Creates a Contact with valid data and redirects to the corresponding ContactDetail view;
+        or, if incorrect data provided, returns the contact_form template once again displaying
+        errors.
+        """
         form = ContactForm(request.user, request.POST)
         email_formset = EmailCreateFormSet(request.POST)
         phonenumber_formset = ContactPhoneNumberCreateFormSet(request.POST)
@@ -217,11 +258,17 @@ class ContactCreateView(LoginRequiredMixin, View):
     
 
 class ContactDetailView(LoginRequiredMixin, OwnedByUserMixin, DetailView):
+    """
+    Display details of a given Contact .
+    """
     model = Contact
     
 
 class ContactUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
     def get(self, request, pk):
+        """
+        Return the contact_form template for updating an Contact, displaying any existing values.
+        """
         contact = get_object_or_404(Contact, pk=pk)
 
         # TODO Look at changing the ContactForm so that in this case the user does not need passing in.
@@ -234,6 +281,11 @@ class ContactUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
         })
     
     def post(self, request, pk):
+        """
+        Updates an Contact with valid data and redirects to the corresponding ContactDetail view;
+        or, if incorrect data provided, returns the contact_form template once again displaying
+        errors.
+        """
         contact = get_object_or_404(Contact, pk=pk)
         form = ContactForm(request.user, request.POST, instance=contact)
         email_formset = EmailUpdateFormSet(request.POST, instance=contact)
@@ -268,6 +320,10 @@ class ContactUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
 
 class TagCreateView(LoginRequiredMixin, View):
     def get(self, request):
+        """
+        Return the tag_form template for creating a Tag, pre-populating the associated
+        contacts with any valid contact_id passed in the URL params.
+        """
         if request.GET.get("contact_id"):
             form = TagForm(request.user, initial={"contacts": (request.GET.get("contact_id"))})
         else:
@@ -278,6 +334,11 @@ class TagCreateView(LoginRequiredMixin, View):
         })
     
     def post(self, request):
+        """
+        Creates an Tag with valid data and redirects to the ContactList view, filtering by
+        the created Tag; or, if incorrect data provided, returns the tag_form template once
+        again displaying errors.
+        """
         form = TagForm(request.user, request.POST)
 
         if form.is_valid():
@@ -287,7 +348,7 @@ class TagCreateView(LoginRequiredMixin, View):
             for contact in contacts_selected:
                 contact.tags.add(tag)
 
-            return redirect("tag-list")
+            return redirect("contact-list")
 
         return render(request, "address_book/tag_form.html", {
             "form": form,
