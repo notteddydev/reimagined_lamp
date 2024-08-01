@@ -244,7 +244,6 @@ class TestContactDownloadView(TestCase):
         self.assertEqual(response.status_code, 404)
 
 
-
 class TestContactListDownloadView(TestCase):
     def setUp(self):
         self.client = Client()
