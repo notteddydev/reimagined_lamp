@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from .models import Contact
+from address_book.models import Contact
 
 
 class TestAddressCreateView(TestCase):
@@ -43,11 +43,26 @@ class TestAddressCreateView(TestCase):
         self.assertIn("phonenumber_formset", response.context)
         self.assertEqual({}, response.context["form"].initial)
 
+    def test_get_view_with_invalid_contact_id_param_for_logged_in_user(self):
+        """
+        Test correct template is used and appropriate keys are passed to the context
+        when a logged in user attempts to access the address-create view. Assert that
+        the forms initial value is empty.
+        """
+        self.client.login(username="tess_ting", password="password")
+        response = self.client.get(f"{self.url}?contact_id=23")
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "address_book/address_form.html")
+        self.assertIn("form", response.context)
+        self.assertIn("phonenumber_formset", response.context)
+        self.assertEqual({}, response.context["form"].initial)
+
     def test_get_view_with_valid_contact_id_param_for_logged_in_user(self):
         """
         Test correct template is used and appropriate keys are passed to the context
         when a logged in user attempts to access the address-create view. Assert that
-        the forms initial value contains the valid contact_id passed in params.
+        the forms initial value contains the valid contact_id passed in params, and that
+        the associated contact comes preselected in the multiple choice menu.
         """
         contact = Contact.objects.create(
             first_name="Wanted",
@@ -65,6 +80,7 @@ class TestAddressCreateView(TestCase):
         self.assertIn("contacts", response.context["form"].initial)
         self.assertEqual(1, len(response.context["form"].initial.get("contacts")))
         self.assertEqual(contact.id, response.context["form"].initial.get("contacts")[0])
+        self.assertContains(response, f'<option value="{contact.id}" selected>{contact}')
 
 
 class TestContactListDownloadView(TestCase):
