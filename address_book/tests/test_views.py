@@ -554,6 +554,67 @@ class TestContactCreateView(TestCase):
         self.assertIn("One email must be designated as 'preferred'.", response.context["email_formset"].non_form_errors())
 
 
+class TestContactDetailView(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(
+            username="tess_ting", email="tess@ting.com", password="password"
+        )
+        self.contact = Contact.objects.create(
+            first_name="Wanted",
+            middle_names="In",
+            last_name="Response",
+            user=self.user,
+            year_met=2000
+        )
+        self.url = reverse("contact-detail", args=[self.contact.id])
+
+    def _login_and_get_response(self):
+        """
+        Logs the user in, attempts to access the contact-detail view, and returns the response.
+        """
+        self.client.login(username="tess_ting", password="password")
+        response = self.client.get(self.url)
+        return response
+
+    def test_view_url_exists_for_logged_in_user_who_owns_contact(self):
+        """
+        Make sure that if the owner is logged in and attempts to access the contact-detail
+        view, they can do with success.
+        """
+        response = self._login_and_get_response()
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed("address_book/contact_detail.html")
+        self.assertContains(response, self.contact.full_name)
+    
+    def test_redirect_if_not_logged_in(self):
+        """
+        Make sure that if a non logged in user attempts to access the contact-detail view,
+        they are redirected to the login page. 
+        """
+        response = self.client.get(self.url)
+        self.assertRedirects(response, f"{settings.LOGIN_URL}?next={self.url}")
+    
+    def test_404_if_logged_in_as_other_user(self):
+        """
+        Make sure that if a logged in user attempts to access the contact-detail view
+        for a contact that does not belong to them, they are given a great big 404 right in their face. 
+        """
+        User.objects.create_user(username="tess_ting2", email="tess@ting2.com", password="password")
+        self.client.login(username="tess_ting2", password="password")
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 404)
+
+    def test_404_if_contact_not_exists(self):
+        """
+        Make sure that if a Contact does not exist with the pk provided in the URL
+        that the response status code is 404.
+        """
+        self.client.login(username="tess_ting", password="password")
+        response = self.client.get(reverse("contact-detail", args=[self.contact.id + 1]))
+        self.assertEqual(response.status_code, 404)
+
+
 class TestContactDownloadView(TestCase):
     def setUp(self):
         self.client = Client()
