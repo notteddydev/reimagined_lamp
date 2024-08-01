@@ -5,7 +5,7 @@ Python and Django personal organiser (currently just address book).
 
 - Ermm... maybe... like... add some tests
 - Erm... add docblocks, pattern code, add typehints, refactor code - view classes particularly.
-- Check form validation
+- Check form validation; validate that an address is always associated with at least one contact.
 - Change look of login page if logged in / redirect.
 - Setup GitHub pipeline.
 - Swap single quotes for double quotes throughout project.
@@ -14,6 +14,7 @@ Python and Django personal organiser (currently just address book).
 - Create option to download a "lite" vcard, or customise what is downloaded.
 - Deletion logic - contacts, addresses
 - Look into related descriptors and using a custom ManyToManyDescriptor for Addresses to Contacts to make sure that Address always comes prepopulated with the 'archived' db field. As well as a custom object manager.
+- Add is_empty property to Formsets? (see AddressCreateView post)
 - Maybe more effort that it's worth, but attach vcard to email / sms / whatsapp message
 - Add a site-wide button which hides archived items from all views.
 - Allow importing of contacts from .vcf files.
