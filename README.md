@@ -3,10 +3,10 @@ Python and Django personal organiser (currently just address book).
 
 ### ToDo (AddressBook)
 
-- Bin AddressDetail view, in favour of a TenantDetail view.
-- TenantDetail view shows all the same stuff as the AddressDetail view as well as the TENANT-SPECIFIC AddressType, and it's archived state for that Tenant.
-- Add TenantInlineFormSet to AddressForm
-- Bin ToggleTenantArchived view in favour of TenantUpdate view.
+- Bin AddressDetail view, in favour of a TenancyDetail view.
+- TenancyDetail view shows all the same stuff as the AddressDetail view as well as the TENANCY-SPECIFIC AddressType, and it's archived state for that Tenancy.
+- Add TenancyInlineFormSet to AddressForm
+- Bin ToggleTenancyArchived view in favour of TenancyUpdate view.
 
 - Ermm... maybe... like... add some tests
 - Erm... add docblocks, pattern code, add typehints, refactor code - view classes particularly.
