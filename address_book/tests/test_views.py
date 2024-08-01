@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from address_book.models import Contact
+from address_book.models import Address, Contact
 
 
 class TestAddressCreateView(TestCase):
@@ -13,14 +13,6 @@ class TestAddressCreateView(TestCase):
             username="tess_ting", email="tess@ting.com", password="password"
         )
         self.url = reverse("address-create")
-
-    def _login_and_get_response(self):
-        """
-        Logs the user in, attempts to access the address-create view, and returns the response.
-        """
-        self.client.login(username="tess_ting", password="password")
-        response = self.client.get(self.url)
-        return response
     
     def test_redirect_if_not_logged_in(self):
         """
@@ -36,7 +28,8 @@ class TestAddressCreateView(TestCase):
         when a logged in user attempts to access the address-create view. Assert that
         the forms initial value is empty.
         """
-        response = self._login_and_get_response()
+        self.client.login(username="tess_ting", password="password")
+        response = self.client.get(self.url)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "address_book/address_form.html")
         self.assertIn("form", response.context)
@@ -81,6 +74,49 @@ class TestAddressCreateView(TestCase):
         self.assertEqual(1, len(response.context["form"].initial.get("contacts")))
         self.assertEqual(contact.id, response.context["form"].initial.get("contacts")[0])
         self.assertContains(response, f'<option value="{contact.id}" selected>{contact}')
+
+    def test_post_with_valid_data(self):
+        """
+        Test that posting valid data is successful and redirects to the appropriate address-detail
+        page for the appropriate address.
+        """
+        self.client.login(username="tess_ting", password="password")
+        contact = Contact.objects.create(
+            first_name="Wanted",
+            middle_names="In",
+            last_name="Response",
+            user=self.user,
+            year_met=2000
+        )
+        valid_form_data = {
+            "address_line_1": "1 easily identifiable road",
+            "address_line_2": "apartment 100",
+            "neighbourhood": "Mayfair",
+            "city": "London",
+            "state": "London",
+            "postcode": "SN1 8GB",
+            "country": 56,
+            "notes": "Not a real address tbh",
+            "address_types": [1, 7],
+            "contacts": [contact.id],
+            'phonenumber_set-TOTAL_FORMS': ['2', '2'],
+            'phonenumber_set-INITIAL_FORMS': ['0', '0'],
+            'phonenumber_set-MIN_NUM_FORMS': ['0', '0'],
+            'phonenumber_set-MAX_NUM_FORMS': ['1000', '1000'],
+            'phonenumber_set-0-number_0': ['GB'],
+            'phonenumber_set-0-number_1': ['7777111222'],
+            'phonenumber_set-0-phonenumber_types': ['1', '10'],
+            'phonenumber_set-0-id': [''],
+            'phonenumber_set-0-address': [''],
+            'phonenumber_set-1-number_0': [''],
+            'phonenumber_set-1-number_1': [''],
+            'phonenumber_set-1-id': [''],
+            'phonenumber_set-1-address': ['']
+        }
+        response = self.client.post(self.url, valid_form_data)
+        self.assertEqual(response.status_code, 302)
+        address = Address.objects.get(address_line_1="1 easily identifiable road")
+        self.assertRedirects(response, reverse("address-detail", args=[address.id]))
 
 
 class TestContactListDownloadView(TestCase):
