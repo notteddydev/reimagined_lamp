@@ -92,24 +92,24 @@
         <table>
             <caption>Tenants</caption>
             <tbody>
-                {% for contactaddress in object.contactaddress_set.all %}
+                {% for tenant in object.tenant_set.all %}
                     <tr>
-                        <td {% if contactaddress.archived %}class="linethrough"{% endif %}>{{ contactaddress.contact }}</td>
+                        <td {% if tenant.archived %}class="linethrough"{% endif %}>{{ tenant.contact }}</td>
                         <td>
-                            <a href="{% url "contact-detail" contactaddress.contact.id %}">View</a>
-                            <a href="{% url "contact-update" contactaddress.contact.id %}">Update</a>
+                            <a href="{% url "contact-detail" tenant.contact.id %}">View</a>
+                            <a href="{% url "contact-update" tenant.contact.id %}">Update</a>
                             <form
-                                action="{% url "contactaddress-toggle-archive" contactaddress.id %}"
+                                action="{% url "tenant-toggle-archive" tenant.id %}"
                                 class="inline"
-                                id="contactaddress-toggle-archived-form-{{ contactaddress.id }}"
+                                id="tenant-toggle-archived-form-{{ tenant.id }}"
                                 method="POST"
                             >
                                 {% csrf_token %}
                                 <a
                                     href="javascript:;"
-                                    onclick="document.getElementById('contactaddress-toggle-archived-form-{{ contactaddress.id }}').submit()"
+                                    onclick="document.getElementById('tenant-toggle-archived-form-{{ tenant.id }}').submit()"
                                 >
-                                    {% if contactaddress.archived %}Unarchive{% else %}Archive{% endif %}
+                                    {% if tenant.archived %}Unarchive{% else %}Archive{% endif %}
                                 </a>
                             </form>
                         </td>

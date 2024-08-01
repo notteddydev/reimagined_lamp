@@ -7,7 +7,7 @@ from django.urls import reverse
 from django.views.generic import DetailView, ListView, View
 
 from .forms import AddressForm, AddressPhoneNumberCreateFormSet, AddressPhoneNumberUpdateFormSet, ContactFilterFormSet, ContactForm, ContactPhoneNumberCreateFormSet, ContactPhoneNumberUpdateFormSet, EmailCreateFormSet, EmailUpdateFormSet, TagForm, WalletAddressCreateFormSet, WalletAddressUpdateFormSet
-from .models import Address, Contact, ContactAddress
+from .models import Address, Contact, Tenant
 from app.decorators import owned_by_user
 from app.mixins import OwnedByUserMixin
 
@@ -162,16 +162,16 @@ class AddressUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
         return Address.objects.filter(id=self.kwargs['pk'], user=self.request.user).exists()
 
 
-class ContactAddressToggleArchiveView(LoginRequiredMixin, UserPassesTestMixin, View):
+class TenantToggleArchiveView(LoginRequiredMixin, UserPassesTestMixin, View):
     def post(self, request, pk):
-        contactaddress = get_object_or_404(ContactAddress, pk=pk)
-        contactaddress.archived = not contactaddress.archived
-        contactaddress.save()
+        tenant = get_object_or_404(Tenant, pk=pk)
+        tenant.archived = not tenant.archived
+        tenant.save()
 
         return HttpResponseRedirect(request.META["HTTP_REFERER"])
 
     def test_func(self) -> bool | None:
-        return ContactAddress.objects.filter(pk=self.kwargs['pk'], contact__user=self.request.user).exists()
+        return Tenant.objects.filter(pk=self.kwargs['pk'], contact__user=self.request.user).exists()
 
 
 class ContactCreateView(LoginRequiredMixin, View):

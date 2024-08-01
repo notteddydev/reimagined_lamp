@@ -7,7 +7,7 @@ from django.utils import translation
 from phonenumber_field.formfields import localized_choices, PrefixChoiceField, SplitPhoneNumberField
 
 from .constants import ADDRESS_TYPE__NAME_PREF, EMAIL_TYPE__NAME_PREF, PHONENUMBER_TYPE__NAME_PREF
-from .models import Address, AddressType, Contact, ContactAddress, Email, EmailType, PhoneNumber, PhoneNumberType, Tag, WalletAddress
+from .models import Address, AddressType, Contact, Email, EmailType, PhoneNumber, PhoneNumberType, Tag, Tenant, WalletAddress
 
 
 class AddressForm(forms.ModelForm):
@@ -36,13 +36,13 @@ class AddressForm(forms.ModelForm):
 
         # Check for PK makes sure this only happens once address has been saved.
         if commit and address.pk:
-            for contactaddress in address.contactaddress_set.all():
-                if contactaddress.contact_id not in self.cleaned_data["contacts"].values_list("id", flat=True):
-                    contactaddress.delete()
+            for tenant in address.tenant_set.all():
+                if tenant.contact_id not in self.cleaned_data["contacts"].values_list("id", flat=True):
+                    tenant.delete()
 
             for contact in self.cleaned_data["contacts"]:
-                if contact.id not in address.contactaddress_set.values_list("contact_id", flat=True):
-                    ContactAddress.objects.create(address=address, contact=contact)
+                if contact.id not in address.tenant_set.values_list("contact_id", flat=True):
+                    Tenant.objects.create(address=address, contact=contact)
 
         return address
 

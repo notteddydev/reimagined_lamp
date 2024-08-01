@@ -109,12 +109,11 @@ class Tag(models.Model):
         ordering = ["name"]
 
 
-class ContactAddress(Archiveable):
+class Tenant(Archiveable):
     contact=models.ForeignKey("Contact", on_delete=models.CASCADE)
     address=models.ForeignKey("Address", on_delete=models.CASCADE)
 
     class Meta(Archiveable.Meta):
-        db_table = "address_book_contact_addresses"
         unique_together = ("contact", "address")
         
 
@@ -133,7 +132,7 @@ class Contact(models.Model):
     dob=models.DateField(blank=True, null=True)
     dod=models.DateField(blank=True, null=True)
     anniversary=models.DateField(blank=True, null=True)
-    addresses=models.ManyToManyField("Address", blank=True, through=ContactAddress)
+    addresses=models.ManyToManyField("Address", blank=True, through=Tenant)
     nationality=models.ManyToManyField(Nation, blank=True)
     year_met=models.SmallIntegerField(
         blank=False,
@@ -193,10 +192,10 @@ class Contact(models.Model):
         if self.dob:
             vcard += f"""BDAY:{self.dob.strftime("%Y%m%d")}\n"""
 
-        for contactaddress in self.contactaddress_set.unarchived():
-            vcard += f"{contactaddress.address.vcard_entry}\n"
+        for tenant in self.tenant_set.unarchived():
+            vcard += f"{tenant.address.vcard_entry}\n"
 
-            for phonenumber in contactaddress.address.phonenumber_set.unarchived():
+            for phonenumber in tenant.address.phonenumber_set.unarchived():
                 vcard += f"{phonenumber.vcard_entry}\n"
 
         for email in self.email_set.unarchived():
