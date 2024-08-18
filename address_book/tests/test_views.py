@@ -6,7 +6,7 @@ from django.test import Client, TestCase
 from django.urls import reverse
 
 from address_book.constants import ADDRESS_TYPE__NAME_PREF, EMAIL_TYPE__NAME_PREF, PHONENUMBER_TYPE__NAME_PREF
-from address_book.models import Address, AddressType, Contact, EmailType, PhoneNumberType, Tag
+from address_book.models import Address, AddressType, Contact, EmailType, PhoneNumberType
 
 def get_pref_address_type_id(stringify=False):
     address_type = AddressType.objects.get(name=ADDRESS_TYPE__NAME_PREF)
