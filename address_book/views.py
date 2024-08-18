@@ -324,10 +324,16 @@ class TagCreateView(LoginRequiredMixin, View):
         Return the tag_form template for creating a Tag, pre-populating the associated
         contacts with any valid contact_id passed in the URL params.
         """
-        if request.GET.get("contact_id"):
-            form = TagForm(request.user, initial={"contacts": (request.GET.get("contact_id"))})
-        else:
-            form = TagForm(request.user)
+        contact_id = request.GET.get("contact_id")
+        initial_data = {}
+        
+        if contact_id:
+            user_owns_contact = Contact.objects.filter(id=contact_id, user=request.user).exists()
+
+            if user_owns_contact:
+                initial_data = {"contacts": (int(contact_id),)}
+
+        form = TagForm(request.user, initial=initial_data)
 
         return render(request, "address_book/tag_form.html", {
             "form": form,
@@ -344,7 +350,7 @@ class TagCreateView(LoginRequiredMixin, View):
         if form.is_valid():
             tag = form.save()
             
-            contacts_selected = form.cleaned_data['contacts']
+            contacts_selected = form.cleaned_data["contacts"]
             for contact in contacts_selected:
                 contact.tags.add(tag)
 
