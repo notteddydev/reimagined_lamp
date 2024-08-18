@@ -29,6 +29,7 @@ Python and Django personal organiser (currently just address book).
 - Set up with nginx on local
 - Prevent 'profession' from being a required field.
 - Create method on ContactableType / QuerySet / something to find the 'preferred' type. REPLACE the horrible methods in test_views.py
+- Make redirect from tag-create automatically filter contact-list by tag name again
 
 
 ### Long-term
