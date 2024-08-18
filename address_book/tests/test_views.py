@@ -6,7 +6,7 @@ from django.test import Client, TestCase
 from django.urls import reverse
 
 from address_book.constants import ADDRESS_TYPE__NAME_PREF, EMAIL_TYPE__NAME_PREF, PHONENUMBER_TYPE__NAME_PREF
-from address_book.models import Address, AddressType, Contact, EmailType, PhoneNumberType
+from address_book.models import Address, AddressType, Contact, EmailType, PhoneNumberType, Tag
 
 def get_pref_address_type_id(stringify=False):
     address_type = AddressType.objects.get(name=ADDRESS_TYPE__NAME_PREF)
@@ -954,3 +954,351 @@ class TestContactQrCodeView(TestCase):
         self.client.login(username="tess_ting", password="password")
         response = self.client.get(reverse("contact-qrcode", args=[self.contact.id + 1]))
         self.assertEqual(response.status_code, 404)
+
+
+class TestContactUpdateView(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(
+            username="tess_ting", email="tess@ting.com", password="password"
+        )
+        self.contact = Contact.objects.create(
+            first_name="Wanted",
+            middle_names="In",
+            last_name="Response",
+            user=self.user,
+            year_met=2000
+        )
+        self.url = reverse("contact-update", args=[self.contact.id])
+    
+    def test_redirect_if_not_logged_in(self):
+        """
+        Make sure that if a non logged in user attempts to access the contact-update view,
+        they are redirected to the login page. 
+        """
+        response = self.client.get(self.url)
+        self.assertRedirects(response, f"{settings.LOGIN_URL}?next={self.url}")
+    
+    def test_403_if_not_owner(self):
+        """
+        Make sure that if a logged in user attempts to access the contact-update view
+        for a contact they do not own, they are thrown a tasty 403. See how they like that.
+        """
+        User.objects.create_user(email="tess@ting2.com", password="password", username="tess_ting2")
+        self.client.login(username="tess_ting2", password="password")
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 403)
+        self.assertTemplateNotUsed("adddress_book/contact_form.html")
+
+    def test_get_view_for_logged_in_user(self):
+        """
+        Test correct template is used and appropriate keys are passed to the context
+        when a logged in user attempts to access the contact-update view.
+        """
+        self.client.login(username="tess_ting", password="password")
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "address_book/contact_form.html")
+        self.assertIn("form", response.context)
+        self.assertIn("object", response.context)
+        self.assertEqual(self.contact.id, response.context["object"].id)
+        self.assertIn("email_formset", response.context)
+        self.assertIn("phonenumber_formset", response.context)
+        self.assertIn("walletaddress_formset", response.context)
+
+    def test_post_with_valid_data(self):
+        """
+        Test that posting valid data is successful and redirects to the appropriate contact-detail
+        page for the appropriate contact.
+        """
+        self.client.login(username="tess_ting", password="password")
+        valid_form_data = {
+            "first_name": ["Jack"],
+            "middle_names": ["Superbly fantastical identifiable middle names"],
+            "last_name": ["Dee"],
+            "nickname": [""],
+            "gender": ["m"],
+            "dob_month": [""],
+            "dob_day": [""],
+            "dob_year": [""],
+            "dod_month": [""],
+            "dod_day": [""],
+            "dod_year": [""],
+            "anniversary_month": [""],
+            "anniversary_day": [""],
+            "anniversary_year": [""],
+            "year_met": ["2024"],
+            "profession": [9],
+            "website": [""],
+            "notes": [""],
+            "phonenumber_set-TOTAL_FORMS": ["1", "1"],
+            "phonenumber_set-INITIAL_FORMS": ["0", "0"],
+            "phonenumber_set-MIN_NUM_FORMS": ["0", "0"],
+            "phonenumber_set-MAX_NUM_FORMS": ["1000", "1000"],
+            "phonenumber_set-0-number_0": ["GB"],
+            "phonenumber_set-0-number_1": ["7777999000"],
+            "phonenumber_set-0-phonenumber_types": ["1", get_pref_phonenumber_type_id(stringify=True)],
+            "phonenumber_set-0-id": [""],
+            "phonenumber_set-0-contact": [""],
+            "email_set-TOTAL_FORMS": ["1", "1"],
+            "email_set-INITIAL_FORMS": ["0", "0"],
+            "email_set-MIN_NUM_FORMS": ["0", "0"],
+            "email_set-MAX_NUM_FORMS": ["1000", "1000"],
+            "email_set-0-email": ["jack@dee.com"],
+            "email_set-0-email_types": ["1", get_pref_email_type_id(stringify=True)],
+            "email_set-0-id": [""],
+            "email_set-0-contact": [""],
+            "walletaddress_set-TOTAL_FORMS": ["1", "1"],
+            "walletaddress_set-INITIAL_FORMS": ["0", "0"],
+            "walletaddress_set-MIN_NUM_FORMS": ["0", "0"],
+            "walletaddress_set-MAX_NUM_FORMS": ["1000", "1000"],
+            "walletaddress_set-0-network": [""],
+            "walletaddress_set-0-transmission": [""],
+            "walletaddress_set-0-address": [""],
+            "walletaddress_set-0-id": [""],
+            "walletaddress_set-0-contact": [""]
+        }
+        response = self.client.post(self.url, valid_form_data)
+        self.assertEqual(response.status_code, 302)
+        contact = Contact.objects.get(middle_names="Superbly fantastical identifiable middle names")
+        self.assertRedirects(response, reverse("contact-detail", args=[contact.id]))
+
+    def test_post_with_invalid_data(self):
+        """
+        Test that posting invalid data is unsuccessful and renders the contact-update
+        template again displaying errors.
+        """
+        self.client.login(username="tess_ting", password="password")
+        invalid_form_data = {
+            "first_name": [""],
+            "middle_names": ["Superbly fantastical identifiable middle names"],
+            "last_name": ["Dee"],
+            "nickname": [""],
+            "gender": [""],
+            "dob_month": [""],
+            "dob_day": [""],
+            "dob_year": [""],
+            "dod_month": [""],
+            "dod_day": [""],
+            "dod_year": [""],
+            "anniversary_month": [""],
+            "anniversary_day": [""],
+            "anniversary_year": [""],
+            "year_met": [""],
+            "profession": [9],
+            "website": [""],
+            "notes": [""],
+            "phonenumber_set-TOTAL_FORMS": ["1", "1"],
+            "phonenumber_set-INITIAL_FORMS": ["0", "0"],
+            "phonenumber_set-MIN_NUM_FORMS": ["0", "0"],
+            "phonenumber_set-MAX_NUM_FORMS": ["1000", "1000"],
+            "phonenumber_set-0-number_0": ["GB"],
+            "phonenumber_set-0-number_1": [""],
+            "phonenumber_set-0-phonenumber_types": [get_pref_phonenumber_type_id(stringify=True)],
+            "phonenumber_set-0-id": [""],
+            "phonenumber_set-0-contact": [""],
+            "email_set-TOTAL_FORMS": ["1", "1"],
+            "email_set-INITIAL_FORMS": ["0", "0"],
+            "email_set-MIN_NUM_FORMS": ["0", "0"],
+            "email_set-MAX_NUM_FORMS": ["1000", "1000"],
+            "email_set-0-email": [""],
+            "email_set-0-email_types": ["1"],
+            "email_set-0-id": [""],
+            "email_set-0-contact": [""],
+            "walletaddress_set-TOTAL_FORMS": ["1", "1"],
+            "walletaddress_set-INITIAL_FORMS": ["0", "0"],
+            "walletaddress_set-MIN_NUM_FORMS": ["0", "0"],
+            "walletaddress_set-MAX_NUM_FORMS": ["1000", "1000"],
+            "walletaddress_set-0-network": [""],
+            "walletaddress_set-0-transmission": [""],
+            "walletaddress_set-0-address": [""],
+            "walletaddress_set-0-id": [""],
+            "walletaddress_set-0-contact": [""]
+        }
+        response = self.client.post(self.url, invalid_form_data)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed("address_book/contact_form.html")
+        self.assertIn("form", response.context)
+        self.assertIn("email_formset", response.context)
+        self.assertIn("phonenumber_formset", response.context)
+        self.assertIn("walletaddress_formset", response.context)
+        self.assertEqual(
+            Counter(["first_name", "gender", "year_met"]),
+            Counter(list(response.context["form"].errors.as_data()))
+        )
+        self.assertDictEqual(
+            {
+                "number": ["This field is required."],
+                "phonenumber_types": ["'Preferred' is not allowed as the only type."]
+            },
+            response.context["phonenumber_formset"].errors[0]
+        )
+        self.assertDictEqual(
+            {"email": ["This field is required."]},
+            response.context["email_formset"].errors[0]
+        )
+        self.assertIn("One email must be designated as 'preferred'.", response.context["email_formset"].non_form_errors())
+
+    def test_post_with_valid_data_not_owner(self):
+        """
+        Test that posting valid data as another user is unsuccessful and throws
+        a tasty 403.
+        """
+        User.objects.create_user(username="tess_ting2", email="tess@ting2.com", password="password")
+        self.client.login(username="tess_ting2", password="password")
+        valid_form_data = {
+            "first_name": ["Jack"],
+            "middle_names": ["Superbly fantastical identifiable middle names"],
+            "last_name": ["Dee"],
+            "nickname": [""],
+            "gender": ["m"],
+            "dob_month": [""],
+            "dob_day": [""],
+            "dob_year": [""],
+            "dod_month": [""],
+            "dod_day": [""],
+            "dod_year": [""],
+            "anniversary_month": [""],
+            "anniversary_day": [""],
+            "anniversary_year": [""],
+            "year_met": ["2024"],
+            "profession": [9],
+            "website": [""],
+            "notes": [""],
+            "phonenumber_set-TOTAL_FORMS": ["1", "1"],
+            "phonenumber_set-INITIAL_FORMS": ["0", "0"],
+            "phonenumber_set-MIN_NUM_FORMS": ["0", "0"],
+            "phonenumber_set-MAX_NUM_FORMS": ["1000", "1000"],
+            "phonenumber_set-0-number_0": ["GB"],
+            "phonenumber_set-0-number_1": ["7777999000"],
+            "phonenumber_set-0-phonenumber_types": ["1", get_pref_phonenumber_type_id(stringify=True)],
+            "phonenumber_set-0-id": [""],
+            "phonenumber_set-0-contact": [""],
+            "email_set-TOTAL_FORMS": ["1", "1"],
+            "email_set-INITIAL_FORMS": ["0", "0"],
+            "email_set-MIN_NUM_FORMS": ["0", "0"],
+            "email_set-MAX_NUM_FORMS": ["1000", "1000"],
+            "email_set-0-email": ["jack@dee.com"],
+            "email_set-0-email_types": ["1", get_pref_email_type_id(stringify=True)],
+            "email_set-0-id": [""],
+            "email_set-0-contact": [""],
+            "walletaddress_set-TOTAL_FORMS": ["1", "1"],
+            "walletaddress_set-INITIAL_FORMS": ["0", "0"],
+            "walletaddress_set-MIN_NUM_FORMS": ["0", "0"],
+            "walletaddress_set-MAX_NUM_FORMS": ["1000", "1000"],
+            "walletaddress_set-0-network": [""],
+            "walletaddress_set-0-transmission": [""],
+            "walletaddress_set-0-address": [""],
+            "walletaddress_set-0-id": [""],
+            "walletaddress_set-0-contact": [""]
+        }
+        response = self.client.post(self.url, valid_form_data)
+        self.assertEqual(response.status_code, 403)
+        self.assertTemplateNotUsed(response, "address_book/contact_form.html")
+
+
+class TestTagCreateView(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.user = User.objects.create_user(
+            username="tess_ting", email="tess@ting.com", password="password"
+        )
+        self.url = reverse("tag-create")   
+    
+    def test_redirect_if_not_logged_in(self):
+        """
+        Make sure that if a non logged in user attempts to access the tag-create view,
+        they are redirected to the login page. 
+        """
+        response = self.client.get(self.url)
+        self.assertRedirects(response, f"{settings.LOGIN_URL}?next={self.url}")
+
+    def test_get_view_for_logged_in_user(self):
+        """
+        Test correct template is used and appropriate keys are passed to the context
+        when a logged in user attempts to access the tag-create view. Assert that
+        the forms initial value is empty.
+        """
+        self.client.login(username="tess_ting", password="password")
+        response = self.client.get(self.url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "address_book/tag_form.html")
+        self.assertIn("form", response.context)
+        self.assertEqual({}, response.context["form"].initial)
+
+    def test_get_view_with_invalid_contact_id_param_for_logged_in_user(self):
+        """
+        Test correct template is used and appropriate keys are passed to the context
+        when a logged in user attempts to access the tag-create view. Assert that
+        the forms initial value is empty.
+        """
+        self.client.login(username="tess_ting", password="password")
+        response = self.client.get(f"{self.url}?contact_id=23")
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "address_book/tag_form.html")
+        self.assertIn("form", response.context)
+        self.assertEqual({}, response.context["form"].initial)
+
+    def test_get_view_with_valid_contact_id_param_for_logged_in_user(self):
+        """
+        Test correct template is used and appropriate keys are passed to the context
+        when a logged in user attempts to access the tag-create view. Assert that
+        the forms initial value contains the valid contact_id passed in params, and that
+        the associated contact comes preselected in the multiple choice menu.
+        """
+        contact = Contact.objects.create(
+            first_name="Wanted",
+            middle_names="In",
+            last_name="Response",
+            user=self.user,
+            year_met=2000
+        )
+        self.client.login(username="tess_ting", password="password")
+        response = self.client.get(f"{self.url}?contact_id={contact.id}")
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "address_book/tag_form.html")
+        self.assertIn("form", response.context)
+
+        initial_form_data = response.context["form"].initial
+        self.assertIn("contacts", initial_form_data)
+        self.assertEqual(1, len(initial_form_data.get("contacts")))
+        self.assertEqual(contact.id, initial_form_data.get("contacts")[0])
+        self.assertContains(response, f'<label for="id_contacts_0"><input type="checkbox" name="contacts" value="{contact.id}" id="id_contacts_0" checked>\n {contact}</label>')
+
+    def test_post_with_valid_data(self):
+        """
+        Test that posting valid data is successful and redirects to the contact-list page.
+        """
+        self.client.login(username="tess_ting", password="password")
+        contact = Contact.objects.create(
+            first_name="Wanted",
+            middle_names="In",
+            last_name="Response",
+            user=self.user,
+            year_met=2000
+        )
+        valid_form_data = {
+            "name": "Supercalafragalistically unique tag name",
+            "contacts": [contact.id],
+        }
+        response = self.client.post(self.url, valid_form_data)
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse("contact-list"))
+
+    def test_post_with_invalid_data(self):
+        """
+        Test that posting invalid data is unsuccessful and renders the tag-create
+        template again displaying errors.
+        """
+        self.client.login(username="tess_ting", password="password")
+        invalid_form_data = {
+            "name": "This name is longer than 50 chars. This name is longer than 50 chars. This name is longer than 50 chars."
+        }
+        response = self.client.post(self.url, invalid_form_data)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed("address_book/tag_form.html")
+        self.assertIn("form", response.context)
+        self.assertEqual(
+            Counter(["name", "contacts"]),
+            Counter(list(response.context["form"].errors.as_data()))
+        )
