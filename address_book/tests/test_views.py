@@ -740,18 +740,17 @@ class TestContactListDownloadView(BaseModelViewTestCase):
         self.assertIn("Content-Disposition", response)
         self.assertEqual(response["Content-Disposition"], "attachment; filename=contacts.vcf")
         self.assertEqual(response["Content-Type"], "text/vcard")
-        
+
         vcard_data = response.content.decode("utf-8")
         self.assertIn("Wanted In Response", vcard_data)
         self.assertNotIn("Nobody Likes Me", vcard_data)
 
 
-class TestContactListView(TestCase):
+class TestContactListView(BaseModelViewTestCase):
     def setUp(self):
-        self.client = Client()
-        self.primary_user = User.objects.create_user(
-            username="tess_ting", email="tess@ting.com", password="password"
-        )
+        super().setUp()
+        self.context_keys = ("filter_formset", "object_list",)
+        self.template = "address_book/contact_list.html"
         self.url = reverse("contact-list")
 
     def _create_contact_for_user(self):
@@ -766,70 +765,17 @@ class TestContactListView(TestCase):
             year_met=2000
         )
 
-    def _login_and_get_response(self):
-        """
-        Logs the user in, attempts to access the contact-list view, and returns the response.
-        """
-        self.client.login(username="tess_ting", password="password")
-        response = self.client.get(self.url)
-        return response
-    
-    def test_redirect_if_not_logged_in(self):
-        """
-        Make sure that if a non logged in user attempts to access the contact-list view,
-        they are redirected to the login page. 
-        """
-        response = self.client.get(self.url)
-        self.assertRedirects(response, f"{settings.LOGIN_URL}?next={self.url}")
-
-    def test_view_url_exists_for_logged_in_user(self):
-        """
-        Make sure that if a logged in user attempts to access the contact-list view,
-        they can do with success.
-        """
-        response = self._login_and_get_response()
-        self.assertEqual(response.status_code, 200)
-
-    def test_view_uses_correct_template(self):
+    def test_view_renders_correct_template_and_context_and_user_contact_appears_in_response(self):
         """
         Test that the view for a logged in user returns the contact_list.html template,
-        and that the Download List button appears if Contacts are found for the list.
+        that the Download List button appears if Contacts are found for the list, and that
+        any User Contacts are rendered in the response.
         """
-        self._create_contact_for_user()
-        response = self._login_and_get_response()
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "address_book/contact_list.html")
+        contact = self._create_contact_for_user()
+        response = self._login_user_and_get_get_response()
+        self.assert_view_renders_correct_template_and_context(response, self.template, self.context_keys)
         self.assertContains(response, "Download List")
-
-    def test_context_data(self):
-        """
-        Ensure that the context passed to the view contains the appropriate data.
-        """
-        response = self._login_and_get_response()
-        self.assertEqual(response.status_code, 200)
-        self.assertIn("object_list", response.context)
-        self.assertIn("filter_formset", response.context)
-
-    def test_user_contact_present_in_context_data(self):
-        """
-        Make sure that the users contact is present in the contexts object_list.
-        """
-        contact = self._create_contact_for_user()
-        response = self._login_and_get_response()
-        self.assertEqual(response.status_code, 200)
-        self.assertIn("object_list", response.context)
         self.assertIn(contact, response.context["object_list"])
-
-    def test_user_contact_appears_in_rendered_template(self):
-        """
-        Make sure that the users contact is rendered in the template.
-        """
-        contact = self._create_contact_for_user()
-        response = self._login_and_get_response()
-        self.assertEqual(response.status_code, 200)
-        self.assertIn("object_list", response.context)
-        self.assertIn(contact, response.context["object_list"])
-        self.assertTemplateUsed(response, "address_book/contact_list.html")
         self.assertContains(response, contact)
 
     def test_view_handles_no_contacts(self):
@@ -837,7 +783,7 @@ class TestContactListView(TestCase):
         Make sure that an empty object_list is returned when no contacts are found,
         and that the 'Download List' button is hidden from the template.
         """
-        response = self._login_and_get_response()
+        response = self._login_user_and_get_get_response()
         self.assertEqual(response.status_code, 200)
         self.assertQuerysetEqual(response.context["object_list"], [])
         self.assertNotContains(response, "Download List")
@@ -847,30 +793,21 @@ class TestContactListView(TestCase):
         Make sure that Contacts belonging to another User are not present in the contexts
         object_list.
         """
-        other_user = User.objects.create_user(
-            username="tess_ting2",
-            email="tess@ting2.com",
-            password="password"
-        )
         Contact.objects.create(
             first_name="Unwanted",
             middle_names="In",
             last_name="Response",
-            user=other_user,
+            user=self.other_user,
             year_met=2000
         )
-        response = self._login_and_get_response()
-        self.assertEqual(response.status_code, 200)
-        self.assertIn("object_list", response.context)
+        response = self._login_user_and_get_get_response()
+        self.assert_view_renders_correct_template_and_context(response, self.template, self.context_keys)
         self.assertQuerySetEqual(response.context["object_list"], [])
 
 
-class TestContactQrCodeView(TestCase):
+class TestContactQrCodeView(BaseModelViewTestCase):
     def setUp(self):
-        self.client = Client()
-        self.primary_user = User.objects.create_user(
-            username="tess_ting", email="tess@ting.com", password="password"
-        )
+        super().setUp()
         self.contact = Contact.objects.create(
             first_name="Wanted",
             middle_names="In",
@@ -880,45 +817,30 @@ class TestContactQrCodeView(TestCase):
         )
         self.url = reverse("contact-qrcode", args=[self.contact.id])
 
-    def _login_and_get_response(self):
-        """
-        Logs the user in, attempts to access the contact-qrcode view, and returns the response.
-        """
-        self.client.login(username="tess_ting", password="password")
-        response = self.client.get(self.url)
-        return response
-
     def test_view_url_exists_for_logged_in_user_who_owns_contact(self):
         """
         Make sure that if the owner is logged in and attempts to access the contact-qrcode
         view, they can do with success.
         """
-        response = self._login_and_get_response()
+        response = self._login_user_and_get_get_response()
         self.assertEqual(response.status_code, 200)
-    
-    def test_redirect_if_not_logged_in(self):
-        """
-        Make sure that if a non logged in user attempts to access the contact-qrcode view,
-        they are redirected to the login page. 
-        """
-        response = self.client.get(self.url)
-        self.assertRedirects(response, f"{settings.LOGIN_URL}?next={self.url}")
     
     def test_404_if_logged_in_as_other_user(self):
         """
         Make sure that if a logged in user attempts to access the contact-qrcode view
         for a contact that does not belong to them, they are given a great big 404 right in their face. 
         """
-        User.objects.create_user(username="tess_ting2", email="tess@ting2.com", password="password")
-        self.client.login(username="tess_ting2", password="password")
-        response = self.client.get(self.url)
+        response = self._login_user_and_get_get_response(
+            username=self.other_user.username,
+            password=self.other_user_password
+        )
         self.assertEqual(response.status_code, 404)
 
     def test_png_returned_if_logged_in_as_owner(self):
         """
         Make sure that if logged in as owner and Contact exists, image/png is returned.
         """
-        response = self._login_and_get_response()
+        response = self._login_user_and_get_get_response()
         self.assertEqual(response["Content-Type"], "image/png")
 
     def test_404_if_contact_not_exists(self):
@@ -926,8 +848,9 @@ class TestContactQrCodeView(TestCase):
         Make sure that if a Contact does not exist with the pk provided in the URL
         that the response status code is 404.
         """
-        self.client.login(username="tess_ting", password="password")
-        response = self.client.get(reverse("contact-qrcode", args=[self.contact.id + 1]))
+        response = self._login_user_and_get_get_response(
+            url=reverse("contact-qrcode", args=[self.contact.id + 1])
+        )
         self.assertEqual(response.status_code, 404)
 
 
