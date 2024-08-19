@@ -1075,21 +1075,12 @@ class TestContactUpdateView(BaseModelViewTestCase):
         self.assertTemplateNotUsed(response, self.template)
 
 
-class TestTagCreateView(TestCase):
+class TestTagCreateView(BaseModelViewTestCase):
     def setUp(self):
-        self.client = Client()
-        self.primary_user = User.objects.create_user(
-            username="tess_ting", email="tess@ting.com", password="password"
-        )
-        self.url = reverse("tag-create")   
-    
-    def test_redirect_if_not_logged_in(self):
-        """
-        Make sure that if a non logged in user attempts to access the tag-create view,
-        they are redirected to the login page. 
-        """
-        response = self.client.get(self.url)
-        self.assertRedirects(response, f"{settings.LOGIN_URL}?next={self.url}")
+        super().setUp()
+        self.context_keys = ("form",)
+        self.template = "address_book/tag_form.html"
+        self.url = reverse("tag-create")
 
     def test_get_view_for_logged_in_user(self):
         """
@@ -1097,11 +1088,8 @@ class TestTagCreateView(TestCase):
         when a logged in user attempts to access the tag-create view. Assert that
         the forms initial value is empty.
         """
-        self.client.login(username="tess_ting", password="password")
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "address_book/tag_form.html")
-        self.assertIn("form", response.context)
+        response = self._login_user_and_get_get_response()
+        self.assert_view_renders_correct_template_and_context(response, self.template, self.context_keys)
         self.assertEqual({}, response.context["form"].initial)
 
     def test_get_view_with_invalid_contact_id_param_for_logged_in_user(self):
@@ -1110,11 +1098,10 @@ class TestTagCreateView(TestCase):
         when a logged in user attempts to access the tag-create view. Assert that
         the forms initial value is empty.
         """
-        self.client.login(username="tess_ting", password="password")
-        response = self.client.get(f"{self.url}?contact_id=23")
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "address_book/tag_form.html")
-        self.assertIn("form", response.context)
+        response = self._login_user_and_get_get_response(
+            url=f"{self.url}?contact_id=23"
+        )
+        self.assert_view_renders_correct_template_and_context(response, self.template, self.context_keys)
         self.assertEqual({}, response.context["form"].initial)
 
     def test_get_view_with_valid_contact_id_param_for_logged_in_user(self):
@@ -1131,11 +1118,10 @@ class TestTagCreateView(TestCase):
             user=self.primary_user,
             year_met=2000
         )
-        self.client.login(username="tess_ting", password="password")
-        response = self.client.get(f"{self.url}?contact_id={contact.id}")
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "address_book/tag_form.html")
-        self.assertIn("form", response.context)
+        response = self._login_user_and_get_get_response(
+            url=f"{self.url}?contact_id={contact.id}"
+        )
+        self.assert_view_renders_correct_template_and_context(response, self.template, self.context_keys)
 
         initial_form_data = response.context["form"].initial
         self.assertIn("contacts", initial_form_data)
@@ -1147,7 +1133,6 @@ class TestTagCreateView(TestCase):
         """
         Test that posting valid data is successful and redirects to the contact-list page.
         """
-        self.client.login(username="tess_ting", password="password")
         contact = Contact.objects.create(
             first_name="Wanted",
             middle_names="In",
@@ -1159,7 +1144,7 @@ class TestTagCreateView(TestCase):
             "name": "Supercalafragalistically unique tag name",
             "contacts": [contact.id],
         }
-        response = self.client.post(self.url, valid_form_data)
+        response = self._login_user_and_get_post_response(post_data=valid_form_data)
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("contact-list"))
 
@@ -1168,14 +1153,11 @@ class TestTagCreateView(TestCase):
         Test that posting invalid data is unsuccessful and renders the tag-create
         template again displaying errors.
         """
-        self.client.login(username="tess_ting", password="password")
         invalid_form_data = {
             "name": "This name is longer than 50 chars. This name is longer than 50 chars. This name is longer than 50 chars."
         }
-        response = self.client.post(self.url, invalid_form_data)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed("address_book/tag_form.html")
-        self.assertIn("form", response.context)
+        response = self._login_user_and_get_post_response(post_data=invalid_form_data)
+        self.assert_view_renders_correct_template_and_context(response, self.template, self.context_keys)
         self.assertEqual(
             Counter(["name", "contacts"]),
             Counter(list(response.context["form"].errors.as_data()))
