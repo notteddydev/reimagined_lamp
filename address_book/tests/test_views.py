@@ -36,20 +36,34 @@ def get_pref_phonenumber_type_id(stringify=False):
 class BaseModelViewTestCase(TestCase):
     def setUp(self):
         self.client = Client()
-        self.user = User.objects.create_user(
-            username="tess_ting", email="tess@ting.com", password="password"
+        
+        self.other_user_password = "password"
+        self.other_user = User.objects.create_user(
+            username="tess_ting2",
+            email="tess@ting2.com",
+            password=self.other_user_password
         )
 
-    def _login_user(self):
-        self.client.login(username="tess_ting", password="password")
+        self.primary_user_password = "password"
+        self.primary_user = User.objects.create_user(
+            username="tess_ting",
+            email="tess@ting.com",
+            password=self.primary_user_password
+        )
 
-    def _login_user_and_get_get_response(self, url=None):
-        self._login_user()
+    def _login_user(self, username=None, password=None):
+        self.client.login(
+            username=username or self.primary_user.username,
+            password=password or self.primary_user_password
+        )
+
+    def _login_user_and_get_get_response(self, url=None, username=None, password=None):
+        self._login_user(username=username, password=password)
         response = self.client.get(url or self.url)
         return response
     
-    def _login_user_and_get_post_response(self, post_data):
-        self._login_user()
+    def _login_user_and_get_post_response(self, post_data={}, username=None, password=None):
+        self._login_user(username=username, password=password)
         response = self.client.post(self.url, post_data)
         return response
     
@@ -61,10 +75,25 @@ class BaseModelViewTestCase(TestCase):
         response = self.client.get(self.url)
         self.assertRedirects(response, f"{reverse('login')}?next={self.url}")
 
+    def assert_view_renders_correct_template_and_context(self, response, template, context_keys):
+        """
+        Assert that the view response has the correct template and contains the expected context keys.
+
+        :param response: The response object from the view.
+        :param template_name: The name of the template that should be used.
+        :param context_keys: A tuple of context keys that should be present in the response.
+        """
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, template)
+        for context_key in context_keys:
+            self.assertIn(context_key, response.context)
+        
 
 class TestAddressCreateView(BaseModelViewTestCase):
     def setUp(self):
         super().setUp()
+        self.context_keys = ("form", "phonenumber_formset",)
+        self.template = "address_book/address_form.html"
         self.url = reverse("address-create")
 
     def test_get_view_for_logged_in_user(self):
@@ -74,10 +103,7 @@ class TestAddressCreateView(BaseModelViewTestCase):
         the forms initial value is empty.
         """
         response = self._login_user_and_get_get_response()
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "address_book/address_form.html")
-        self.assertIn("form", response.context)
-        self.assertIn("phonenumber_formset", response.context)
+        self.assert_view_renders_correct_template_and_context(response, self.template, self.context_keys)
         self.assertEqual({}, response.context["form"].initial)
 
     def test_get_view_with_invalid_contact_id_param_for_logged_in_user(self):
@@ -87,10 +113,7 @@ class TestAddressCreateView(BaseModelViewTestCase):
         the forms initial value is empty.
         """
         response = self._login_user_and_get_get_response(f"{self.url}?contact_id=23")
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "address_book/address_form.html")
-        self.assertIn("form", response.context)
-        self.assertIn("phonenumber_formset", response.context)
+        self.assert_view_renders_correct_template_and_context(response, self.template, self.context_keys)
         self.assertEqual({}, response.context["form"].initial)
 
     def test_get_view_with_valid_contact_id_param_for_logged_in_user(self):
@@ -104,14 +127,11 @@ class TestAddressCreateView(BaseModelViewTestCase):
             first_name="Wanted",
             middle_names="In",
             last_name="Response",
-            user=self.user,
+            user=self.primary_user,
             year_met=2000
         )
         response = self._login_user_and_get_get_response(f"{self.url}?contact_id={contact.id}")
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "address_book/address_form.html")
-        self.assertIn("phonenumber_formset", response.context)
-        self.assertIn("form", response.context)
+        self.assert_view_renders_correct_template_and_context(response, self.template, self.context_keys)
 
         initial_form_data = response.context["form"].initial
         self.assertIn("contacts", initial_form_data)
@@ -128,7 +148,7 @@ class TestAddressCreateView(BaseModelViewTestCase):
             first_name="Wanted",
             middle_names="In",
             last_name="Response",
-            user=self.user,
+            user=self.primary_user,
             year_met=2000
         )
         valid_form_data = {
@@ -169,7 +189,7 @@ class TestAddressCreateView(BaseModelViewTestCase):
             first_name="Wanted",
             middle_names="In",
             last_name="Response",
-            user=self.user,
+            user=self.primary_user,
             year_met=2000
         )
         valid_form_data = {
@@ -230,10 +250,7 @@ class TestAddressCreateView(BaseModelViewTestCase):
             "phonenumber_set-1-address": [""]
         }
         response = self._login_user_and_get_post_response(invalid_form_data)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed("address_book/address_form.html")
-        self.assertIn("form", response.context)
-        self.assertIn("phonenumber_formset", response.context)
+        self.assert_view_renders_correct_template_and_context(response, self.template, self.context_keys)
         self.assertEqual(
             Counter(["address_line_1", "contacts", "country"]),
             Counter(list(response.context["form"].errors.as_data()))
@@ -253,12 +270,9 @@ class TestAddressCreateView(BaseModelViewTestCase):
         )
 
 
-class TestAddressUpdateView(TestCase):
+class TestAddressUpdateView(BaseModelViewTestCase):
     def setUp(self):
-        self.client = Client()
-        self.user = User.objects.create_user(
-            username="tess_ting", email="tess@ting.com", password="password"
-        )
+        super().setUp()
         self.address = Address.objects.create(
             address_line_1="1 easily identifiable road",
             address_line_2="apartment 100",
@@ -268,54 +282,43 @@ class TestAddressUpdateView(TestCase):
             postcode="SN1 8GB",
             country_id=56,
             notes="Not a real address tbh",
-            user_id=self.user.id
+            user_id=self.primary_user.id
         )
+        self.context_keys = ("form", "object", "phonenumber_formset",)
+        self.template = "address_book/address_form.html"
         self.url = reverse("address-update", args=[self.address.id])
-    
-    def test_redirect_if_not_logged_in(self):
-        """
-        Make sure that if a non logged in user attempts to access the address-update view,
-        they are redirected to the login page. 
-        """
-        response = self.client.get(self.url)
-        self.assertRedirects(response, f"{settings.LOGIN_URL}?next={self.url}")
     
     def test_403_if_not_owner(self):
         """
         Make sure that if a logged in user attempts to access the address-update view
         for an address they do not own, they are thrown a tasty 403. See how they like that.
         """
-        User.objects.create_user(email="tess@ting2.com", password="password", username="tess_ting2")
-        self.client.login(username="tess_ting2", password="password")
-        response = self.client.get(self.url)
+        response = self._login_user_and_get_get_response(
+            username=self.other_user.username,
+            password=self.other_user_password
+        )
         self.assertEqual(response.status_code, 403)
-        self.assertTemplateNotUsed("adddress_book/address_form.html")
+        self.assertTemplateNotUsed(self.template)
 
     def test_get_view_for_logged_in_user(self):
         """
         Test correct template is used and appropriate keys are passed to the context
         when a logged in user attempts to access the address-update view.
         """
-        self.client.login(username="tess_ting", password="password")
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "address_book/address_form.html")
-        self.assertIn("form", response.context)
-        self.assertIn("object", response.context)
+        response = self._login_user_and_get_get_response()
+        self.assert_view_renders_correct_template_and_context(response, self.template, self.context_keys)
         self.assertEqual(self.address.id, response.context["object"].id)
-        self.assertIn("phonenumber_formset", response.context)
 
     def test_post_with_valid_data(self):
         """
         Test that posting valid data is successful and redirects to the appropriate address-detail
         page for the appropriate address.
         """
-        self.client.login(username="tess_ting", password="password")
         contact = Contact.objects.create(
             first_name="Wanted",
             middle_names="In",
             last_name="Response",
-            user=self.user,
+            user=self.primary_user,
             year_met=2000
         )
         valid_form_data = {
@@ -342,7 +345,7 @@ class TestAddressUpdateView(TestCase):
             "phonenumber_set-1-id": [""],
             "phonenumber_set-1-address": [""]
         }
-        response = self.client.post(self.url, valid_form_data)
+        response = self._login_user_and_get_post_response(valid_form_data)
         self.assertEqual(response.status_code, 302)
         address = Address.objects.get(address_line_1="1 easily identifiable street")
         self.assertRedirects(response, reverse("address-detail", args=[address.id]))
@@ -352,7 +355,6 @@ class TestAddressUpdateView(TestCase):
         Test that posting invalid data is unsuccessful and renders the address-update
         template again displaying errors.
         """
-        self.client.login(username="tess_ting", password="password")
         invalid_form_data = {
             "address_line_1": "",
             "address_line_2": "apartment 100",
@@ -377,11 +379,8 @@ class TestAddressUpdateView(TestCase):
             "phonenumber_set-1-id": [""],
             "phonenumber_set-1-address": [""]
         }
-        response = self.client.post(self.url, invalid_form_data)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed("address_book/address_form.html")
-        self.assertIn("form", response.context)
-        self.assertIn("phonenumber_formset", response.context)
+        response = self._login_user_and_get_post_response(invalid_form_data)
+        self.assert_view_renders_correct_template_and_context(response, self.template, self.context_keys)
         self.assertEqual(
             Counter(["address_line_1", "city", "contacts", "country"]),
             Counter(list(response.context["form"].errors.as_data()))
@@ -405,13 +404,11 @@ class TestAddressUpdateView(TestCase):
         Test that posting valid data as another user is unsuccessful and throws
         a tasty 403.
         """
-        User.objects.create_user(username="tess_ting2", email="tess@ting2.com", password="password")
-        self.client.login(username="tess_ting2", password="password")
         contact = Contact.objects.create(
             first_name="Wanted",
             middle_names="In",
             last_name="Response",
-            user=self.user,
+            user=self.primary_user,
             year_met=2000
         )
         valid_form_data = {
@@ -438,15 +435,19 @@ class TestAddressUpdateView(TestCase):
             "phonenumber_set-1-id": [""],
             "phonenumber_set-1-address": [""]
         }
-        response = self.client.post(self.url, valid_form_data)
+        response = self._login_user_and_get_post_response(
+            post_data=valid_form_data,
+            username=self.other_user.username,
+            password=self.other_user_password
+        )
         self.assertEqual(response.status_code, 403)
-        self.assertTemplateNotUsed(response, "address_book/address_form.html")
+        self.assertTemplateNotUsed(response, self.template)
 
 
 class TestContactCreateView(TestCase):
     def setUp(self):
         self.client = Client()
-        self.user = User.objects.create_user(
+        self.primary_user = User.objects.create_user(
             username="tess_ting", email="tess@ting.com", password="password"
         )
         self.url = reverse("contact-create")
@@ -610,14 +611,14 @@ class TestContactCreateView(TestCase):
 class TestContactDetailView(TestCase):
     def setUp(self):
         self.client = Client()
-        self.user = User.objects.create_user(
+        self.primary_user = User.objects.create_user(
             username="tess_ting", email="tess@ting.com", password="password"
         )
         self.contact = Contact.objects.create(
             first_name="Wanted",
             middle_names="In",
             last_name="Response",
-            user=self.user,
+            user=self.primary_user,
             year_met=2000
         )
         self.url = reverse("contact-detail", args=[self.contact.id])
@@ -671,14 +672,14 @@ class TestContactDetailView(TestCase):
 class TestContactDownloadView(TestCase):
     def setUp(self):
         self.client = Client()
-        self.user = User.objects.create_user(
+        self.primary_user = User.objects.create_user(
             username="tess_ting", email="tess@ting.com", password="password"
         )
         self.contact = Contact.objects.create(
             first_name="Wanted",
             middle_names="In",
             last_name="Response",
-            user=self.user,
+            user=self.primary_user,
             year_met=2000
         )
         self.url = reverse("contact-download", args=[self.contact.id])
@@ -738,7 +739,7 @@ class TestContactDownloadView(TestCase):
 class TestContactListDownloadView(TestCase):
     def setUp(self):
         self.client = Client()
-        self.user = User.objects.create_user(
+        self.primary_user = User.objects.create_user(
             username="tess_ting", email="tess@ting.com", password="password"
         )
         self.url = reverse("contact-list-download")
@@ -751,7 +752,7 @@ class TestContactListDownloadView(TestCase):
             first_name="Wanted",
             middle_names="In",
             last_name="Response",
-            user=self.user,
+            user=self.primary_user,
             year_met=2000
         )
 
@@ -827,7 +828,7 @@ class TestContactListDownloadView(TestCase):
 class TestContactListView(TestCase):
     def setUp(self):
         self.client = Client()
-        self.user = User.objects.create_user(
+        self.primary_user = User.objects.create_user(
             username="tess_ting", email="tess@ting.com", password="password"
         )
         self.url = reverse("contact-list")
@@ -840,7 +841,7 @@ class TestContactListView(TestCase):
             first_name="Wanted",
             middle_names="In",
             last_name="Response",
-            user=self.user,
+            user=self.primary_user,
             year_met=2000
         )
 
@@ -946,14 +947,14 @@ class TestContactListView(TestCase):
 class TestContactQrCodeView(TestCase):
     def setUp(self):
         self.client = Client()
-        self.user = User.objects.create_user(
+        self.primary_user = User.objects.create_user(
             username="tess_ting", email="tess@ting.com", password="password"
         )
         self.contact = Contact.objects.create(
             first_name="Wanted",
             middle_names="In",
             last_name="Response",
-            user=self.user,
+            user=self.primary_user,
             year_met=2000
         )
         self.url = reverse("contact-qrcode", args=[self.contact.id])
@@ -1012,14 +1013,14 @@ class TestContactQrCodeView(TestCase):
 class TestContactUpdateView(TestCase):
     def setUp(self):
         self.client = Client()
-        self.user = User.objects.create_user(
+        self.primary_user = User.objects.create_user(
             username="tess_ting", email="tess@ting.com", password="password"
         )
         self.contact = Contact.objects.create(
             first_name="Wanted",
             middle_names="In",
             last_name="Response",
-            user=self.user,
+            user=self.primary_user,
             year_met=2000
         )
         self.url = reverse("contact-update", args=[self.contact.id])
@@ -1253,7 +1254,7 @@ class TestContactUpdateView(TestCase):
 class TestTagCreateView(TestCase):
     def setUp(self):
         self.client = Client()
-        self.user = User.objects.create_user(
+        self.primary_user = User.objects.create_user(
             username="tess_ting", email="tess@ting.com", password="password"
         )
         self.url = reverse("tag-create")   
@@ -1303,7 +1304,7 @@ class TestTagCreateView(TestCase):
             first_name="Wanted",
             middle_names="In",
             last_name="Response",
-            user=self.user,
+            user=self.primary_user,
             year_met=2000
         )
         self.client.login(username="tess_ting", password="password")
@@ -1327,7 +1328,7 @@ class TestTagCreateView(TestCase):
             first_name="Wanted",
             middle_names="In",
             last_name="Response",
-            user=self.user,
+            user=self.primary_user,
             year_met=2000
         )
         valid_form_data = {
