@@ -33,21 +33,39 @@ def get_pref_phonenumber_type_id(stringify=False):
     return str(phonenumber_type.id) if stringify else phonenumber_type.id
 
 
-class TestAddressCreateView(TestCase):
+class BaseModelViewTestCase(TestCase):
     def setUp(self):
         self.client = Client()
         self.user = User.objects.create_user(
             username="tess_ting", email="tess@ting.com", password="password"
         )
-        self.url = reverse("address-create")
+
+    def _login_user(self):
+        self.client.login(username="tess_ting", password="password")
+
+    def _login_user_and_get_get_response(self, url=None):
+        self._login_user()
+        response = self.client.get(url or self.url)
+        return response
     
-    def test_redirect_if_not_logged_in(self):
+    def _login_user_and_get_post_response(self, post_data):
+        self._login_user()
+        response = self.client.post(self.url, post_data)
+        return response
+    
+    def test_get_request_redirects_if_not_logged_in(self):
         """
-        Make sure that if a non logged in user attempts to access the address-create view,
+        Make sure that if a non logged in user makes a get request to a view which requires login,
         they are redirected to the login page. 
         """
         response = self.client.get(self.url)
-        self.assertRedirects(response, f"{settings.LOGIN_URL}?next={self.url}")
+        self.assertRedirects(response, f"{reverse('login')}?next={self.url}")
+
+
+class TestAddressCreateView(BaseModelViewTestCase):
+    def setUp(self):
+        super().setUp()
+        self.url = reverse("address-create")
 
     def test_get_view_for_logged_in_user(self):
         """
@@ -55,8 +73,7 @@ class TestAddressCreateView(TestCase):
         when a logged in user attempts to access the address-create view. Assert that
         the forms initial value is empty.
         """
-        self.client.login(username="tess_ting", password="password")
-        response = self.client.get(self.url)
+        response = self._login_user_and_get_get_response()
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "address_book/address_form.html")
         self.assertIn("form", response.context)
@@ -69,8 +86,7 @@ class TestAddressCreateView(TestCase):
         when a logged in user attempts to access the address-create view. Assert that
         the forms initial value is empty.
         """
-        self.client.login(username="tess_ting", password="password")
-        response = self.client.get(f"{self.url}?contact_id=23")
+        response = self._login_user_and_get_get_response(f"{self.url}?contact_id=23")
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "address_book/address_form.html")
         self.assertIn("form", response.context)
@@ -91,8 +107,7 @@ class TestAddressCreateView(TestCase):
             user=self.user,
             year_met=2000
         )
-        self.client.login(username="tess_ting", password="password")
-        response = self.client.get(f"{self.url}?contact_id={contact.id}")
+        response = self._login_user_and_get_get_response(f"{self.url}?contact_id={contact.id}")
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, "address_book/address_form.html")
         self.assertIn("phonenumber_formset", response.context)
@@ -109,7 +124,47 @@ class TestAddressCreateView(TestCase):
         Test that posting valid data is successful and redirects to the appropriate address-detail
         page for the appropriate address.
         """
-        self.client.login(username="tess_ting", password="password")
+        contact = Contact.objects.create(
+            first_name="Wanted",
+            middle_names="In",
+            last_name="Response",
+            user=self.user,
+            year_met=2000
+        )
+        valid_form_data = {
+            "address_line_1": "1 easily identifiable road",
+            "address_line_2": "apartment 100",
+            "neighbourhood": "Mayfair",
+            "city": "London",
+            "state": "London",
+            "postcode": "SN1 8GB",
+            "country": 56,
+            "notes": "Not a real address tbh",
+            "contacts": [contact.id],
+            "phonenumber_set-TOTAL_FORMS": ["2", "2"],
+            "phonenumber_set-INITIAL_FORMS": ["0", "0"],
+            "phonenumber_set-MIN_NUM_FORMS": ["0", "0"],
+            "phonenumber_set-MAX_NUM_FORMS": ["1000", "1000"],
+            "phonenumber_set-0-number_0": ["GB"],
+            "phonenumber_set-0-number_1": ["7777111222"],
+            "phonenumber_set-0-phonenumber_types": ["1", get_pref_phonenumber_type_id(stringify=True)],
+            "phonenumber_set-0-id": [""],
+            "phonenumber_set-0-address": [""],
+            "phonenumber_set-1-number_0": [""],
+            "phonenumber_set-1-number_1": [""],
+            "phonenumber_set-1-id": [""],
+            "phonenumber_set-1-address": [""]
+        }
+        response = self._login_user_and_get_post_response(valid_form_data)
+        self.assertEqual(response.status_code, 302)
+        address = Address.objects.get(address_line_1="1 easily identifiable road")
+        self.assertRedirects(response, reverse("address-detail", args=[address.id]))
+
+    def test_post_with_valid_data_not_logged_in(self):
+        """
+        Test that posting valid data is successful and redirects to the appropriate address-detail
+        page for the appropriate address.
+        """
         contact = Contact.objects.create(
             first_name="Wanted",
             middle_names="In",
@@ -143,15 +198,13 @@ class TestAddressCreateView(TestCase):
         }
         response = self.client.post(self.url, valid_form_data)
         self.assertEqual(response.status_code, 302)
-        address = Address.objects.get(address_line_1="1 easily identifiable road")
-        self.assertRedirects(response, reverse("address-detail", args=[address.id]))
+        self.assertRedirects(response, f"{reverse('login')}?next={self.url}")
 
     def test_post_with_invalid_data(self):
         """
         Test that posting invalid data is unsuccessful and renders the address-create
         template again displaying errors.
         """
-        self.client.login(username="tess_ting", password="password")
         invalid_form_data = {
             "address_line_1": "",
             "address_line_2": "apartment 100",
@@ -176,7 +229,7 @@ class TestAddressCreateView(TestCase):
             "phonenumber_set-1-id": [""],
             "phonenumber_set-1-address": [""]
         }
-        response = self.client.post(self.url, invalid_form_data)
+        response = self._login_user_and_get_post_response(invalid_form_data)
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed("address_book/address_form.html")
         self.assertIn("form", response.context)
