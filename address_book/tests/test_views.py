@@ -854,12 +854,9 @@ class TestContactQrCodeView(BaseModelViewTestCase):
         self.assertEqual(response.status_code, 404)
 
 
-class TestContactUpdateView(TestCase):
+class TestContactUpdateView(BaseModelViewTestCase):
     def setUp(self):
-        self.client = Client()
-        self.primary_user = User.objects.create_user(
-            username="tess_ting", email="tess@ting.com", password="password"
-        )
+        super().setUp()
         self.contact = Contact.objects.create(
             first_name="Wanted",
             middle_names="In",
@@ -867,24 +864,19 @@ class TestContactUpdateView(TestCase):
             user=self.primary_user,
             year_met=2000
         )
+        self.context_keys = ("email_formset", "form", "object", "phonenumber_formset", "walletaddress_formset",)
+        self.template = "address_book/contact_form.html"
         self.url = reverse("contact-update", args=[self.contact.id])
-    
-    def test_redirect_if_not_logged_in(self):
-        """
-        Make sure that if a non logged in user attempts to access the contact-update view,
-        they are redirected to the login page. 
-        """
-        response = self.client.get(self.url)
-        self.assertRedirects(response, f"{settings.LOGIN_URL}?next={self.url}")
     
     def test_403_if_not_owner(self):
         """
         Make sure that if a logged in user attempts to access the contact-update view
         for a contact they do not own, they are thrown a tasty 403. See how they like that.
         """
-        User.objects.create_user(email="tess@ting2.com", password="password", username="tess_ting2")
-        self.client.login(username="tess_ting2", password="password")
-        response = self.client.get(self.url)
+        response = self._login_user_and_get_get_response(
+            username=self.other_user.username,
+            password=self.other_user_password
+        )
         self.assertEqual(response.status_code, 403)
         self.assertTemplateNotUsed("adddress_book/contact_form.html")
 
@@ -893,23 +885,15 @@ class TestContactUpdateView(TestCase):
         Test correct template is used and appropriate keys are passed to the context
         when a logged in user attempts to access the contact-update view.
         """
-        self.client.login(username="tess_ting", password="password")
-        response = self.client.get(self.url)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "address_book/contact_form.html")
-        self.assertIn("form", response.context)
-        self.assertIn("object", response.context)
+        response = self._login_user_and_get_get_response()
+        self.assert_view_renders_correct_template_and_context(response, self.template, self.context_keys)
         self.assertEqual(self.contact.id, response.context["object"].id)
-        self.assertIn("email_formset", response.context)
-        self.assertIn("phonenumber_formset", response.context)
-        self.assertIn("walletaddress_formset", response.context)
 
     def test_post_with_valid_data(self):
         """
         Test that posting valid data is successful and redirects to the appropriate contact-detail
         page for the appropriate contact.
         """
-        self.client.login(username="tess_ting", password="password")
         valid_form_data = {
             "first_name": ["Jack"],
             "middle_names": ["Superbly fantastical identifiable middle names"],
@@ -956,7 +940,7 @@ class TestContactUpdateView(TestCase):
             "walletaddress_set-0-id": [""],
             "walletaddress_set-0-contact": [""]
         }
-        response = self.client.post(self.url, valid_form_data)
+        response = self._login_user_and_get_post_response(valid_form_data)
         self.assertEqual(response.status_code, 302)
         contact = Contact.objects.get(middle_names="Superbly fantastical identifiable middle names")
         self.assertRedirects(response, reverse("contact-detail", args=[contact.id]))
@@ -966,7 +950,6 @@ class TestContactUpdateView(TestCase):
         Test that posting invalid data is unsuccessful and renders the contact-update
         template again displaying errors.
         """
-        self.client.login(username="tess_ting", password="password")
         invalid_form_data = {
             "first_name": [""],
             "middle_names": ["Superbly fantastical identifiable middle names"],
@@ -1013,13 +996,8 @@ class TestContactUpdateView(TestCase):
             "walletaddress_set-0-id": [""],
             "walletaddress_set-0-contact": [""]
         }
-        response = self.client.post(self.url, invalid_form_data)
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed("address_book/contact_form.html")
-        self.assertIn("form", response.context)
-        self.assertIn("email_formset", response.context)
-        self.assertIn("phonenumber_formset", response.context)
-        self.assertIn("walletaddress_formset", response.context)
+        response = self._login_user_and_get_post_response(invalid_form_data)
+        self.assert_view_renders_correct_template_and_context(response, self.template, self.context_keys)
         self.assertEqual(
             Counter(["first_name", "gender", "year_met"]),
             Counter(list(response.context["form"].errors.as_data()))
@@ -1042,8 +1020,6 @@ class TestContactUpdateView(TestCase):
         Test that posting valid data as another user is unsuccessful and throws
         a tasty 403.
         """
-        User.objects.create_user(username="tess_ting2", email="tess@ting2.com", password="password")
-        self.client.login(username="tess_ting2", password="password")
         valid_form_data = {
             "first_name": ["Jack"],
             "middle_names": ["Superbly fantastical identifiable middle names"],
@@ -1090,9 +1066,13 @@ class TestContactUpdateView(TestCase):
             "walletaddress_set-0-id": [""],
             "walletaddress_set-0-contact": [""]
         }
-        response = self.client.post(self.url, valid_form_data)
+        response = self._login_user_and_get_post_response(
+            post_data=valid_form_data,
+            username=self.other_user.username,
+            password=self.other_user_password
+        )
         self.assertEqual(response.status_code, 403)
-        self.assertTemplateNotUsed(response, "address_book/contact_form.html")
+        self.assertTemplateNotUsed(response, self.template)
 
 
 class TestTagCreateView(TestCase):
