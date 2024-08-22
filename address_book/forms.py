@@ -6,8 +6,8 @@ from django.utils import translation
 
 from phonenumber_field.formfields import localized_choices, PrefixChoiceField, SplitPhoneNumberField
 
-from .constants import ADDRESSTYPE__NAME_PREF, EMAILTYPE__NAME_PREF, PHONENUMBERTYPE__NAME_PREF
-from .models import Address, AddressType, Contact, Email, EmailType, PhoneNumber, PhoneNumberType, Tag, Tenancy, WalletAddress
+from .constants import EMAILTYPE__NAME_PREF, PHONENUMBERTYPE__NAME_PREF
+from .models import Address, Contact, Email, EmailType, PhoneNumber, PhoneNumberType, Tag, Tenancy, WalletAddress
 
 
 class AddressForm(forms.ModelForm):
