@@ -29,7 +29,6 @@ class ArchiveableManager(models.Manager):
         return self.get_queryset().unarchived()
     
 
-
 class Archiveable(models.Model):
     archived = models.BooleanField(default=False, null=False)
 
@@ -38,9 +37,28 @@ class Archiveable(models.Model):
     class Meta:
         abstract = True
         ordering = ["archived"]
+    
+
+class ContactableTypeQuerySet(models.QuerySet):
+    def preferred(self):
+        model_name = self.model._meta.object_name
+        const_name = f"{model_name.upper()}__NAME_PREF"
+        pref = getattr(constants, const_name)
+        
+        return self.filter(name=pref)
+
+
+class ContactableTypeManager(ArchiveableManager):
+    def get_queryset(self):
+        return ContactableTypeQuerySet(self.model, using=self._db)
+    
+    def preferred(self):
+        return self.get_queryset().preferred()
 
 
 class ContactableType(models.Model):
+    objects = ContactableTypeManager()
+
     name=models.CharField(max_length=9)
     verbose=models.CharField(max_length=15)
 
@@ -51,25 +69,26 @@ class ContactableType(models.Model):
         abstract = True
     
 
-class PreferableQuerySet(models.QuerySet):
+class ContactableQuerySet(models.QuerySet):
     def preferred(self):
         model_name = self.model._meta.object_name
+        const_name = f"{model_name.upper()}TYPE__NAME_PREF"
         name_field = f"{model_name.lower()}_types__name"
-        pref_name = getattr(constants, f"{model_name.upper()}_TYPE__NAME_PREF")
+        pref = getattr(constants, const_name)
         
-        return self.filter(**{name_field: pref_name})
+        return self.filter(**{name_field: pref})
 
 
-class PreferableManager(ArchiveableManager):
+class ContactableManager(ArchiveableManager):
     def get_queryset(self):
-        return PreferableQuerySet(self.model, using=self._db)
+        return ContactableQuerySet(self.model, using=self._db)
     
     def preferred(self):
         return self.get_queryset().preferred()
 
 
 class Contactable(models.Model):
-    objects = PreferableManager()
+    objects = ContactableManager()
 
     @property
     def contactable_types(self):
