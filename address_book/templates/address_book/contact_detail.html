@@ -132,7 +132,7 @@
             <caption>
                 Addresses 
                 <small>
-                    <a href="{% url "address-create" %}?contact_id={{ object.id }}">Create</a>
+                    <a href="{% url "address-create" %}?next={% url "contact-update" object.id %}">Create</a>
                 </small>
             </caption>
             {% if contact.tenancy_set.all|length %}
