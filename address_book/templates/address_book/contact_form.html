@@ -15,6 +15,16 @@
         </section>
         <section>
             <table>
+                <caption>Addresses</caption>
+                {{ tenancy_formset.management_form }}
+                {{ tenancy_formset.as_table }}
+            </table>
+            {% if tenancy_formset.non_form_errors %}
+                {{ tenancy_formset.non_form_errors }}
+            {% endif %}
+        </section>
+        <section>
+            <table>
                 <caption>Phone Numbers</caption>
                 {{ phonenumber_formset.management_form }}
                 {{ phonenumber_formset.as_table }}

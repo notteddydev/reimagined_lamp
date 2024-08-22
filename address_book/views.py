@@ -1,13 +1,13 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.http import Http404, HttpResponse, HttpResponseRedirect
+from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.defaultfilters import slugify
 from django.urls import reverse
 from django.views.generic import DetailView, View
 
-from .forms import AddressForm, AddressPhoneNumberCreateFormSet, AddressPhoneNumberUpdateFormSet, ContactFilterFormSet, ContactForm, ContactPhoneNumberCreateFormSet, ContactPhoneNumberUpdateFormSet, EmailCreateFormSet, EmailUpdateFormSet, TagForm, WalletAddressCreateFormSet, WalletAddressUpdateFormSet
-from .models import Address, Contact, Tenancy
+from .forms import AddressForm, AddressPhoneNumberCreateFormSet, AddressPhoneNumberUpdateFormSet, ContactFilterFormSet, ContactForm, ContactPhoneNumberCreateFormSet, ContactPhoneNumberUpdateFormSet, EmailCreateFormSet, EmailUpdateFormSet, TagForm, TenancyCreateFormSet, TenancyUpdateFormSet, WalletAddressCreateFormSet, WalletAddressUpdateFormSet
+from .models import Address, Contact
 from app.decorators import owned_by_user
 from app.mixins import OwnedByUserMixin
 
@@ -209,6 +209,7 @@ class ContactCreateView(LoginRequiredMixin, View):
             "email_formset": EmailCreateFormSet,
             "form": ContactForm(request.user),
             "phonenumber_formset": ContactPhoneNumberCreateFormSet,
+            "tenancy_formset": TenancyCreateFormSet,
             "walletaddress_formset": WalletAddressCreateFormSet,
         })
     
@@ -221,9 +222,10 @@ class ContactCreateView(LoginRequiredMixin, View):
         form = ContactForm(request.user, request.POST)
         email_formset = EmailCreateFormSet(request.POST)
         phonenumber_formset = ContactPhoneNumberCreateFormSet(request.POST)
+        tenancy_formset = TenancyCreateFormSet(request.POST)
         walletaddress_formset = WalletAddressCreateFormSet(request.POST)
 
-        if form.is_valid() and email_formset.is_valid() and phonenumber_formset.is_valid() and walletaddress_formset.is_valid():
+        if form.is_valid() and email_formset.is_valid() and phonenumber_formset.is_valid() and tenancy_formset.is_valid() and walletaddress_formset.is_valid():
             contact = form.save()
 
             email_formset.instance = contact
@@ -231,6 +233,9 @@ class ContactCreateView(LoginRequiredMixin, View):
 
             phonenumber_formset.instance = contact
             phonenumber_formset.save()
+
+            tenancy_formset.instance = contact
+            tenancy_formset.save()
 
             walletaddress_formset.instance = contact
             walletaddress_formset.save()
@@ -241,6 +246,7 @@ class ContactCreateView(LoginRequiredMixin, View):
             "email_formset": email_formset,
             "form": form,
             "phonenumber_formset": phonenumber_formset,
+            "tenancy_formset": tenancy_formset,
             "walletaddress_formset": walletaddress_formset,
         })
     
@@ -265,6 +271,7 @@ class ContactUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
             "form": ContactForm(request.user, instance=contact),
             "object": contact,
             "phonenumber_formset": ContactPhoneNumberUpdateFormSet(instance=contact),
+            "tenancy_formset": TenancyUpdateFormSet(instance=contact),
             "walletaddress_formset": WalletAddressUpdateFormSet(instance=contact),
         })
     
@@ -278,9 +285,10 @@ class ContactUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
         form = ContactForm(request.user, request.POST, instance=contact)
         email_formset = EmailUpdateFormSet(request.POST, instance=contact)
         phonenumber_formset = ContactPhoneNumberUpdateFormSet(request.POST, instance=contact)
+        tenancy_formset = TenancyUpdateFormSet(request.POST, instance=contact)
         walletaddress_formset = WalletAddressUpdateFormSet(request.POST, instance=contact)
 
-        if form.is_valid() and email_formset.is_valid() and phonenumber_formset.is_valid() and walletaddress_formset.is_valid():
+        if form.is_valid() and email_formset.is_valid() and phonenumber_formset.is_valid() and tenancy_formset.is_valid() and walletaddress_formset.is_valid():
             contact = form.save()
 
             email_formset.instance = contact
@@ -288,6 +296,9 @@ class ContactUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
 
             phonenumber_formset.instance = contact
             phonenumber_formset.save()
+
+            tenancy_formset.instance = contact
+            tenancy_formset.save()
 
             walletaddress_formset.instance = contact
             walletaddress_formset.save()
@@ -299,6 +310,7 @@ class ContactUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
             "form": form,
             "object": contact,
             "phonenumber_formset": phonenumber_formset,
+            "tenancy_formset": tenancy_formset,
             "walletaddress_formset": walletaddress_formset,
         })
 
