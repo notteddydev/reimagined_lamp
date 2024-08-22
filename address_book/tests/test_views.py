@@ -1,13 +1,17 @@
 from collections import Counter
+
 from django.apps import apps
 from django.contrib.auth.models import User
+from django.http import HttpResponse
 from django.template.defaultfilters import slugify
 from django.test import Client, TestCase
 from django.urls import reverse
 
+from typing import Optional
+
 from address_book.models import Address, Contact
 
-def get_pref_contactable_type_id(contactable_type):
+def get_pref_contactable_type_id(contactable_type: str) -> int | None:
     """
     If there is no 'preferred' ContactableType, returns None. Otherwise, returns the ContactableType.id.
     """
@@ -35,18 +39,18 @@ class BaseModelViewTestCase:
             password=self.primary_user_password
         )
 
-    def _login_user(self, username=None, password=None):
+    def _login_user(self, username: Optional[str]=None, password: Optional[str]=None) -> None:
         self.client.login(
             username=username or self.primary_user.username,
             password=password or self.primary_user_password
         )
 
-    def _login_user_and_get_get_response(self, url=None, username=None, password=None):
+    def _login_user_and_get_get_response(self, url: Optional[str]=None, username: Optional[str]=None, password: Optional[str]=None) -> HttpResponse:
         self._login_user(username=username, password=password)
         response = self.client.get(url or self.url)
         return response
     
-    def _login_user_and_get_post_response(self, url=None, post_data={}, username=None, password=None):
+    def _login_user_and_get_post_response(self, url: Optional[str]=None, post_data: Optional[dict]={}, username: Optional[str]=None, password: Optional[str]=None) -> HttpResponse:
         self._login_user(username=username, password=password)
         response = self.client.post(url or self.url, post_data)
         return response
@@ -59,7 +63,7 @@ class BaseModelViewTestCase:
         response = self.client.get(self.url)
         self.assertRedirects(response, f"{reverse('login')}?next={self.url}")
 
-    def assert_view_renders_correct_template_and_context(self, response, template, context_keys):
+    def assert_view_renders_correct_template_and_context(self, response: HttpResponse, template: str, context_keys: tuple) -> None:
         """
         Assert that the view response has the correct template and contains the expected context keys.
 
