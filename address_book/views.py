@@ -1,6 +1,6 @@
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from django.http import Http404, HttpResponse
+from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.defaultfilters import slugify
 from django.urls import reverse
@@ -17,7 +17,7 @@ from io import BytesIO
 
 @login_required
 @owned_by_user(Contact)
-def contact_download_view(request, pk):
+def contact_download_view(request: HttpRequest, pk: int) -> HttpResponse:
     """
     Downloads all non-archived vcardable Contact data as a .vcf file for a single Contact.
     """
@@ -30,7 +30,7 @@ def contact_download_view(request, pk):
 
 
 @login_required
-def contact_list_download_view(request):
+def contact_list_download_view(request: HttpRequest) -> HttpResponse:
     """
     Downloads all non-archived vcardable Contact data as a .vcf file for a list of Contacts.
     """
@@ -51,7 +51,7 @@ def contact_list_download_view(request):
 
 
 @login_required
-def contact_list_view(request):
+def contact_list_view(request: HttpRequest) -> HttpResponse:
     """
     Lists Contacts for the logged in User; applying selected filters.
     """
@@ -69,7 +69,7 @@ def contact_list_view(request):
 
 @login_required
 @owned_by_user(Contact)
-def contact_qrcode_view(request, pk):
+def contact_qrcode_view(request: HttpRequest, pk: int) -> HttpResponse:
     """
     Returns a PNG image of a QR code which stores all non-archived vcardable Contact data
     for a given Contact.
@@ -97,7 +97,7 @@ def contact_qrcode_view(request, pk):
     
 
 class AddressCreateView(LoginRequiredMixin, View):
-    def get(self, request):
+    def get(self, request: HttpRequest) -> HttpResponse:
         """
         Return the address_form template for creating an Address.
         """
@@ -106,7 +106,7 @@ class AddressCreateView(LoginRequiredMixin, View):
             "phonenumber_formset": AddressPhoneNumberCreateFormSet,
         })
     
-    def post(self, request):
+    def post(self, request: HttpRequest) -> HttpResponse:
         """
         Creates an Address with valid data and redirects to the corresponding AddressDetail view;
         or, if incorrect data provided, returns the address_form template once again displaying
@@ -146,7 +146,7 @@ class AddressDetailView(LoginRequiredMixin, OwnedByUserMixin, DetailView):
     
 
 class AddressUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
-    def get(self, request, pk):
+    def get(self, request: HttpRequest, pk: int) -> HttpResponse:
         """
         Return the address_form template for updating an Address, displaying any existing values.
         """
@@ -159,7 +159,7 @@ class AddressUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
             "phonenumber_formset": AddressPhoneNumberUpdateFormSet(instance=address),
         })
     
-    def post(self, request, pk):
+    def post(self, request: HttpRequest, pk: int) -> HttpResponse:
         """
         Updates an Address with valid data and redirects to the corresponding AddressDetail view;
         or, if incorrect data provided, returns the address_form template once again displaying
@@ -193,7 +193,7 @@ class AddressUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
 
 
 class ContactCreateView(LoginRequiredMixin, View):
-    def get(self, request):
+    def get(self, request: HttpRequest) -> HttpResponse:
         """
         Return the contact_form template for creating an Contact.
         """
@@ -205,7 +205,7 @@ class ContactCreateView(LoginRequiredMixin, View):
             "walletaddress_formset": WalletAddressCreateFormSet,
         })
     
-    def post(self, request):
+    def post(self, request: HttpRequest) -> HttpResponse:
         """
         Creates a Contact with valid data and redirects to the corresponding ContactDetail view;
         or, if incorrect data provided, returns the contact_form template once again displaying
@@ -251,7 +251,7 @@ class ContactDetailView(LoginRequiredMixin, OwnedByUserMixin, DetailView):
     
 
 class ContactUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
-    def get(self, request, pk):
+    def get(self, request: HttpRequest, pk: int) -> HttpResponse:
         """
         Return the contact_form template for updating an Contact, displaying any existing values.
         """
@@ -267,7 +267,7 @@ class ContactUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
             "walletaddress_formset": WalletAddressUpdateFormSet(instance=contact),
         })
     
-    def post(self, request, pk):
+    def post(self, request: HttpRequest, pk: int) -> HttpResponse:
         """
         Updates an Contact with valid data and redirects to the corresponding ContactDetail view;
         or, if incorrect data provided, returns the contact_form template once again displaying
@@ -311,7 +311,7 @@ class ContactUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
 
 
 class TagCreateView(LoginRequiredMixin, View):
-    def get(self, request):
+    def get(self, request: HttpRequest) -> HttpResponse:
         """
         Return the tag_form template for creating a Tag, pre-populating the associated
         contacts with any valid contact_id passed in the URL params.
@@ -331,7 +331,7 @@ class TagCreateView(LoginRequiredMixin, View):
             "form": form,
         })
     
-    def post(self, request):
+    def post(self, request: HttpRequest) -> HttpResponse:
         """
         Creates an Tag with valid data and redirects to the ContactList view, filtering by
         the created Tag; or, if incorrect data provided, returns the tag_form template once
