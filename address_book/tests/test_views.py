@@ -1,5 +1,4 @@
 from collections import Counter
-from django.conf import settings
 from django.contrib.auth.models import User
 from django.template.defaultfilters import slugify
 from django.test import Client, TestCase
