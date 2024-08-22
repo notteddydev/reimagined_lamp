@@ -118,11 +118,12 @@ class AddressCreateView(LoginRequiredMixin, View):
         if form.is_valid() and phonenumber_formset.is_valid():
             address = form.save()
 
-            phonenumber_formset_is_empty = all(
-                not form.cleaned_data for form in phonenumber_formset if form.is_valid()
+            has_valid_data = any(
+                form.is_valid() and form.cleaned_data
+                for form in phonenumber_formset
             )
 
-            if not phonenumber_formset_is_empty:
+            if has_valid_data:
                 phonenumber_formset.instance = address
                 phonenumber_formset.save()
 
