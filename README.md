@@ -25,6 +25,8 @@ Python and Django personal organiser (currently just address book).
 - Prevent 'profession' from being a required field.
 - Create method on ContactableType / QuerySet / something to find the 'preferred' type. REPLACE the horrible methods in test_views.py
 - Make redirect from tag-create automatically filter contact-list by tag name again
+- Find out how to not have to create 'CreateFormSet' and 'UpdateFormSet' just to set the can_delete value differently.
+- Make InlineFormSets work consistently whereby they do not throw just one error if there are many; the array of errors is thrown as in the TenancyFormSet
 
 
 ### Long-term
