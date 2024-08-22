@@ -200,18 +200,6 @@ class AddressUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
         return Address.objects.filter(id=self.kwargs['pk'], user=self.request.user).exists()
 
 
-class TenancyToggleArchiveView(LoginRequiredMixin, UserPassesTestMixin, View):
-    def post(self, request, pk):
-        tenancy = get_object_or_404(Tenancy, pk=pk)
-        tenancy.archived = not tenancy.archived
-        tenancy.save()
-
-        return HttpResponseRedirect(request.META["HTTP_REFERER"])
-
-    def test_func(self) -> bool | None:
-        return Tenancy.objects.filter(pk=self.kwargs['pk'], contact__user=self.request.user).exists()
-
-
 class ContactCreateView(LoginRequiredMixin, View):
     def get(self, request):
         """

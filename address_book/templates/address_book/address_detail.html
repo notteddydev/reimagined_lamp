@@ -98,20 +98,6 @@
                         <td>
                             <a href="{% url "contact-detail" tenancy.contact.id %}">View</a>
                             <a href="{% url "contact-update" tenancy.contact.id %}">Update</a>
-                            <form
-                                action="{% url "tenancy-toggle-archive" tenancy.id %}"
-                                class="inline"
-                                id="tenancy-toggle-archived-form-{{ tenancy.id }}"
-                                method="POST"
-                            >
-                                {% csrf_token %}
-                                <a
-                                    href="javascript:;"
-                                    onclick="document.getElementById('tenancy-toggle-archived-form-{{ tenancy.id }}').submit()"
-                                >
-                                    {% if tenancy.archived %}Unarchive{% else %}Archive{% endif %}
-                                </a>
-                            </form>
                         </td>
                     </tr>
                 {% endfor %}
