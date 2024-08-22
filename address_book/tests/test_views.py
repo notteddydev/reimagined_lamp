@@ -40,17 +40,29 @@ class BaseModelViewTestCase:
         )
 
     def _login_user(self, username: Optional[str]=None, password: Optional[str]=None) -> None:
+        """
+        Logs in a user with the username and password provided, if none are provided it defaults to the
+        primary_user that has been set on the class.
+        """
         self.client.login(
             username=username or self.primary_user.username,
             password=password or self.primary_user_password
         )
 
     def _login_user_and_get_get_response(self, url: Optional[str]=None, username: Optional[str]=None, password: Optional[str]=None) -> HttpResponse:
+        """
+        Logs in a user and makes a get request to the url provided, if none is provided it defaults to the
+        url that has been set on the class. Returns the resulting HttpResponse object.
+        """        
         self._login_user(username=username, password=password)
         response = self.client.get(url or self.url)
         return response
     
     def _login_user_and_get_post_response(self, url: Optional[str]=None, post_data: Optional[dict]={}, username: Optional[str]=None, password: Optional[str]=None) -> HttpResponse:
+        """
+        Logs in a user and makes a post request to the url provided, if none is provided it defaults to the
+        url that has been set on the class. Returns the resulting HttpResponse object.
+        """
         self._login_user(username=username, password=password)
         response = self.client.post(url or self.url, post_data)
         return response
