@@ -46,9 +46,9 @@ class BaseModelViewTestCase:
         response = self.client.get(url or self.url)
         return response
     
-    def _login_user_and_get_post_response(self, post_data={}, username=None, password=None):
+    def _login_user_and_get_post_response(self, url=None, post_data={}, username=None, password=None):
         self._login_user(username=username, password=password)
-        response = self.client.post(self.url, post_data)
+        response = self.client.post(url or self.url, post_data)
         return response
     
     def test_get_request_redirects_if_not_logged_in(self):
@@ -94,61 +94,11 @@ class TestAddressCreateView(BaseModelViewTestCase, TestCase):
         )
         self.assertEqual({}, response.context["form"].initial)
 
-    def test_get_view_with_invalid_contact_id_param_for_logged_in_user(self):
-        """
-        Test correct template is used and appropriate keys are passed to the context
-        when a logged in user attempts to access the address-create view. Assert that
-        the forms initial value is empty.
-        """
-        response = self._login_user_and_get_get_response(f"{self.url}?contact_id=23")
-        self.assert_view_renders_correct_template_and_context(
-            response=response,
-            template=self.template,
-            context_keys=self.context_keys
-        )
-        self.assertEqual({}, response.context["form"].initial)
-
-    def test_get_view_with_valid_contact_id_param_for_logged_in_user(self):
-        """
-        Test correct template is used and appropriate keys are passed to the context
-        when a logged in user attempts to access the address-create view. Assert that
-        the forms initial value contains the valid contact_id passed in params, and that
-        the associated contact comes preselected in the multiple choice menu.
-        """
-        contact = Contact.objects.create(
-            first_name="Wanted",
-            middle_names="In",
-            last_name="Response",
-            user=self.primary_user,
-            year_met=2000
-        )
-        response = self._login_user_and_get_get_response(
-            url=f"{self.url}?contact_id={contact.id}"
-        )
-        self.assert_view_renders_correct_template_and_context(
-            response=response,
-            template=self.template,
-            context_keys=self.context_keys
-        )
-
-        initial_form_data = response.context["form"].initial
-        self.assertIn("contacts", initial_form_data)
-        self.assertEqual(1, len(initial_form_data.get("contacts")))
-        self.assertEqual(contact.id, initial_form_data.get("contacts")[0])
-        self.assertContains(response, f'<option value="{contact.id}" selected>{contact}')
-
     def test_post_with_valid_data(self):
         """
         Test that posting valid data is successful and redirects to the appropriate address-detail
         page for the appropriate address.
         """
-        contact = Contact.objects.create(
-            first_name="Wanted",
-            middle_names="In",
-            last_name="Response",
-            user=self.primary_user,
-            year_met=2000
-        )
         valid_form_data = {
             "address_line_1": "1 easily identifiable road",
             "address_line_2": "apartment 100",
@@ -158,7 +108,6 @@ class TestAddressCreateView(BaseModelViewTestCase, TestCase):
             "postcode": "SN1 8GB",
             "country": 56,
             "notes": "Not a real address tbh",
-            "contacts": [contact.id],
             "phonenumber_set-TOTAL_FORMS": ["2", "2"],
             "phonenumber_set-INITIAL_FORMS": ["0", "0"],
             "phonenumber_set-MIN_NUM_FORMS": ["0", "0"],
@@ -180,18 +129,11 @@ class TestAddressCreateView(BaseModelViewTestCase, TestCase):
         address = Address.objects.get(address_line_1="1 easily identifiable road")
         self.assertRedirects(response, reverse("address-detail", args=[address.id]))
 
-    def test_post_with_valid_data_not_logged_in(self):
+    def test_post_with_valid_data_and_next_url_passed(self):
         """
         Test that posting valid data is successful and redirects to the appropriate address-detail
         page for the appropriate address.
         """
-        contact = Contact.objects.create(
-            first_name="Wanted",
-            middle_names="In",
-            last_name="Response",
-            user=self.primary_user,
-            year_met=2000
-        )
         valid_form_data = {
             "address_line_1": "1 easily identifiable road",
             "address_line_2": "apartment 100",
@@ -201,7 +143,49 @@ class TestAddressCreateView(BaseModelViewTestCase, TestCase):
             "postcode": "SN1 8GB",
             "country": 56,
             "notes": "Not a real address tbh",
-            "contacts": [contact.id],
+            "phonenumber_set-TOTAL_FORMS": ["2", "2"],
+            "phonenumber_set-INITIAL_FORMS": ["0", "0"],
+            "phonenumber_set-MIN_NUM_FORMS": ["0", "0"],
+            "phonenumber_set-MAX_NUM_FORMS": ["1000", "1000"],
+            "phonenumber_set-0-number_0": ["GB"],
+            "phonenumber_set-0-number_1": ["7777111222"],
+            "phonenumber_set-0-phonenumber_types": ["1", str(get_pref_contactable_type_id("PhonenumberType"))],
+            "phonenumber_set-0-id": [""],
+            "phonenumber_set-0-address": [""],
+            "phonenumber_set-1-number_0": [""],
+            "phonenumber_set-1-number_1": [""],
+            "phonenumber_set-1-id": [""],
+            "phonenumber_set-1-address": [""]
+        }
+        contact = Contact.objects.create(
+            first_name="Wanted",
+            middle_names="In",
+            last_name="Response",
+            user=self.primary_user,
+            year_met=2000
+        )
+        redirect_url = reverse("contact-update", args=[contact.id])
+        response = self._login_user_and_get_post_response(
+            url=f"{self.url}?next={redirect_url}",
+            post_data=valid_form_data
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, redirect_url)
+
+    def test_post_with_valid_data_not_logged_in(self):
+        """
+        Test that posting valid data is successful and redirects to the appropriate address-detail
+        page for the appropriate address.
+        """
+        valid_form_data = {
+            "address_line_1": "1 easily identifiable road",
+            "address_line_2": "apartment 100",
+            "neighbourhood": "Mayfair",
+            "city": "London",
+            "state": "London",
+            "postcode": "SN1 8GB",
+            "country": 56,
+            "notes": "Not a real address tbh",
             "phonenumber_set-TOTAL_FORMS": ["2", "2"],
             "phonenumber_set-INITIAL_FORMS": ["0", "0"],
             "phonenumber_set-MIN_NUM_FORMS": ["0", "0"],
@@ -234,7 +218,6 @@ class TestAddressCreateView(BaseModelViewTestCase, TestCase):
             "postcode": "SN1 8GB",
             "country": 99999,
             "notes": "Not a real address tbh",
-            "contacts": [],
             "phonenumber_set-TOTAL_FORMS": ["2", "2"],
             "phonenumber_set-INITIAL_FORMS": ["0", "0"],
             "phonenumber_set-MIN_NUM_FORMS": ["0", "0"],
@@ -258,7 +241,7 @@ class TestAddressCreateView(BaseModelViewTestCase, TestCase):
             context_keys=self.context_keys
         )
         self.assertEqual(
-            Counter(["address_line_1", "contacts", "country"]),
+            Counter(["address_line_1", "country"]),
             Counter(list(response.context["form"].errors.as_data()))
         )
 
@@ -324,13 +307,6 @@ class TestAddressUpdateView(BaseModelViewTestCase, TestCase):
         Test that posting valid data is successful and redirects to the appropriate address-detail
         page for the appropriate address.
         """
-        contact = Contact.objects.create(
-            first_name="Wanted",
-            middle_names="In",
-            last_name="Response",
-            user=self.primary_user,
-            year_met=2000
-        )
         valid_form_data = {
             "address_line_1": "1 easily identifiable street",
             "address_line_2": "the penthouse",
@@ -340,7 +316,6 @@ class TestAddressUpdateView(BaseModelViewTestCase, TestCase):
             "postcode": "SN1 8GB",
             "country": 79,
             "notes": "Another fake address",
-            "contacts": [contact.id],
             "phonenumber_set-TOTAL_FORMS": ["2", "2"],
             "phonenumber_set-INITIAL_FORMS": ["0", "0"],
             "phonenumber_set-MIN_NUM_FORMS": ["0", "0"],
@@ -376,7 +351,6 @@ class TestAddressUpdateView(BaseModelViewTestCase, TestCase):
             "postcode": "SN1 8GB",
             "country": "",
             "notes": "Not a real address tbh",
-            "contacts": [],
             "phonenumber_set-TOTAL_FORMS": ["2", "2"],
             "phonenumber_set-INITIAL_FORMS": ["0", "0"],
             "phonenumber_set-MIN_NUM_FORMS": ["0", "0"],
@@ -400,7 +374,7 @@ class TestAddressUpdateView(BaseModelViewTestCase, TestCase):
             context_keys=self.context_keys
         )
         self.assertEqual(
-            Counter(["address_line_1", "city", "contacts", "country"]),
+            Counter(["address_line_1", "city", "country"]),
             Counter(list(response.context["form"].errors.as_data()))
         )
 
@@ -422,13 +396,6 @@ class TestAddressUpdateView(BaseModelViewTestCase, TestCase):
         Test that posting valid data as another user is unsuccessful and throws
         a tasty 403.
         """
-        contact = Contact.objects.create(
-            first_name="Wanted",
-            middle_names="In",
-            last_name="Response",
-            user=self.primary_user,
-            year_met=2000
-        )
         valid_form_data = {
             "address_line_1": "1 easily identifiable street",
             "address_line_2": "the penthouse",
@@ -438,7 +405,6 @@ class TestAddressUpdateView(BaseModelViewTestCase, TestCase):
             "postcode": "SN1 8GB",
             "country": 79,
             "notes": "Another fake address",
-            "contacts": [contact.id],
             "phonenumber_set-TOTAL_FORMS": ["2", "2"],
             "phonenumber_set-INITIAL_FORMS": ["0", "0"],
             "phonenumber_set-MIN_NUM_FORMS": ["0", "0"],
