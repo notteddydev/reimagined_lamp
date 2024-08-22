@@ -173,11 +173,12 @@ class AddressUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
         if form.is_valid() and phonenumber_formset.is_valid():
             address = form.save()
 
-            phonenumber_formset_is_empty = all(
-                not form.cleaned_data for form in phonenumber_formset if form.is_valid()
+            has_valid_data = any(
+                form.is_valid() and form.cleaned_data
+                for form in phonenumber_formset
             )
 
-            if not phonenumber_formset_is_empty:
+            if has_valid_data:
                 phonenumber_formset.instance = address
                 phonenumber_formset.save()
 
@@ -190,7 +191,7 @@ class AddressUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
         })
 
     def test_func(self) -> bool | None:
-        return Address.objects.filter(id=self.kwargs['pk'], user=self.request.user).exists()
+        return Address.objects.filter(id=self.kwargs["pk"], user=self.request.user).exists()
 
 
 class ContactCreateView(LoginRequiredMixin, View):
@@ -308,7 +309,7 @@ class ContactUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
         })
 
     def test_func(self) -> bool | None:
-        return Contact.objects.filter(id=self.kwargs['pk'], user=self.request.user).exists()
+        return Contact.objects.filter(id=self.kwargs["pk"], user=self.request.user).exists()
 
 
 class TagCreateView(LoginRequiredMixin, View):
