@@ -7,15 +7,14 @@ from django.urls import reverse
 
 from address_book.models import Address, Contact
 
-def get_pref_contactable_type_id(contactable_type, stringify=False):
+def get_pref_contactable_type_id(contactable_type):
     """
-    If there is no 'preferred' ContactableType, returns None. Otherwise, returns the ContactableType.id
-    either as an int or a str depending on the stringify argument.
+    If there is no 'preferred' ContactableType, returns None. Otherwise, returns the ContactableType.id.
     """
     contactable_type = apps.get_model("address_book", contactable_type)
     contactable_type_id = contactable_type.objects.preferred().values_list("id", flat=True).first()
 
-    return str(contactable_type_id) if stringify and contactable_type_id else contactable_type_id
+    return contactable_type_id
 
 
 class BaseModelViewTestCase:
@@ -166,7 +165,7 @@ class TestAddressCreateView(BaseModelViewTestCase, TestCase):
             "phonenumber_set-MAX_NUM_FORMS": ["1000", "1000"],
             "phonenumber_set-0-number_0": ["GB"],
             "phonenumber_set-0-number_1": ["7777111222"],
-            "phonenumber_set-0-phonenumber_types": ["1", get_pref_contactable_type_id("PhonenumberType", stringify=True)],
+            "phonenumber_set-0-phonenumber_types": ["1", str(get_pref_contactable_type_id("PhonenumberType"))],
             "phonenumber_set-0-id": [""],
             "phonenumber_set-0-address": [""],
             "phonenumber_set-1-number_0": [""],
@@ -209,7 +208,7 @@ class TestAddressCreateView(BaseModelViewTestCase, TestCase):
             "phonenumber_set-MAX_NUM_FORMS": ["1000", "1000"],
             "phonenumber_set-0-number_0": ["GB"],
             "phonenumber_set-0-number_1": ["7777111222"],
-            "phonenumber_set-0-phonenumber_types": ["1", get_pref_contactable_type_id("PhonenumberType", stringify=True)],
+            "phonenumber_set-0-phonenumber_types": ["1", str(get_pref_contactable_type_id("PhonenumberType"))],
             "phonenumber_set-0-id": [""],
             "phonenumber_set-0-address": [""],
             "phonenumber_set-1-number_0": [""],
@@ -242,7 +241,7 @@ class TestAddressCreateView(BaseModelViewTestCase, TestCase):
             "phonenumber_set-MAX_NUM_FORMS": ["1000", "1000"],
             "phonenumber_set-0-number_0": ["GB"],
             "phonenumber_set-0-number_1": [""],
-            "phonenumber_set-0-phonenumber_types": ["1", get_pref_contactable_type_id("PhonenumberType", stringify=True)],
+            "phonenumber_set-0-phonenumber_types": ["1", str(get_pref_contactable_type_id("PhonenumberType"))],
             "phonenumber_set-0-id": [""],
             "phonenumber_set-0-address": [""],
             "phonenumber_set-1-number_0": ["GB"],
@@ -348,7 +347,7 @@ class TestAddressUpdateView(BaseModelViewTestCase, TestCase):
             "phonenumber_set-MAX_NUM_FORMS": ["1000", "1000"],
             "phonenumber_set-0-number_0": ["GB"],
             "phonenumber_set-0-number_1": ["7777111222"],
-            "phonenumber_set-0-phonenumber_types": ["1", get_pref_contactable_type_id("PhonenumberType", stringify=True)],
+            "phonenumber_set-0-phonenumber_types": ["1", str(get_pref_contactable_type_id("PhonenumberType"))],
             "phonenumber_set-0-id": [""],
             "phonenumber_set-0-address": [""],
             "phonenumber_set-1-number_0": [""],
@@ -384,7 +383,7 @@ class TestAddressUpdateView(BaseModelViewTestCase, TestCase):
             "phonenumber_set-MAX_NUM_FORMS": ["1000", "1000"],
             "phonenumber_set-0-number_0": [""],
             "phonenumber_set-0-number_1": ["7777112233"],
-            "phonenumber_set-0-phonenumber_types": ["1", get_pref_contactable_type_id("PhonenumberType", stringify=True)],
+            "phonenumber_set-0-phonenumber_types": ["1", str(get_pref_contactable_type_id("PhonenumberType"))],
             "phonenumber_set-0-id": [""],
             "phonenumber_set-0-address": [""],
             "phonenumber_set-1-number_0": ["GB"],
@@ -446,7 +445,7 @@ class TestAddressUpdateView(BaseModelViewTestCase, TestCase):
             "phonenumber_set-MAX_NUM_FORMS": ["1000", "1000"],
             "phonenumber_set-0-number_0": ["GB"],
             "phonenumber_set-0-number_1": ["7777111222"],
-            "phonenumber_set-0-phonenumber_types": ["1", get_pref_contactable_type_id("PhonenumberType", stringify=True)],
+            "phonenumber_set-0-phonenumber_types": ["1", str(get_pref_contactable_type_id("PhonenumberType"))],
             "phonenumber_set-0-id": [""],
             "phonenumber_set-0-address": [""],
             "phonenumber_set-1-number_0": [""],
@@ -523,7 +522,7 @@ class TestContactCreateView(BaseModelViewTestCase, TestCase):
             "email_set-MIN_NUM_FORMS": ["0", "0"],
             "email_set-MAX_NUM_FORMS": ["1000", "1000"],
             "email_set-0-email": ["jack@dee.com"],
-            "email_set-0-email_types": ["1", get_pref_contactable_type_id("EmailType", stringify=True)],
+            "email_set-0-email_types": ["1", str(get_pref_contactable_type_id("EmailType"))],
             "email_set-0-id": [""],
             "email_set-0-contact": [""],
             "phonenumber_set-TOTAL_FORMS": ["1", "1"],
@@ -532,7 +531,7 @@ class TestContactCreateView(BaseModelViewTestCase, TestCase):
             "phonenumber_set-MAX_NUM_FORMS": ["1000", "1000"],
             "phonenumber_set-0-number_0": ["GB"],
             "phonenumber_set-0-number_1": ["7777999000"],
-            "phonenumber_set-0-phonenumber_types": ["1", get_pref_contactable_type_id("PhonenumberType", stringify=True)],
+            "phonenumber_set-0-phonenumber_types": ["1", str(get_pref_contactable_type_id("PhonenumberType"))],
             "phonenumber_set-0-id": [""],
             "phonenumber_set-0-contact": [""],
             "tenancy_set-TOTAL_FORMS": ["1", "1"],
@@ -540,7 +539,7 @@ class TestContactCreateView(BaseModelViewTestCase, TestCase):
             "tenancy_set-MIN_NUM_FORMS": ["0", "0"],
             "tenancy_set-MAX_NUM_FORMS": ["1000", "1000"],
             "tenancy_set-0-address": [str(address.id)],
-            "tenancy_set-0-address_types": ["1", get_pref_contactable_type_id("AddressType", stringify=True)],
+            "tenancy_set-0-address_types": ["1", str(get_pref_contactable_type_id("AddressType"))],
             "tenancy_set-0-id": [""],
             "tenancy_set-0-contact": [""],
             "walletaddress_set-TOTAL_FORMS": ["1", "1"],
@@ -598,7 +597,7 @@ class TestContactCreateView(BaseModelViewTestCase, TestCase):
             "phonenumber_set-MAX_NUM_FORMS": ["1000", "1000"],
             "phonenumber_set-0-number_0": ["GB"],
             "phonenumber_set-0-number_1": [""],
-            "phonenumber_set-0-phonenumber_types": [get_pref_contactable_type_id("PhonenumberType", stringify=True)],
+            "phonenumber_set-0-phonenumber_types": [str(get_pref_contactable_type_id("PhonenumberType"))],
             "phonenumber_set-0-id": [""],
             "phonenumber_set-0-contact": [""],
             "tenancy_set-TOTAL_FORMS": ["1", "1"],
@@ -1008,7 +1007,7 @@ class TestContactUpdateView(BaseModelViewTestCase, TestCase):
             "email_set-MIN_NUM_FORMS": ["0", "0"],
             "email_set-MAX_NUM_FORMS": ["1000", "1000"],
             "email_set-0-email": ["jack@dee.com"],
-            "email_set-0-email_types": ["1", get_pref_contactable_type_id("EmailType", stringify=True)],
+            "email_set-0-email_types": ["1", str(get_pref_contactable_type_id("EmailType"))],
             "email_set-0-id": [""],
             "email_set-0-contact": [""],
             "phonenumber_set-TOTAL_FORMS": ["1", "1"],
@@ -1017,7 +1016,7 @@ class TestContactUpdateView(BaseModelViewTestCase, TestCase):
             "phonenumber_set-MAX_NUM_FORMS": ["1000", "1000"],
             "phonenumber_set-0-number_0": ["GB"],
             "phonenumber_set-0-number_1": ["7777999000"],
-            "phonenumber_set-0-phonenumber_types": ["1", get_pref_contactable_type_id("PhonenumberType", stringify=True)],
+            "phonenumber_set-0-phonenumber_types": ["1", str(get_pref_contactable_type_id("PhonenumberType"))],
             "phonenumber_set-0-id": [""],
             "phonenumber_set-0-contact": [""],
             "tenancy_set-TOTAL_FORMS": ["1", "1"],
@@ -1025,7 +1024,7 @@ class TestContactUpdateView(BaseModelViewTestCase, TestCase):
             "tenancy_set-MIN_NUM_FORMS": ["0", "0"],
             "tenancy_set-MAX_NUM_FORMS": ["1000", "1000"],
             "tenancy_set-0-address": [str(address.id)],
-            "tenancy_set-0-address_types": ["1", get_pref_contactable_type_id("AddressType", stringify=True)],
+            "tenancy_set-0-address_types": ["1", str(get_pref_contactable_type_id("AddressType"))],
             "tenancy_set-0-id": [""],
             "tenancy_set-0-contact": [""],
             "walletaddress_set-TOTAL_FORMS": ["1", "1"],
@@ -1095,7 +1094,7 @@ class TestContactUpdateView(BaseModelViewTestCase, TestCase):
             "phonenumber_set-MAX_NUM_FORMS": ["1000", "1000"],
             "phonenumber_set-0-number_0": ["GB"],
             "phonenumber_set-0-number_1": [""],
-            "phonenumber_set-0-phonenumber_types": [get_pref_contactable_type_id("PhonenumberType", stringify=True)],
+            "phonenumber_set-0-phonenumber_types": [str(get_pref_contactable_type_id("PhonenumberType"))],
             "phonenumber_set-0-id": [""],
             "phonenumber_set-0-contact": [""],
             "tenancy_set-TOTAL_FORMS": ["2", "2"],
@@ -1103,11 +1102,11 @@ class TestContactUpdateView(BaseModelViewTestCase, TestCase):
             "tenancy_set-MIN_NUM_FORMS": ["0", "0"],
             "tenancy_set-MAX_NUM_FORMS": ["1000", "1000"],
             "tenancy_set-0-address": [str(address.id)],
-            "tenancy_set-0-address_types": ["1", get_pref_contactable_type_id("AddressType", stringify=True)],
+            "tenancy_set-0-address_types": ["1", str(get_pref_contactable_type_id("AddressType"))],
             "tenancy_set-0-id": [""],
             "tenancy_set-0-contact": [""],
             "tenancy_set-1-address": [str(address.id)],
-            "tenancy_set-1-address_types": ["3", get_pref_contactable_type_id("AddressType", stringify=True)],
+            "tenancy_set-1-address_types": ["3", str(get_pref_contactable_type_id("AddressType"))],
             "tenancy_set-1-id": [""],
             "tenancy_set-1-contact": [""],
             "walletaddress_set-TOTAL_FORMS": ["1", "1"],
@@ -1177,7 +1176,7 @@ class TestContactUpdateView(BaseModelViewTestCase, TestCase):
             "phonenumber_set-MAX_NUM_FORMS": ["1000", "1000"],
             "phonenumber_set-0-number_0": ["GB"],
             "phonenumber_set-0-number_1": ["7777999000"],
-            "phonenumber_set-0-phonenumber_types": ["1", get_pref_contactable_type_id("PhonenumberType", stringify=True)],
+            "phonenumber_set-0-phonenumber_types": ["1", str(get_pref_contactable_type_id("PhonenumberType"))],
             "phonenumber_set-0-id": [""],
             "phonenumber_set-0-contact": [""],
             "email_set-TOTAL_FORMS": ["1", "1"],
@@ -1185,7 +1184,7 @@ class TestContactUpdateView(BaseModelViewTestCase, TestCase):
             "email_set-MIN_NUM_FORMS": ["0", "0"],
             "email_set-MAX_NUM_FORMS": ["1000", "1000"],
             "email_set-0-email": ["jack@dee.com"],
-            "email_set-0-email_types": ["1", get_pref_contactable_type_id("EmailType", stringify=True)],
+            "email_set-0-email_types": ["1", str(get_pref_contactable_type_id("EmailType"))],
             "email_set-0-id": [""],
             "email_set-0-contact": [""],
             "walletaddress_set-TOTAL_FORMS": ["1", "1"],
