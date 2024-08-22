@@ -33,7 +33,7 @@ def get_pref_phonenumber_type_id(stringify=False):
     return str(phonenumber_type.id) if stringify else phonenumber_type.id
 
 
-class BaseModelViewTestCase(TestCase):
+class BaseModelViewTestCase:
     def setUp(self):
         self.client = Client()
         
@@ -89,7 +89,7 @@ class BaseModelViewTestCase(TestCase):
             self.assertIn(context_key, response.context)
         
 
-class TestAddressCreateView(BaseModelViewTestCase):
+class TestAddressCreateView(BaseModelViewTestCase, TestCase):
     def setUp(self):
         super().setUp()
         self.context_keys = ("form", "phonenumber_formset",)
@@ -103,7 +103,11 @@ class TestAddressCreateView(BaseModelViewTestCase):
         the forms initial value is empty.
         """
         response = self._login_user_and_get_get_response()
-        self.assert_view_renders_correct_template_and_context(response, self.template, self.context_keys)
+        self.assert_view_renders_correct_template_and_context(
+            response=response,
+            template=self.template,
+            context_keys=self.context_keys
+        )
         self.assertEqual({}, response.context["form"].initial)
 
     def test_get_view_with_invalid_contact_id_param_for_logged_in_user(self):
@@ -113,7 +117,11 @@ class TestAddressCreateView(BaseModelViewTestCase):
         the forms initial value is empty.
         """
         response = self._login_user_and_get_get_response(f"{self.url}?contact_id=23")
-        self.assert_view_renders_correct_template_and_context(response, self.template, self.context_keys)
+        self.assert_view_renders_correct_template_and_context(
+            response=response,
+            template=self.template,
+            context_keys=self.context_keys
+        )
         self.assertEqual({}, response.context["form"].initial)
 
     def test_get_view_with_valid_contact_id_param_for_logged_in_user(self):
@@ -130,8 +138,14 @@ class TestAddressCreateView(BaseModelViewTestCase):
             user=self.primary_user,
             year_met=2000
         )
-        response = self._login_user_and_get_get_response(f"{self.url}?contact_id={contact.id}")
-        self.assert_view_renders_correct_template_and_context(response, self.template, self.context_keys)
+        response = self._login_user_and_get_get_response(
+            url=f"{self.url}?contact_id={contact.id}"
+        )
+        self.assert_view_renders_correct_template_and_context(
+            response=response,
+            template=self.template,
+            context_keys=self.context_keys
+        )
 
         initial_form_data = response.context["form"].initial
         self.assertIn("contacts", initial_form_data)
@@ -175,7 +189,9 @@ class TestAddressCreateView(BaseModelViewTestCase):
             "phonenumber_set-1-id": [""],
             "phonenumber_set-1-address": [""]
         }
-        response = self._login_user_and_get_post_response(valid_form_data)
+        response = self._login_user_and_get_post_response(
+            post_data=valid_form_data
+        )
         self.assertEqual(response.status_code, 302)
         address = Address.objects.get(address_line_1="1 easily identifiable road")
         self.assertRedirects(response, reverse("address-detail", args=[address.id]))
@@ -249,8 +265,14 @@ class TestAddressCreateView(BaseModelViewTestCase):
             "phonenumber_set-1-id": [""],
             "phonenumber_set-1-address": [""]
         }
-        response = self._login_user_and_get_post_response(invalid_form_data)
-        self.assert_view_renders_correct_template_and_context(response, self.template, self.context_keys)
+        response = self._login_user_and_get_post_response(
+            post_data=invalid_form_data
+        )
+        self.assert_view_renders_correct_template_and_context(
+            response=response,
+            template=self.template,
+            context_keys=self.context_keys
+        )
         self.assertEqual(
             Counter(["address_line_1", "contacts", "country"]),
             Counter(list(response.context["form"].errors.as_data()))
@@ -270,7 +292,7 @@ class TestAddressCreateView(BaseModelViewTestCase):
         )
 
 
-class TestAddressUpdateView(BaseModelViewTestCase):
+class TestAddressUpdateView(BaseModelViewTestCase, TestCase):
     def setUp(self):
         super().setUp()
         self.address = Address.objects.create(
@@ -306,7 +328,11 @@ class TestAddressUpdateView(BaseModelViewTestCase):
         when a logged in user attempts to access the address-update view.
         """
         response = self._login_user_and_get_get_response()
-        self.assert_view_renders_correct_template_and_context(response, self.template, self.context_keys)
+        self.assert_view_renders_correct_template_and_context(
+            response=response,
+            template=self.template,
+            context_keys=self.context_keys
+        )
         self.assertEqual(self.address.id, response.context["object"].id)
 
     def test_post_with_valid_data(self):
@@ -345,7 +371,9 @@ class TestAddressUpdateView(BaseModelViewTestCase):
             "phonenumber_set-1-id": [""],
             "phonenumber_set-1-address": [""]
         }
-        response = self._login_user_and_get_post_response(valid_form_data)
+        response = self._login_user_and_get_post_response(
+            post_data=valid_form_data
+        )
         self.assertEqual(response.status_code, 302)
         address = Address.objects.get(address_line_1="1 easily identifiable street")
         self.assertRedirects(response, reverse("address-detail", args=[address.id]))
@@ -379,8 +407,14 @@ class TestAddressUpdateView(BaseModelViewTestCase):
             "phonenumber_set-1-id": [""],
             "phonenumber_set-1-address": [""]
         }
-        response = self._login_user_and_get_post_response(invalid_form_data)
-        self.assert_view_renders_correct_template_and_context(response, self.template, self.context_keys)
+        response = self._login_user_and_get_post_response(
+            post_data=invalid_form_data
+        )
+        self.assert_view_renders_correct_template_and_context(
+            response=response,
+            template=self.template,
+            context_keys=self.context_keys
+        )
         self.assertEqual(
             Counter(["address_line_1", "city", "contacts", "country"]),
             Counter(list(response.context["form"].errors.as_data()))
@@ -444,7 +478,7 @@ class TestAddressUpdateView(BaseModelViewTestCase):
         self.assertTemplateNotUsed(response, self.template)
 
 
-class TestContactCreateView(BaseModelViewTestCase):
+class TestContactCreateView(BaseModelViewTestCase, TestCase):
     def setUp(self):
         super().setUp()
         self.context_keys = ("email_formset", "form", "phonenumber_formset", "walletaddress_formset",)
@@ -457,7 +491,11 @@ class TestContactCreateView(BaseModelViewTestCase):
         when a logged in user attempts to access the contact-create view.
         """
         response = self._login_user_and_get_get_response()
-        self.assert_view_renders_correct_template_and_context(response, self.template, self.context_keys)
+        self.assert_view_renders_correct_template_and_context(
+            response=response,
+            template=self.template,
+            context_keys=self.context_keys
+        )
 
     def test_post_with_valid_data(self):
         """
@@ -510,7 +548,9 @@ class TestContactCreateView(BaseModelViewTestCase):
             "walletaddress_set-0-id": [""],
             "walletaddress_set-0-contact": [""]
         }
-        response = self._login_user_and_get_post_response(valid_form_data)
+        response = self._login_user_and_get_post_response(
+            post_data=valid_form_data
+        )
         self.assertEqual(response.status_code, 302)
         contact = Contact.objects.get(middle_names="Superbly fantastical identifiable middle names")
         self.assertRedirects(response, reverse("contact-detail", args=[contact.id]))
@@ -566,8 +606,14 @@ class TestContactCreateView(BaseModelViewTestCase):
             "walletaddress_set-0-id": [""],
             "walletaddress_set-0-contact": [""]
         }
-        response = self._login_user_and_get_post_response(invalid_form_data)
-        self.assert_view_renders_correct_template_and_context(response, self.template, self.context_keys)
+        response = self._login_user_and_get_post_response(
+            post_data=invalid_form_data
+        )
+        self.assert_view_renders_correct_template_and_context(
+            response=response,
+            template=self.template,
+            context_keys=self.context_keys
+        )
         self.assertTemplateUsed("address_book/address_form.html") #TODO WHY THE F*@! is this coming out as true?
         self.assertEqual(
             Counter(["first_name", "gender", "year_met"]),
@@ -587,7 +633,7 @@ class TestContactCreateView(BaseModelViewTestCase):
         self.assertIn("One email must be designated as 'preferred'.", response.context["email_formset"].non_form_errors())
 
 
-class TestContactDetailView(BaseModelViewTestCase):
+class TestContactDetailView(BaseModelViewTestCase, TestCase):
     def setUp(self):
         super().setUp()
         self.contact = Contact.objects.create(
@@ -597,7 +643,7 @@ class TestContactDetailView(BaseModelViewTestCase):
             user=self.primary_user,
             year_met=2000
         )
-        self.context_keys = ("object")
+        self.context_keys = ("object",)
         self.template = "address_book/contact_detail.html"
         self.url = reverse("contact-detail", args=[self.contact.id])
 
@@ -607,7 +653,11 @@ class TestContactDetailView(BaseModelViewTestCase):
         view, they can do with success.
         """
         response = self._login_user_and_get_get_response()
-        self.assert_view_renders_correct_template_and_context(response, self.template, self.context_keys)
+        self.assert_view_renders_correct_template_and_context(
+            response=response,
+            template=self.template,
+            context_keys=self.context_keys
+        )
         self.assertContains(response, self.contact.full_name)
         self.assertEqual(self.contact.id, response.context["object"].id)
     
@@ -627,11 +677,13 @@ class TestContactDetailView(BaseModelViewTestCase):
         Make sure that if a Contact does not exist with the pk provided in the URL
         that the response status code is 404.
         """
-        response = self._login_user_and_get_get_response(url=reverse("contact-detail", args=[self.contact.id + 1]))
+        response = self._login_user_and_get_get_response(
+            url=reverse("contact-detail", args=[self.contact.id + 1])
+        )
         self.assertEqual(response.status_code, 404)
 
 
-class TestContactDownloadView(BaseModelViewTestCase):
+class TestContactDownloadView(BaseModelViewTestCase, TestCase):
     def setUp(self):
         super().setUp()
         self.contact = Contact.objects.create(
@@ -675,11 +727,13 @@ class TestContactDownloadView(BaseModelViewTestCase):
         Make sure that if a Contact does not exist with the pk provided in the URL
         that the response status code is 404.
         """
-        response = self._login_user_and_get_get_response(url=reverse("contact-download", args=[self.contact.id + 1]))
+        response = self._login_user_and_get_get_response(
+            url=reverse("contact-download", args=[self.contact.id + 1])
+        )
         self.assertEqual(response.status_code, 404)
 
 
-class TestContactListDownloadView(BaseModelViewTestCase):
+class TestContactListDownloadView(BaseModelViewTestCase, TestCase):
     def setUp(self):
         super().setUp()
         self.url = reverse("contact-list-download")
@@ -746,7 +800,7 @@ class TestContactListDownloadView(BaseModelViewTestCase):
         self.assertNotIn("Nobody Likes Me", vcard_data)
 
 
-class TestContactListView(BaseModelViewTestCase):
+class TestContactListView(BaseModelViewTestCase, TestCase):
     def setUp(self):
         super().setUp()
         self.context_keys = ("filter_formset", "object_list",)
@@ -773,7 +827,11 @@ class TestContactListView(BaseModelViewTestCase):
         """
         contact = self._create_contact_for_user()
         response = self._login_user_and_get_get_response()
-        self.assert_view_renders_correct_template_and_context(response, self.template, self.context_keys)
+        self.assert_view_renders_correct_template_and_context(
+            response=response,
+            template=self.template,
+            context_keys=self.context_keys
+        )
         self.assertContains(response, "Download List")
         self.assertIn(contact, response.context["object_list"])
         self.assertContains(response, contact)
@@ -801,11 +859,15 @@ class TestContactListView(BaseModelViewTestCase):
             year_met=2000
         )
         response = self._login_user_and_get_get_response()
-        self.assert_view_renders_correct_template_and_context(response, self.template, self.context_keys)
+        self.assert_view_renders_correct_template_and_context(
+            response=response,
+            template=self.template,
+            context_keys=self.context_keys
+        )
         self.assertQuerySetEqual(response.context["object_list"], [])
 
 
-class TestContactQrCodeView(BaseModelViewTestCase):
+class TestContactQrCodeView(BaseModelViewTestCase, TestCase):
     def setUp(self):
         super().setUp()
         self.contact = Contact.objects.create(
@@ -854,7 +916,7 @@ class TestContactQrCodeView(BaseModelViewTestCase):
         self.assertEqual(response.status_code, 404)
 
 
-class TestContactUpdateView(BaseModelViewTestCase):
+class TestContactUpdateView(BaseModelViewTestCase, TestCase):
     def setUp(self):
         super().setUp()
         self.contact = Contact.objects.create(
@@ -886,7 +948,11 @@ class TestContactUpdateView(BaseModelViewTestCase):
         when a logged in user attempts to access the contact-update view.
         """
         response = self._login_user_and_get_get_response()
-        self.assert_view_renders_correct_template_and_context(response, self.template, self.context_keys)
+        self.assert_view_renders_correct_template_and_context(
+            response=response,
+            template=self.template,
+            context_keys=self.context_keys
+        )
         self.assertEqual(self.contact.id, response.context["object"].id)
 
     def test_post_with_valid_data(self):
@@ -940,7 +1006,9 @@ class TestContactUpdateView(BaseModelViewTestCase):
             "walletaddress_set-0-id": [""],
             "walletaddress_set-0-contact": [""]
         }
-        response = self._login_user_and_get_post_response(valid_form_data)
+        response = self._login_user_and_get_post_response(
+            post_data=valid_form_data
+        )
         self.assertEqual(response.status_code, 302)
         contact = Contact.objects.get(middle_names="Superbly fantastical identifiable middle names")
         self.assertRedirects(response, reverse("contact-detail", args=[contact.id]))
@@ -996,8 +1064,14 @@ class TestContactUpdateView(BaseModelViewTestCase):
             "walletaddress_set-0-id": [""],
             "walletaddress_set-0-contact": [""]
         }
-        response = self._login_user_and_get_post_response(invalid_form_data)
-        self.assert_view_renders_correct_template_and_context(response, self.template, self.context_keys)
+        response = self._login_user_and_get_post_response(
+            post_data=invalid_form_data
+        )
+        self.assert_view_renders_correct_template_and_context(
+            response=response,
+            template=self.template,
+            context_keys=self.context_keys
+        )
         self.assertEqual(
             Counter(["first_name", "gender", "year_met"]),
             Counter(list(response.context["form"].errors.as_data()))
@@ -1075,7 +1149,7 @@ class TestContactUpdateView(BaseModelViewTestCase):
         self.assertTemplateNotUsed(response, self.template)
 
 
-class TestTagCreateView(BaseModelViewTestCase):
+class TestTagCreateView(BaseModelViewTestCase, TestCase):
     def setUp(self):
         super().setUp()
         self.context_keys = ("form",)
@@ -1089,7 +1163,11 @@ class TestTagCreateView(BaseModelViewTestCase):
         the forms initial value is empty.
         """
         response = self._login_user_and_get_get_response()
-        self.assert_view_renders_correct_template_and_context(response, self.template, self.context_keys)
+        self.assert_view_renders_correct_template_and_context(
+            response=response,
+            template=self.template,
+            context_keys=self.context_keys
+        )
         self.assertEqual({}, response.context["form"].initial)
 
     def test_get_view_with_invalid_contact_id_param_for_logged_in_user(self):
@@ -1101,7 +1179,11 @@ class TestTagCreateView(BaseModelViewTestCase):
         response = self._login_user_and_get_get_response(
             url=f"{self.url}?contact_id=23"
         )
-        self.assert_view_renders_correct_template_and_context(response, self.template, self.context_keys)
+        self.assert_view_renders_correct_template_and_context(
+            response=response,
+            template=self.template,
+            context_keys=self.context_keys
+        )
         self.assertEqual({}, response.context["form"].initial)
 
     def test_get_view_with_valid_contact_id_param_for_logged_in_user(self):
@@ -1121,7 +1203,11 @@ class TestTagCreateView(BaseModelViewTestCase):
         response = self._login_user_and_get_get_response(
             url=f"{self.url}?contact_id={contact.id}"
         )
-        self.assert_view_renders_correct_template_and_context(response, self.template, self.context_keys)
+        self.assert_view_renders_correct_template_and_context(
+            response=response,
+            template=self.template,
+            context_keys=self.context_keys
+        )
 
         initial_form_data = response.context["form"].initial
         self.assertIn("contacts", initial_form_data)
@@ -1144,7 +1230,9 @@ class TestTagCreateView(BaseModelViewTestCase):
             "name": "Supercalafragalistically unique tag name",
             "contacts": [contact.id],
         }
-        response = self._login_user_and_get_post_response(post_data=valid_form_data)
+        response = self._login_user_and_get_post_response(
+            post_data=valid_form_data
+        )
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("contact-list"))
 
@@ -1156,8 +1244,14 @@ class TestTagCreateView(BaseModelViewTestCase):
         invalid_form_data = {
             "name": "This name is longer than 50 chars. This name is longer than 50 chars. This name is longer than 50 chars."
         }
-        response = self._login_user_and_get_post_response(post_data=invalid_form_data)
-        self.assert_view_renders_correct_template_and_context(response, self.template, self.context_keys)
+        response = self._login_user_and_get_post_response(
+            post_data=invalid_form_data
+        )
+        self.assert_view_renders_correct_template_and_context(
+            response=response,
+            template=self.template,
+            context_keys=self.context_keys
+        )
         self.assertEqual(
             Counter(["name", "contacts"]),
             Counter(list(response.context["form"].errors.as_data()))
