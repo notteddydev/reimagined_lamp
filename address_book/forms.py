@@ -6,7 +6,7 @@ from django.utils import translation
 
 from phonenumber_field.formfields import localized_choices, PrefixChoiceField, SplitPhoneNumberField
 
-from .constants import ADDRESS_TYPE__NAME_PREF, EMAIL_TYPE__NAME_PREF, PHONENUMBER_TYPE__NAME_PREF
+from .constants import ADDRESSTYPE__NAME_PREF, EMAILTYPE__NAME_PREF, PHONENUMBERTYPE__NAME_PREF
 from .models import Address, AddressType, Contact, Email, EmailType, PhoneNumber, PhoneNumberType, Tag, Tenancy, WalletAddress
 
 
@@ -122,7 +122,7 @@ class ContactForm(forms.ModelForm):
 class EmailForm(forms.ModelForm):
     def clean(self):
         super().clean()
-        pref_type = EmailType.objects.filter(name=EMAIL_TYPE__NAME_PREF).first()
+        pref_type = EmailType.objects.filter(name=EMAILTYPE__NAME_PREF).first()
         if pref_type:
             email_types = self.cleaned_data.get("email_types", [])
             if pref_type in email_types:
@@ -139,7 +139,7 @@ class EmailForm(forms.ModelForm):
 class BaseEmailInlineFormSet(forms.BaseInlineFormSet):
     def clean(self):
         super().clean()
-        pref_type = EmailType.objects.filter(name=EMAIL_TYPE__NAME_PREF).first()
+        pref_type = EmailType.objects.filter(name=EMAILTYPE__NAME_PREF).first()
         if pref_type:
             pref_count = 0
             unarchived_count = 0
@@ -193,7 +193,7 @@ class PhoneNumberForm(forms.ModelForm):
 
     def clean(self):
         super().clean()
-        pref_type = PhoneNumberType.objects.filter(name=PHONENUMBER_TYPE__NAME_PREF).first()
+        pref_type = PhoneNumberType.objects.filter(name=PHONENUMBERTYPE__NAME_PREF).first()
         if pref_type:
             phonenumber_types = self.cleaned_data.get("phonenumber_types", [])
             if pref_type in phonenumber_types:
@@ -210,7 +210,7 @@ class PhoneNumberForm(forms.ModelForm):
 class BasePhoneNumberInlineFormSet(forms.BaseInlineFormSet):
     def clean(self):
         super().clean()
-        pref_type = PhoneNumberType.objects.filter(name=PHONENUMBER_TYPE__NAME_PREF).first()
+        pref_type = PhoneNumberType.objects.filter(name=PHONENUMBERTYPE__NAME_PREF).first()
         if pref_type:
             pref_count = 0
             unarchived_count = 0

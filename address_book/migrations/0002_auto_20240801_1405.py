@@ -11,14 +11,14 @@ def insert_address_types(apps, schema_editor):
     AddressType = apps.get_model("address_book", "AddressType")
 
     address_types = [
-        (constants.ADDRESS_TYPE__NAME_HOME, "Home",),
-        (constants.ADDRESS_TYPE__NAME_WORK, "Work",),
-        (constants.ADDRESS_TYPE__NAME_DOM, "Domestic",),
-        (constants.ADDRESS_TYPE__NAME_INTL, "International",),
-        (constants.ADDRESS_TYPE__NAME_POSTAL, "Postal",),
-        (constants.ADDRESS_TYPE__NAME_PARCEL, "Parcel",),
-        (constants.ADDRESS_TYPE__NAME_PREF, "Preferred",),
-        (constants.ADDRESS_TYPE__NAME_OTHER, "Other",),
+        (constants.ADDRESSTYPE__NAME_HOME, "Home",),
+        (constants.ADDRESSTYPE__NAME_WORK, "Work",),
+        (constants.ADDRESSTYPE__NAME_DOM, "Domestic",),
+        (constants.ADDRESSTYPE__NAME_INTL, "International",),
+        (constants.ADDRESSTYPE__NAME_POSTAL, "Postal",),
+        (constants.ADDRESSTYPE__NAME_PARCEL, "Parcel",),
+        (constants.ADDRESSTYPE__NAME_PREF, "Preferred",),
+        (constants.ADDRESSTYPE__NAME_OTHER, "Other",),
     ]
 
     for name, verbose in address_types:
@@ -34,10 +34,10 @@ def insert_email_types(apps, schema_editor):
     EmailType = apps.get_model("address_book", "EmailType")
 
     email_types = [
-        (constants.EMAIL_TYPE__NAME_HOME, "Home"),
-        (constants.EMAIL_TYPE__NAME_WORK, "Work"),
-        (constants.EMAIL_TYPE__NAME_PREF, "Preferred"),
-        (constants.EMAIL_TYPE__NAME_OTHER, "Other"),
+        (constants.EMAILTYPE__NAME_HOME, "Home"),
+        (constants.EMAILTYPE__NAME_WORK, "Work"),
+        (constants.EMAILTYPE__NAME_PREF, "Preferred"),
+        (constants.EMAILTYPE__NAME_OTHER, "Other"),
     ]
 
     for name, verbose in email_types:
@@ -67,17 +67,17 @@ def insert_phonenumber_types(apps, schema_editor):
     PhoneNumberType = apps.get_model("address_book", "PhoneNumberType")
 
     phonenumber_types = [
-        (constants.PHONENUMBER_TYPE__NAME_HOME, "Home"),
-        (constants.PHONENUMBER_TYPE__NAME_WORK, "Work"),
-        (constants.PHONENUMBER_TYPE__NAME_CELL, "Mobile"),
-        (constants.PHONENUMBER_TYPE__NAME_FAX, "Fax"),
-        (constants.PHONENUMBER_TYPE__NAME_PAGER, "Pager"),
-        (constants.PHONENUMBER_TYPE__NAME_VOICE, "Voice"),
-        (constants.PHONENUMBER_TYPE__NAME_VIDEO, "Video"),
-        (constants.PHONENUMBER_TYPE__NAME_TEXT, "Text"),
-        (constants.PHONENUMBER_TYPE__NAME_TEXTPHONE, "Textphone"),
-        (constants.PHONENUMBER_TYPE__NAME_PREF, "Preferred"),
-        (constants.PHONENUMBER_TYPE__NAME_OTHER, "Other"),
+        (constants.PHONENUMBERTYPE__NAME_HOME, "Home"),
+        (constants.PHONENUMBERTYPE__NAME_WORK, "Work"),
+        (constants.PHONENUMBERTYPE__NAME_CELL, "Mobile"),
+        (constants.PHONENUMBERTYPE__NAME_FAX, "Fax"),
+        (constants.PHONENUMBERTYPE__NAME_PAGER, "Pager"),
+        (constants.PHONENUMBERTYPE__NAME_VOICE, "Voice"),
+        (constants.PHONENUMBERTYPE__NAME_VIDEO, "Video"),
+        (constants.PHONENUMBERTYPE__NAME_TEXT, "Text"),
+        (constants.PHONENUMBERTYPE__NAME_TEXTPHONE, "Textphone"),
+        (constants.PHONENUMBERTYPE__NAME_PREF, "Preferred"),
+        (constants.PHONENUMBERTYPE__NAME_OTHER, "Other"),
     ]
 
     for name, verbose in phonenumber_types:
