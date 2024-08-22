@@ -15,29 +15,10 @@ class AddressForm(forms.ModelForm):
         super(AddressForm, self).__init__(*args, **kwargs)
         self.instance.user_id = user.id
         self.fields["country"].empty_label = "-- Select Country --"
-        self.fields["contacts"] = forms.ModelMultipleChoiceField(Contact.objects.filter(user=user))
-
-        if self.instance.pk:
-            self.fields["contacts"].initial = self.instance.contact_set.all()
-
-    def save(self, commit=True):
-        address = super().save(commit=commit)
-
-        # Check for PK makes sure this only happens once address has been saved.
-        if commit and address.pk:
-            for tenancy in address.tenancy_set.all():
-                if tenancy.contact_id not in self.cleaned_data["contacts"].values_list("id", flat=True):
-                    tenancy.delete()
-
-            for contact in self.cleaned_data["contacts"]:
-                if contact.id not in address.tenancy_set.values_list("contact_id", flat=True):
-                    Tenancy.objects.create(address=address, contact=contact)
-
-        return address
 
     class Meta:
         model = Address
-        exclude = ['user']
+        exclude = ["user"]
 
 
 class ContactFilterForm(forms.Form):
