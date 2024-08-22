@@ -71,8 +71,8 @@ class ContactForm(forms.ModelForm):
         super(ContactForm, self).__init__(*args, **kwargs)
         self.instance.user_id = user.id
         self.fields["profession"].empty_label = "-- Select Profession --"
-        self.fields['tags'].queryset = Tag.objects.filter(user=user.id)
-        self.fields['family_members'].queryset = Contact.objects.filter(user=user.id)
+        self.fields["tags"].queryset = Tag.objects.filter(user=user.id)
+        self.fields["family_members"].queryset = Contact.objects.filter(user=user.id)
 
     anniversary = forms.DateField(
         required=False,
@@ -115,7 +115,7 @@ class EmailForm(forms.ModelForm):
 
     class Meta:
         model = Email
-        exclude = ['contact']
+        exclude = ["contact"]
 
 
 class BaseEmailInlineFormSet(forms.BaseInlineFormSet):
@@ -186,7 +186,7 @@ class PhoneNumberForm(forms.ModelForm):
 
     class Meta:
         model = PhoneNumber
-        exclude = ['address', 'contact']
+        exclude = ["address", "contact"]
 
 
 class BasePhoneNumberInlineFormSet(forms.BaseInlineFormSet):
@@ -251,14 +251,14 @@ class TagForm(forms.ModelForm):
     def __init__(self, user, *args, **kwargs):
         super(TagForm, self).__init__(*args, **kwargs)
         self.instance.user_id = user.id
-        self.fields['contacts'] = forms.ModelMultipleChoiceField(
+        self.fields["contacts"] = forms.ModelMultipleChoiceField(
             queryset=Contact.objects.filter(user=user),
             widget=forms.CheckboxSelectMultiple
         )
 
     class Meta:
         model = Tag
-        exclude = ['user']
+        exclude = ["user"]
 
 
 class TenancyForm(forms.ModelForm):
@@ -288,9 +288,13 @@ class TenancyForm(forms.ModelForm):
 
 
 class BaseTenancyInlineFormSet(forms.BaseInlineFormSet):
+    def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop("user", None)
+        super().__init__(*args, **kwargs)
+
     def _construct_form(self, i, **kwargs):
         # Pass the user instance to each form
-        kwargs["user"] = self.instance.user
+        kwargs["user"] = self.user
         return super()._construct_form(i, **kwargs)
 
     def clean(self):
@@ -356,7 +360,7 @@ class WalletAddressForm(forms.ModelForm):
 
     class Meta:
         model = WalletAddress
-        exclude = ['contact']
+        exclude = ["contact"]
 
 WalletAddressCreateFormSet = forms.inlineformset_factory(Contact, WalletAddress, WalletAddressForm, extra=1, can_delete=False)
 WalletAddressUpdateFormSet = forms.inlineformset_factory(Contact, WalletAddress, WalletAddressForm, extra=1, can_delete=True)
