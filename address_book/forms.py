@@ -263,8 +263,13 @@ class TagForm(forms.ModelForm):
 
 class TenancyForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop("user", None)
         super(TenancyForm, self).__init__(*args, **kwargs)
-        self.fields["address"].empty_label = "-- Select Address --"
+
+        self.fields["address"] = forms.ModelChoiceField(
+            Address.objects.filter(user=self.user),
+            empty_label="-- Select Address --"
+        )
 
     def clean(self):
         super().clean()
@@ -283,6 +288,11 @@ class TenancyForm(forms.ModelForm):
 
 
 class BaseTenancyInlineFormSet(forms.BaseInlineFormSet):
+    def _construct_form(self, i, **kwargs):
+        # Pass the user instance to each form
+        kwargs["user"] = self.instance.user
+        return super()._construct_form(i, **kwargs)
+
     def clean(self):
         super().clean()
         errors = []
