@@ -27,6 +27,7 @@ Python and Django personal organiser (currently just address book).
 - Make redirect from tag-create automatically filter contact-list by tag name again
 - Find out how to not have to create 'CreateFormSet' and 'UpdateFormSet' just to set the can_delete value differently.
 - Make InlineFormSets work consistently whereby they do not throw just one error if there are many; the array of errors is thrown as in the TenancyFormSet
+- Make sure that when creating an Address for a given Contact (passing contact-update contact.id to the address-create url as a next param), that the Address is pre-selected for a new Tenancy in the TenancyInlineFormSet.
 
 
 ### Long-term
