@@ -99,22 +99,10 @@ def contact_qrcode_view(request, pk):
 class AddressCreateView(LoginRequiredMixin, View):
     def get(self, request):
         """
-        Return the address_form template for creating an Address, pre-populating the associated
-        contacts with any valid contact_id passed in the URL params.
+        Return the address_form template for creating an Address.
         """
-        contact_id = request.GET.get("contact_id")
-        initial_data = {}
-
-        if contact_id:
-            user_owns_contact = Contact.objects.filter(user=request.user, pk=contact_id).exists()
-
-            if user_owns_contact:
-                initial_data = {"contacts": (int(contact_id),)}
-
-        form = AddressForm(request.user, initial=initial_data)
-
         return render(request, "address_book/address_form.html", {
-            "form": form,
+            "form": AddressForm(request.user),
             "phonenumber_formset": AddressPhoneNumberCreateFormSet,
         })
     
@@ -137,6 +125,10 @@ class AddressCreateView(LoginRequiredMixin, View):
             if not phonenumber_formset_is_empty:
                 phonenumber_formset.instance = address
                 phonenumber_formset.save()
+
+            next_url = self.request.GET.get("next")
+            if next_url:
+                return redirect(next_url)
 
             return redirect(reverse("address-detail", args=[address.id]))
 
