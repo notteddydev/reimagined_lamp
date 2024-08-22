@@ -466,7 +466,7 @@ class TestAddressUpdateView(BaseModelViewTestCase, TestCase):
 class TestContactCreateView(BaseModelViewTestCase, TestCase):
     def setUp(self):
         super().setUp()
-        self.context_keys = ("email_formset", "form", "phonenumber_formset", "walletaddress_formset",)
+        self.context_keys = ("email_formset", "form", "phonenumber_formset", "tenancy_formset", "walletaddress_formset",)
         self.template = "address_book/contact_form.html"
         self.url = reverse("contact-create")
 
@@ -487,6 +487,18 @@ class TestContactCreateView(BaseModelViewTestCase, TestCase):
         Test that posting valid data is successful and redirects to the appropriate contact-detail
         page for the appropriate contact.
         """
+        address = Address.objects.create(
+            address_line_1="1 easily identifiable road",
+            address_line_2="apartment 100",
+            neighbourhood="Mayfair",
+            city="London",
+            state="London",
+            postcode="SN1 8GB",
+            country_id=56,
+            notes="Not a real address tbh",
+            user_id=self.primary_user.id
+        )
+
         valid_form_data = {
             "first_name": ["Jack"],
             "middle_names": ["Superbly fantastical identifiable middle names"],
@@ -506,6 +518,14 @@ class TestContactCreateView(BaseModelViewTestCase, TestCase):
             "profession": [9],
             "website": [""],
             "notes": [""],
+            "email_set-TOTAL_FORMS": ["1", "1"],
+            "email_set-INITIAL_FORMS": ["0", "0"],
+            "email_set-MIN_NUM_FORMS": ["0", "0"],
+            "email_set-MAX_NUM_FORMS": ["1000", "1000"],
+            "email_set-0-email": ["jack@dee.com"],
+            "email_set-0-email_types": ["1", get_pref_contactable_type_id("EmailType", stringify=True)],
+            "email_set-0-id": [""],
+            "email_set-0-contact": [""],
             "phonenumber_set-TOTAL_FORMS": ["1", "1"],
             "phonenumber_set-INITIAL_FORMS": ["0", "0"],
             "phonenumber_set-MIN_NUM_FORMS": ["0", "0"],
@@ -515,14 +535,14 @@ class TestContactCreateView(BaseModelViewTestCase, TestCase):
             "phonenumber_set-0-phonenumber_types": ["1", get_pref_contactable_type_id("PhonenumberType", stringify=True)],
             "phonenumber_set-0-id": [""],
             "phonenumber_set-0-contact": [""],
-            "email_set-TOTAL_FORMS": ["1", "1"],
-            "email_set-INITIAL_FORMS": ["0", "0"],
-            "email_set-MIN_NUM_FORMS": ["0", "0"],
-            "email_set-MAX_NUM_FORMS": ["1000", "1000"],
-            "email_set-0-email": ["jack@dee.com"],
-            "email_set-0-email_types": ["1", get_pref_contactable_type_id("EmailType", stringify=True)],
-            "email_set-0-id": [""],
-            "email_set-0-contact": [""],
+            "tenancy_set-TOTAL_FORMS": ["1", "1"],
+            "tenancy_set-INITIAL_FORMS": ["0", "0"],
+            "tenancy_set-MIN_NUM_FORMS": ["0", "0"],
+            "tenancy_set-MAX_NUM_FORMS": ["1000", "1000"],
+            "tenancy_set-0-address": [str(address.id)],
+            "tenancy_set-0-address_types": ["1", get_pref_contactable_type_id("AddressType", stringify=True)],
+            "tenancy_set-0-id": [""],
+            "tenancy_set-0-contact": [""],
             "walletaddress_set-TOTAL_FORMS": ["1", "1"],
             "walletaddress_set-INITIAL_FORMS": ["0", "0"],
             "walletaddress_set-MIN_NUM_FORMS": ["0", "0"],
@@ -564,6 +584,14 @@ class TestContactCreateView(BaseModelViewTestCase, TestCase):
             "profession": [9],
             "website": [""],
             "notes": [""],
+            "email_set-TOTAL_FORMS": ["1", "1"],
+            "email_set-INITIAL_FORMS": ["0", "0"],
+            "email_set-MIN_NUM_FORMS": ["0", "0"],
+            "email_set-MAX_NUM_FORMS": ["1000", "1000"],
+            "email_set-0-email": [""],
+            "email_set-0-email_types": ["1"],
+            "email_set-0-id": [""],
+            "email_set-0-contact": [""],
             "phonenumber_set-TOTAL_FORMS": ["1", "1"],
             "phonenumber_set-INITIAL_FORMS": ["0", "0"],
             "phonenumber_set-MIN_NUM_FORMS": ["0", "0"],
@@ -573,14 +601,13 @@ class TestContactCreateView(BaseModelViewTestCase, TestCase):
             "phonenumber_set-0-phonenumber_types": [get_pref_contactable_type_id("PhonenumberType", stringify=True)],
             "phonenumber_set-0-id": [""],
             "phonenumber_set-0-contact": [""],
-            "email_set-TOTAL_FORMS": ["1", "1"],
-            "email_set-INITIAL_FORMS": ["0", "0"],
-            "email_set-MIN_NUM_FORMS": ["0", "0"],
-            "email_set-MAX_NUM_FORMS": ["1000", "1000"],
-            "email_set-0-email": [""],
-            "email_set-0-email_types": ["1"],
-            "email_set-0-id": [""],
-            "email_set-0-contact": [""],
+            "tenancy_set-TOTAL_FORMS": ["1", "1"],
+            "tenancy_set-INITIAL_FORMS": ["0", "0"],
+            "tenancy_set-MIN_NUM_FORMS": ["0", "0"],
+            "tenancy_set-MAX_NUM_FORMS": ["1000", "1000"],
+            "tenancy_set-0-address": [""],
+            "tenancy_set-0-id": [""],
+            "tenancy_set-0-contact": [""],
             "walletaddress_set-TOTAL_FORMS": ["1", "1"],
             "walletaddress_set-INITIAL_FORMS": ["0", "0"],
             "walletaddress_set-MIN_NUM_FORMS": ["0", "0"],
@@ -911,7 +938,7 @@ class TestContactUpdateView(BaseModelViewTestCase, TestCase):
             user=self.primary_user,
             year_met=2000
         )
-        self.context_keys = ("email_formset", "form", "object", "phonenumber_formset", "walletaddress_formset",)
+        self.context_keys = ("email_formset", "form", "object", "phonenumber_formset", "tenancy_formset", "walletaddress_formset",)
         self.template = "address_book/contact_form.html"
         self.url = reverse("contact-update", args=[self.contact.id])
     
@@ -945,6 +972,18 @@ class TestContactUpdateView(BaseModelViewTestCase, TestCase):
         Test that posting valid data is successful and redirects to the appropriate contact-detail
         page for the appropriate contact.
         """
+        address = Address.objects.create(
+            address_line_1="1 easily identifiable road",
+            address_line_2="apartment 100",
+            neighbourhood="Mayfair",
+            city="London",
+            state="London",
+            postcode="SN1 8GB",
+            country_id=56,
+            notes="Not a real address tbh",
+            user_id=self.primary_user.id
+        )
+
         valid_form_data = {
             "first_name": ["Jack"],
             "middle_names": ["Superbly fantastical identifiable middle names"],
@@ -964,6 +1003,14 @@ class TestContactUpdateView(BaseModelViewTestCase, TestCase):
             "profession": [9],
             "website": [""],
             "notes": [""],
+            "email_set-TOTAL_FORMS": ["1", "1"],
+            "email_set-INITIAL_FORMS": ["0", "0"],
+            "email_set-MIN_NUM_FORMS": ["0", "0"],
+            "email_set-MAX_NUM_FORMS": ["1000", "1000"],
+            "email_set-0-email": ["jack@dee.com"],
+            "email_set-0-email_types": ["1", get_pref_contactable_type_id("EmailType", stringify=True)],
+            "email_set-0-id": [""],
+            "email_set-0-contact": [""],
             "phonenumber_set-TOTAL_FORMS": ["1", "1"],
             "phonenumber_set-INITIAL_FORMS": ["0", "0"],
             "phonenumber_set-MIN_NUM_FORMS": ["0", "0"],
@@ -973,14 +1020,14 @@ class TestContactUpdateView(BaseModelViewTestCase, TestCase):
             "phonenumber_set-0-phonenumber_types": ["1", get_pref_contactable_type_id("PhonenumberType", stringify=True)],
             "phonenumber_set-0-id": [""],
             "phonenumber_set-0-contact": [""],
-            "email_set-TOTAL_FORMS": ["1", "1"],
-            "email_set-INITIAL_FORMS": ["0", "0"],
-            "email_set-MIN_NUM_FORMS": ["0", "0"],
-            "email_set-MAX_NUM_FORMS": ["1000", "1000"],
-            "email_set-0-email": ["jack@dee.com"],
-            "email_set-0-email_types": ["1", get_pref_contactable_type_id("EmailType", stringify=True)],
-            "email_set-0-id": [""],
-            "email_set-0-contact": [""],
+            "tenancy_set-TOTAL_FORMS": ["1", "1"],
+            "tenancy_set-INITIAL_FORMS": ["0", "0"],
+            "tenancy_set-MIN_NUM_FORMS": ["0", "0"],
+            "tenancy_set-MAX_NUM_FORMS": ["1000", "1000"],
+            "tenancy_set-0-address": [str(address.id)],
+            "tenancy_set-0-address_types": ["1", get_pref_contactable_type_id("AddressType", stringify=True)],
+            "tenancy_set-0-id": [""],
+            "tenancy_set-0-contact": [""],
             "walletaddress_set-TOTAL_FORMS": ["1", "1"],
             "walletaddress_set-INITIAL_FORMS": ["0", "0"],
             "walletaddress_set-MIN_NUM_FORMS": ["0", "0"],
@@ -1003,6 +1050,18 @@ class TestContactUpdateView(BaseModelViewTestCase, TestCase):
         Test that posting invalid data is unsuccessful and renders the contact-update
         template again displaying errors.
         """
+        address = Address.objects.create(
+            address_line_1="1 easily identifiable road",
+            address_line_2="apartment 100",
+            neighbourhood="Mayfair",
+            city="London",
+            state="London",
+            postcode="SN1 8GB",
+            country_id=56,
+            notes="Not a real address tbh",
+            user_id=self.primary_user.id
+        )
+
         invalid_form_data = {
             "first_name": [""],
             "middle_names": ["Superbly fantastical identifiable middle names"],
@@ -1022,6 +1081,14 @@ class TestContactUpdateView(BaseModelViewTestCase, TestCase):
             "profession": [9],
             "website": [""],
             "notes": [""],
+            "email_set-TOTAL_FORMS": ["1", "1"],
+            "email_set-INITIAL_FORMS": ["0", "0"],
+            "email_set-MIN_NUM_FORMS": ["0", "0"],
+            "email_set-MAX_NUM_FORMS": ["1000", "1000"],
+            "email_set-0-email": [""],
+            "email_set-0-email_types": ["1"],
+            "email_set-0-id": [""],
+            "email_set-0-contact": [""],
             "phonenumber_set-TOTAL_FORMS": ["1", "1"],
             "phonenumber_set-INITIAL_FORMS": ["0", "0"],
             "phonenumber_set-MIN_NUM_FORMS": ["0", "0"],
@@ -1031,14 +1098,18 @@ class TestContactUpdateView(BaseModelViewTestCase, TestCase):
             "phonenumber_set-0-phonenumber_types": [get_pref_contactable_type_id("PhonenumberType", stringify=True)],
             "phonenumber_set-0-id": [""],
             "phonenumber_set-0-contact": [""],
-            "email_set-TOTAL_FORMS": ["1", "1"],
-            "email_set-INITIAL_FORMS": ["0", "0"],
-            "email_set-MIN_NUM_FORMS": ["0", "0"],
-            "email_set-MAX_NUM_FORMS": ["1000", "1000"],
-            "email_set-0-email": [""],
-            "email_set-0-email_types": ["1"],
-            "email_set-0-id": [""],
-            "email_set-0-contact": [""],
+            "tenancy_set-TOTAL_FORMS": ["2", "2"],
+            "tenancy_set-INITIAL_FORMS": ["0", "0"],
+            "tenancy_set-MIN_NUM_FORMS": ["0", "0"],
+            "tenancy_set-MAX_NUM_FORMS": ["1000", "1000"],
+            "tenancy_set-0-address": [str(address.id)],
+            "tenancy_set-0-address_types": ["1", get_pref_contactable_type_id("AddressType", stringify=True)],
+            "tenancy_set-0-id": [""],
+            "tenancy_set-0-contact": [""],
+            "tenancy_set-1-address": [str(address.id)],
+            "tenancy_set-1-address_types": ["3", get_pref_contactable_type_id("AddressType", stringify=True)],
+            "tenancy_set-1-id": [""],
+            "tenancy_set-1-contact": [""],
             "walletaddress_set-TOTAL_FORMS": ["1", "1"],
             "walletaddress_set-INITIAL_FORMS": ["0", "0"],
             "walletaddress_set-MIN_NUM_FORMS": ["0", "0"],
@@ -1073,6 +1144,8 @@ class TestContactUpdateView(BaseModelViewTestCase, TestCase):
             response.context["email_formset"].errors[0]
         )
         self.assertIn("One email must be designated as 'preferred'.", response.context["email_formset"].non_form_errors())
+        self.assertIn("Only one address may be designated as 'preferred'.", response.context["tenancy_formset"].non_form_errors())
+        self.assertIn("An address may only be assigned to a contact once.", response.context["tenancy_formset"].non_form_errors())
 
     def test_post_with_valid_data_not_owner(self):
         """
