@@ -7,7 +7,7 @@ from django.utils import translation
 from phonenumber_field.formfields import localized_choices, PrefixChoiceField, SplitPhoneNumberField
 
 from .constants import EMAILTYPE__NAME_PREF, PHONENUMBERTYPE__NAME_PREF
-from .models import Address, Contact, Email, EmailType, PhoneNumber, PhoneNumberType, Tag, Tenancy, WalletAddress
+from .models import Address, AddressType, Contact, Email, EmailType, PhoneNumber, PhoneNumberType, Tag, Tenancy, WalletAddress
 
 
 class AddressForm(forms.ModelForm):
@@ -117,7 +117,8 @@ class ContactForm(forms.ModelForm):
 
     class Meta:
         model = Contact
-        exclude = ['user']
+        exclude = ["addresses", "user"]
+
 
 class EmailForm(forms.ModelForm):
     def clean(self):
@@ -277,6 +278,84 @@ class TagForm(forms.ModelForm):
     class Meta:
         model = Tag
         exclude = ['user']
+
+
+class TenancyForm(forms.ModelForm):
+    def __init__(self, *args, **kwargs):
+        super(TenancyForm, self).__init__(*args, **kwargs)
+        self.fields["address"].empty_label = "-- Select Address --"
+
+    def clean(self):
+        super().clean()
+        pref_type = AddressType.objects.preferred().first()
+        if pref_type:
+            address_types = self.cleaned_data.get("address_types", [])
+            if pref_type in address_types:
+                if self.cleaned_data.get("archived", False):
+                    self.add_error("address_types", "An address may not be 'preferred', and archived.")
+                if len(address_types) == 1:
+                    self.add_error("address_types", "'Preferred' is not allowed as the only type.")
+
+    class Meta:
+        model = Tenancy
+        exclude = ["contact"]
+
+
+class BaseTenancyInlineFormSet(forms.BaseInlineFormSet):
+    def clean(self):
+        super().clean()
+        errors = []
+
+        addresses = []
+        for form in self.forms:
+            if form.cleaned_data and form.cleaned_data.get("address"):
+                address = form.cleaned_data["address"]
+                if address in addresses:
+                    errors.append("An address may only be assigned to a contact once.")
+                    break
+                addresses.append(address)
+
+        pref_type = AddressType.objects.preferred().first()
+        if pref_type:
+            pref_count = 0
+            unarchived_count = 0
+
+            for form in self.forms:
+                if not form.cleaned_data or form.cleaned_data.get("DELETE", False):
+                    continue
+
+                if pref_type in form.cleaned_data.get("address_types", []):
+                    pref_count += 1
+
+                if not form.cleaned_data.get("archived", False):
+                    unarchived_count += 1
+
+            if pref_count > 1:
+                errors.append("Only one address may be designated as 'preferred'.")
+            
+            if pref_count < 1 <= unarchived_count:
+                errors.append("One address must be designated as 'preferred'.")
+
+        if errors:
+            raise forms.ValidationError(errors)
+
+
+TenancyCreateFormSet = forms.inlineformset_factory(
+    Contact,
+    Tenancy,
+    form=TenancyForm,
+    formset=BaseTenancyInlineFormSet,
+    extra=2,
+    can_delete=False
+)
+TenancyUpdateFormSet = forms.inlineformset_factory(
+    Contact,
+    Tenancy,
+    form=TenancyForm,
+    formset=BaseTenancyInlineFormSet,
+    extra=2,
+    can_delete=True
+)
 
 
 class WalletAddressForm(forms.ModelForm):
