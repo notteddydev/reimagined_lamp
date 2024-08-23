@@ -131,7 +131,16 @@ class Tag(models.Model):
 class Tenancy(Archiveable, Contactable):
     contact=models.ForeignKey("Contact", on_delete=models.CASCADE)
     address=models.ForeignKey("Address", on_delete=models.CASCADE)
-    address_types=models.ManyToManyField("AddressType")
+    tenancy_types=models.ManyToManyField("AddressType")
+    
+    @property
+    def vcard_entry(self):
+        adr = f"ADR;TYPE={self.types_for_vcard}:"
+        adr += f"{self.address.address_line_1};{self.address.address_line_2};"
+        if self.address.neighbourhood:
+            adr += f"{self.address.neighbourhood}, "
+            
+        return f"{adr}{self.address.city};{self.address.state};{self.address.postcode};{self.address.country.verbose}"
 
     class Meta(Archiveable.Meta):
         unique_together = ("contact", "address")
@@ -213,7 +222,7 @@ class Contact(models.Model):
             vcard += f"""BDAY:{self.dob.strftime("%Y%m%d")}\n"""
 
         for tenancy in self.tenancy_set.unarchived():
-            vcard += f"{tenancy.address.vcard_entry}\n"
+            vcard += f"{tenancy.vcard_entry}\n"
 
             for phonenumber in tenancy.address.phonenumber_set.unarchived():
                 vcard += f"{phonenumber.vcard_entry}\n"
@@ -302,15 +311,6 @@ class Address(models.Model):
 
         return readable
     
-    @property
-    def vcard_entry(self):
-        adr = f"ADR;TYPE={self.types_for_vcard}:"
-        adr += f"{self.address_line_1};{self.address_line_2};"
-        if self.neighbourhood:
-            adr += f"{self.neighbourhood}, "
-            
-        return f"{adr}{self.city};{self.state};{self.postcode};{self.country.verbose}"
-    
     def __str__(self):
         return f"{self.address_line_1} {self.city}"
     
@@ -338,7 +338,7 @@ class Email(Archiveable, Contactable):
 
 class CryptoNetwork(models.Model):
     name=models.CharField(max_length=100, unique=True)
-    symbol=models.CharField(max_length=3, unique=True)
+    symbol=models.CharField(max_length=10, unique=True)
 
     def __str__(self):
         return f"{self.name} ({self.symbol})"

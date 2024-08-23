@@ -28,16 +28,43 @@ def remove_address_types(apps, schema_editor):
     AddressType = apps.get_model("address_book", "AddressType")
 
     AddressType.objects.all().delete()
+
+
+def insert_crypto_networks(apps, schema_editor):
+    CryptoNetwork = apps.get_model("address_book", "CryptoNetwork")
+
+    crypto_networks = [
+        ("Avalanche", "AVAX",),
+        ("Binance Coin", "BNB",),
+        ("Bitcoin", "BTC",),
+        ("Cardano", "ADA",),
+        ("Dai", "DAI",),
+        ("Dogecoin", "DOGE",),
+        ("Ethereum", "ETH",),
+        ("Euro Coin", "EURC",),
+        ("Ripple", "XRP",),
+        ("Solana", "SOL",),
+        ("Tether", "USDT",),
+        ("USD Coin", "USDC",),
+    ]
+
+    for name, symbol in crypto_networks:
+        CryptoNetwork.objects.create(name=name, symbol=symbol)
+
+def remove_crypto_networks(apps, schema_editor):
+    CryptoNetwork = apps.get_model("address_book", "CryptoNetwork")
+
+    CryptoNetwork.objects.all().delete()
     
     
 def insert_email_types(apps, schema_editor):
     EmailType = apps.get_model("address_book", "EmailType")
 
     email_types = [
-        (constants.EMAILTYPE__NAME_HOME, "Home"),
-        (constants.EMAILTYPE__NAME_WORK, "Work"),
-        (constants.EMAILTYPE__NAME_PREF, "Preferred"),
-        (constants.EMAILTYPE__NAME_OTHER, "Other"),
+        (constants.EMAILTYPE__NAME_HOME, "Home",),
+        (constants.EMAILTYPE__NAME_WORK, "Work",),
+        (constants.EMAILTYPE__NAME_PREF, "Preferred",),
+        (constants.EMAILTYPE__NAME_OTHER, "Other",),
     ]
 
     for name, verbose in email_types:
@@ -67,17 +94,17 @@ def insert_phonenumber_types(apps, schema_editor):
     PhoneNumberType = apps.get_model("address_book", "PhoneNumberType")
 
     phonenumber_types = [
-        (constants.PHONENUMBERTYPE__NAME_HOME, "Home"),
-        (constants.PHONENUMBERTYPE__NAME_WORK, "Work"),
-        (constants.PHONENUMBERTYPE__NAME_CELL, "Mobile"),
-        (constants.PHONENUMBERTYPE__NAME_FAX, "Fax"),
-        (constants.PHONENUMBERTYPE__NAME_PAGER, "Pager"),
-        (constants.PHONENUMBERTYPE__NAME_VOICE, "Voice"),
-        (constants.PHONENUMBERTYPE__NAME_VIDEO, "Video"),
-        (constants.PHONENUMBERTYPE__NAME_TEXT, "Text"),
-        (constants.PHONENUMBERTYPE__NAME_TEXTPHONE, "Textphone"),
-        (constants.PHONENUMBERTYPE__NAME_PREF, "Preferred"),
-        (constants.PHONENUMBERTYPE__NAME_OTHER, "Other"),
+        (constants.PHONENUMBERTYPE__NAME_HOME, "Home",),
+        (constants.PHONENUMBERTYPE__NAME_WORK, "Work",),
+        (constants.PHONENUMBERTYPE__NAME_CELL, "Mobile",),
+        (constants.PHONENUMBERTYPE__NAME_FAX, "Fax",),
+        (constants.PHONENUMBERTYPE__NAME_PAGER, "Pager",),
+        (constants.PHONENUMBERTYPE__NAME_VOICE, "Voice",),
+        (constants.PHONENUMBERTYPE__NAME_VIDEO, "Video",),
+        (constants.PHONENUMBERTYPE__NAME_TEXT, "Text",),
+        (constants.PHONENUMBERTYPE__NAME_TEXTPHONE, "Textphone",),
+        (constants.PHONENUMBERTYPE__NAME_PREF, "Preferred",),
+        (constants.PHONENUMBERTYPE__NAME_OTHER, "Other",),
     ]
 
     for name, verbose in phonenumber_types:
@@ -128,6 +155,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunPython(insert_address_types, remove_address_types),
+        migrations.RunPython(insert_crypto_networks, remove_crypto_networks),
         migrations.RunPython(insert_email_types, remove_email_types),
         migrations.RunPython(insert_nations, remove_nations),
         migrations.RunPython(insert_phonenumber_types, remove_phonenumber_types),

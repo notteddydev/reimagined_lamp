@@ -94,6 +94,7 @@
             <tbody>
                 {% for tenancy in object.tenancy_set.all %}
                     <tr>
+                        <th {% if tenancy.archived %}class="linethrough"{% endif %}>{{ tenancy.readable_types }}</th>
                         <td {% if tenancy.archived %}class="linethrough"{% endif %}>{{ tenancy.contact }}</td>
                         <td>
                             <a href="{% url "contact-detail" tenancy.contact.id %}">View</a>

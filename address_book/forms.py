@@ -292,12 +292,12 @@ class TenancyForm(forms.ModelForm):
         super().clean()
         pref_type = AddressType.objects.preferred().first()
         if pref_type:
-            address_types = self.cleaned_data.get("address_types", [])
-            if pref_type in address_types:
+            tenancy_types = self.cleaned_data.get("tenancy_types", [])
+            if pref_type in tenancy_types:
                 if self.cleaned_data.get("archived", False):
-                    self.add_error("address_types", "An address may not be 'preferred', and archived.")
-                if len(address_types) == 1:
-                    self.add_error("address_types", "'Preferred' is not allowed as the only type.")
+                    self.add_error("tenancy_types", "An address may not be 'preferred', and archived.")
+                if len(tenancy_types) == 1:
+                    self.add_error("tenancy_types", "'Preferred' is not allowed as the only type.")
 
     class Meta:
         model = Tenancy
@@ -336,7 +336,7 @@ class BaseTenancyInlineFormSet(SaveFormSetIfNotEmptyMixin, forms.BaseInlineFormS
                 if not form.cleaned_data or form.cleaned_data.get("DELETE", False):
                     continue
 
-                if pref_type in form.cleaned_data.get("address_types", []):
+                if pref_type in form.cleaned_data.get("tenancy_types", []):
                     pref_count += 1
 
                 if not form.cleaned_data.get("archived", False):
