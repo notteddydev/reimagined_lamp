@@ -2,12 +2,29 @@ from datetime import datetime
 
 from django import forms
 from django.conf import settings
+from django.db import models
 from django.utils import translation
 
 from phonenumber_field.formfields import localized_choices, PrefixChoiceField, SplitPhoneNumberField
 
+from typing import List
+
 from .constants import EMAILTYPE__NAME_PREF, PHONENUMBERTYPE__NAME_PREF
 from .models import Address, AddressType, Contact, Email, EmailType, PhoneNumber, PhoneNumberType, Tag, Tenancy, WalletAddress
+
+
+class SaveFormSetIfNotEmptyMixin:
+    def save_if_not_empty(self, instance: models.Model) -> List[models.Model]:
+        has_valid_data = any(
+            form.is_valid() and form.cleaned_data
+            for form in self
+        )
+
+        if has_valid_data:
+            self.instance = instance
+            return self.save()
+        
+        return []
 
 
 class AddressForm(forms.ModelForm):
@@ -118,7 +135,7 @@ class EmailForm(forms.ModelForm):
         exclude = ["contact"]
 
 
-class BaseEmailInlineFormSet(forms.BaseInlineFormSet):
+class BaseEmailInlineFormSet(SaveFormSetIfNotEmptyMixin, forms.BaseInlineFormSet):
     def clean(self):
         super().clean()
         pref_type = EmailType.objects.filter(name=EMAILTYPE__NAME_PREF).first()
@@ -189,7 +206,7 @@ class PhoneNumberForm(forms.ModelForm):
         exclude = ["address", "contact"]
 
 
-class BasePhoneNumberInlineFormSet(forms.BaseInlineFormSet):
+class BasePhoneNumberInlineFormSet(SaveFormSetIfNotEmptyMixin, forms.BaseInlineFormSet):
     def clean(self):
         super().clean()
         pref_type = PhoneNumberType.objects.filter(name=PHONENUMBERTYPE__NAME_PREF).first()
@@ -287,7 +304,7 @@ class TenancyForm(forms.ModelForm):
         exclude = ["contact"]
 
 
-class BaseTenancyInlineFormSet(forms.BaseInlineFormSet):
+class BaseTenancyInlineFormSet(SaveFormSetIfNotEmptyMixin, forms.BaseInlineFormSet):
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
@@ -362,5 +379,24 @@ class WalletAddressForm(forms.ModelForm):
         model = WalletAddress
         exclude = ["contact"]
 
-WalletAddressCreateFormSet = forms.inlineformset_factory(Contact, WalletAddress, WalletAddressForm, extra=1, can_delete=False)
-WalletAddressUpdateFormSet = forms.inlineformset_factory(Contact, WalletAddress, WalletAddressForm, extra=1, can_delete=True)
+
+class BaseWalletAddressInlineFormSet(SaveFormSetIfNotEmptyMixin, forms.BaseInlineFormSet):
+    pass
+
+
+WalletAddressCreateFormSet = forms.inlineformset_factory(
+    Contact,
+    WalletAddress,
+    form=WalletAddressForm,
+    formset=BaseWalletAddressInlineFormSet,
+    extra=1,
+    can_delete=False
+)
+WalletAddressUpdateFormSet = forms.inlineformset_factory(
+    Contact,
+    WalletAddress,
+    form=WalletAddressForm,
+    formset=BaseWalletAddressInlineFormSet,
+    extra=1,
+    can_delete=True
+)
