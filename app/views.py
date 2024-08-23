@@ -8,7 +8,7 @@ from django.views.generic import TemplateView
 
 class HomeView(LoginRequiredMixin, TemplateView):
     # redirect_field_name = "redirect_to"
-    template_name = 'home.html'
+    template_name = "home.html"
 
 class SignupView(View):
     def get(self, request):
