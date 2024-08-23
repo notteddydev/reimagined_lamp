@@ -5,12 +5,16 @@
 {% block header %}Login{% endblock header %}
 
 {% block content %}
-    <form method="POST">
-        {% csrf_token %}
-        <table>
-            {{ form.as_table }}
-        </table>
-        <p>Don't have an account? <a href="{% url "signup" %}">Register</a> here</p>
-        <button type="submit" class="btn btn-primary">Submit</button>
-    </form>
+    {% if user.is_authenticated %}
+        <p>Looks to me like you're already logged in mate! Bit silly navigating to this page wasn't it. <a href="{% url "home" %}">Go home.</a></p>
+    {% else %}
+        <form method="POST">
+            {% csrf_token %}
+            <table>
+                {{ form.as_table }}
+            </table>
+            <p>Don't have an account? <a href="{% url "signup" %}">Register</a> here</p>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+    {% endif %}
 {% endblock content %}
