@@ -117,15 +117,7 @@ class AddressCreateView(LoginRequiredMixin, View):
 
         if form.is_valid() and phonenumber_formset.is_valid():
             address = form.save()
-
-            has_valid_data = any(
-                form.is_valid() and form.cleaned_data
-                for form in phonenumber_formset
-            )
-
-            if has_valid_data:
-                phonenumber_formset.instance = address
-                phonenumber_formset.save()
+            phonenumber_formset.save_if_not_empty(instance=address)
 
             next_url = self.request.GET.get("next")
             if next_url:
@@ -172,15 +164,7 @@ class AddressUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
 
         if form.is_valid() and phonenumber_formset.is_valid():
             address = form.save()
-
-            has_valid_data = any(
-                form.is_valid() and form.cleaned_data
-                for form in phonenumber_formset
-            )
-
-            if has_valid_data:
-                phonenumber_formset.instance = address
-                phonenumber_formset.save()
+            phonenumber_formset.save_if_not_empty(instance=address)
 
             return redirect(reverse("address-detail", args=[address.id]))
 
@@ -214,34 +198,24 @@ class ContactCreateView(LoginRequiredMixin, View):
         errors.
         """
         form = ContactForm(request.user, request.POST)
-        email_formset = EmailCreateFormSet(request.POST)
-        phonenumber_formset = ContactPhoneNumberCreateFormSet(request.POST)
-        tenancy_formset = TenancyCreateFormSet(request.POST, user=request.user)
-        walletaddress_formset = WalletAddressCreateFormSet(request.POST)
+        
+        formsets = {
+            "email_formset": EmailCreateFormSet(request.POST),
+            "phonenumber_formset": ContactPhoneNumberCreateFormSet(request.POST),
+            "tenancy_formset": TenancyCreateFormSet(request.POST, user=request.user),
+            "walletaddress_formset": WalletAddressCreateFormSet(request.POST),
+        }
 
-        if form.is_valid() and email_formset.is_valid() and phonenumber_formset.is_valid() and tenancy_formset.is_valid() and walletaddress_formset.is_valid():
+        if form.is_valid() and all(formset.is_valid() for formset in formsets.values()):
             contact = form.save()
-
-            email_formset.instance = contact
-            email_formset.save()
-
-            phonenumber_formset.instance = contact
-            phonenumber_formset.save()
-
-            tenancy_formset.instance = contact
-            tenancy_formset.save()
-
-            walletaddress_formset.instance = contact
-            walletaddress_formset.save()
+            for formset in formsets.values():
+                formset.save_if_not_empty(instance=contact)
 
             return redirect(reverse("contact-detail", args=[contact.id]))
 
         return render(request, "address_book/contact_form.html", {
-            "email_formset": email_formset,
-            "form": form,
-            "phonenumber_formset": phonenumber_formset,
-            "tenancy_formset": tenancy_formset,
-            "walletaddress_formset": walletaddress_formset,
+            **{"form": form},
+            **{key: formset for key, formset in formsets.items()}
         })
     
 
@@ -277,35 +251,24 @@ class ContactUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
         """
         contact = get_object_or_404(Contact, pk=pk)
         form = ContactForm(request.user, request.POST, instance=contact)
-        email_formset = EmailUpdateFormSet(request.POST, instance=contact)
-        phonenumber_formset = ContactPhoneNumberUpdateFormSet(request.POST, instance=contact)
-        tenancy_formset = TenancyUpdateFormSet(request.POST, instance=contact, user=request.user)
-        walletaddress_formset = WalletAddressUpdateFormSet(request.POST, instance=contact)
 
-        if form.is_valid() and email_formset.is_valid() and phonenumber_formset.is_valid() and tenancy_formset.is_valid() and walletaddress_formset.is_valid():
+        formsets = {
+            "email_formset": EmailUpdateFormSet(request.POST, instance=contact),
+            "phonenumber_formset": ContactPhoneNumberUpdateFormSet(request.POST, instance=contact),
+            "tenancy_formset": TenancyUpdateFormSet(request.POST, instance=contact, user=request.user),
+            "walletaddress_formset": WalletAddressUpdateFormSet(request.POST, instance=contact),
+        }
+
+        if form.is_valid() and all(formset.is_valid() for formset in formsets.values()):
             contact = form.save()
-
-            email_formset.instance = contact
-            email_formset.save()
-
-            phonenumber_formset.instance = contact
-            phonenumber_formset.save()
-
-            tenancy_formset.instance = contact
-            tenancy_formset.save()
-
-            walletaddress_formset.instance = contact
-            walletaddress_formset.save()
+            for formset in formsets.values():
+                formset.save_if_not_empty(instance=contact)
 
             return redirect(reverse("contact-detail", args=[contact.id]))
 
         return render(request, "address_book/contact_form.html", {
-            "email_formset": email_formset,
-            "form": form,
-            "object": contact,
-            "phonenumber_formset": phonenumber_formset,
-            "tenancy_formset": tenancy_formset,
-            "walletaddress_formset": walletaddress_formset,
+            **{"form": form, "object": contact},
+            **{key: formset for key, formset in formsets.items()}
         })
 
     def test_func(self) -> bool | None:
