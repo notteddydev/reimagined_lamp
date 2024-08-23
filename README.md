@@ -1,48 +1,6 @@
 # reimagined_lamp
 Python and Django personal organiser (currently just address book).
 
-### ToDo (AddressBook)
-
-- Ermm... maybe... like... add some tests
-- Erm... add docblocks, pattern code, add typehints, refactor code - view classes particularly.
-- Check form validation; validate that an address is always associated with at least one contact.
-- Change look of login page if logged in / redirect.
-- Setup GitHub pipeline.
-- Swap single quotes for double quotes throughout project.
-- Add JavaScript for adding / removing forms from formsets for tidier forms.
-- Consolidate VERY NOT DRY code in Email and Phone Forms and Formsets. And Address. cleaning types.
-- Create option to download a "lite" vcard, or customise what is downloaded.
-- Deletion logic - contacts, addresses
-- Look into related descriptors and using a custom ManyToManyDescriptor for Addresses to Contacts to make sure that Address always comes prepopulated with the 'archived' db field. As well as a custom object manager.
-- Add is_empty property to Formsets? (see AddressCreateView post)
-- Maybe more effort that it's worth, but attach vcard to email / sms / whatsapp message
-- Add a site-wide button which hides archived items from all views.
-- Allow importing of contacts from .vcf files.
-- Determine how to deal with Address / AddressType issue. i.e. an Address can have AddressType of 'PREF'... but that doesn't specify which Contact the Address is the preferred for. Maybe AddressType should be related to ContactAddress instead? Not a big deal though. Sort it later.
-- Find out why profession seems to get overridden by email address when scanning qr code on iphone.
-- vcard object for setting / getting properties of a vcard? Useful for import / export
-- Set up with nginx on local
-- Prevent 'profession' from being a required field.
-- Create method on ContactableType / QuerySet / something to find the 'preferred' type. REPLACE the horrible methods in test_views.py
-- Make redirect from tag-create automatically filter contact-list by tag name again
-- Find out how to not have to create 'CreateFormSet' and 'UpdateFormSet' just to set the can_delete value differently.
-- Make InlineFormSets work consistently whereby they do not throw just one error if there are many; the array of errors is thrown as in the TenancyFormSet
-- Make sure that when creating an Address for a given Contact (passing contact-update contact.id to the address-create url as a next param), that the Address is pre-selected for a new Tenancy in the TenancyInlineFormSet.
-
-
-### Long-term
-
-- Calendar (hourly)
-- Notes
-- Lists
-- Journaling
-- Finance tracking
-- Locations list
-  - Emergency numbers
-  - Plug type
-  - Interactive map
-- Weather forecast
-
 
 ### Handy Links
 
