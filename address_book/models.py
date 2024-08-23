@@ -185,7 +185,8 @@ class Contact(models.Model):
     
     @property
     def known_for_years(self):
-        return date.today().year - self.year_met
+        higher = date.today().year - self.year_met
+        return f"{higher - 1}/{higher}"
 
     @property
     def full_name(self):
