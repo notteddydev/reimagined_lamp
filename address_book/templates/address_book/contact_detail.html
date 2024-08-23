@@ -1,6 +1,11 @@
 {% extends "address_book/address_book_base.html" %}
+{% load static %}
 
 {% block title %}Address Book{% endblock title %}
+
+{% block scripts %}
+    <script src="{% static "copyToClipboard.js" %}"></script>
+{% endblock scripts %}
 
 {% block header %}Contact Detail{% endblock header %}
 
@@ -118,9 +123,17 @@
                 <tbody>
                     {% for wallet_address in contact.walletaddress_set.all %}
                         <tr {% if wallet_address.archived %} class="linethrough" {% endif %}>
-                            <td>{{ wallet_address.network }}</td>
+                            <th>{{ wallet_address.network }}</th>
                             <td>{{ wallet_address.transmission_hr }}</td>
                             <td>{{ wallet_address.address }}</td>
+                            <td>
+                                <a
+                                    href="javascript:;"
+                                    onclick="copyToClipboard('{{ wallet_address.address }}')"
+                                >
+                                    Copy
+                                </a>
+                            </td>
                         </tr>
                     {% endfor %}
                 </tbody>
