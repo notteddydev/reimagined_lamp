@@ -7,9 +7,7 @@ forms.py
 - Make InlineFormSets work consistently whereby they do not throw just one error if there are many; the array of errors is thrown as in the TenancyFormSet
 
 models.py
-- Look into related descriptors and using a custom ManyToManyDescriptor for Addresses to Contacts to make sure that Address always comes prepopulated with the 'archived' db field. As well as a custom object manager.
 - Maybe more effort that it's worth, but attach vcard to email / sms / whatsapp message
-- Prevent 'profession' from being a required field.
 
 views.py
 - Create option to download a "lite" vcard, or customise what is downloaded.

@@ -162,7 +162,7 @@ class Contact(models.Model):
     is_business=models.BooleanField(default=False, null=False)
     tags=models.ManyToManyField(Tag, blank=True, symmetrical=True)
     family_members=models.ManyToManyField("self", blank=True, symmetrical=True)
-    profession=models.ForeignKey("Profession", on_delete=models.SET_NULL, null=True)
+    profession=models.ForeignKey("Profession", blank=True, on_delete=models.SET_NULL, null=True)
     website=models.CharField(blank=True, max_length=100)
     notes=models.TextField(blank=True)
 
