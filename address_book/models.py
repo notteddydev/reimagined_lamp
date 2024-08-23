@@ -361,7 +361,7 @@ class WalletAddress(Archiveable):
 
     @property
     def transmission_hr(self):
-        return " ".join(self.transmission.split('_')).capitalize()
+        return " ".join(self.transmission.split("_")).capitalize()
 
 
 class Profession(models.Model):

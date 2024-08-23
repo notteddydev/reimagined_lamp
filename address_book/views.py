@@ -46,7 +46,7 @@ def contact_list_download_view(request: HttpRequest) -> HttpResponse:
     vcards = [contact.vcard for contact in contacts]
     vcf = "\n".join(vcards)
     response = HttpResponse(vcf, content_type="text/vcard")
-    response['Content-Disposition'] = "attachment; filename=contacts.vcf"
+    response["Content-Disposition"] = "attachment; filename=contacts.vcf"
     return response
 
 
