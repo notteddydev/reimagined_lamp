@@ -162,7 +162,7 @@ class Contact(models.Model):
     dod=models.DateField(blank=True, null=True)
     anniversary=models.DateField(blank=True, null=True)
     addresses=models.ManyToManyField("Address", blank=True, through=Tenancy)
-    nationality=models.ManyToManyField(Nation, blank=True)
+    nationalities=models.ManyToManyField(Nation, blank=True)
     year_met=models.SmallIntegerField(
         blank=False,
         choices=[(None, "-- Select Year --")] + YEAR_MET_CHOICES,
