@@ -81,6 +81,7 @@ ContactFilterFormSet = forms.formset_factory(ContactFilterForm, BaseContactFilte
 
 class ContactForm(forms.ModelForm):
     def get_years_from_1920():
+        #TODO improve reusability and move into utils
         return [year for year in range(1920, datetime.now().year + 1)][::-1]
 
     def __init__(self, user, *args, **kwargs):
