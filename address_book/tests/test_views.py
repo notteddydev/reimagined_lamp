@@ -257,7 +257,7 @@ class TestAddressCreateView(BaseModelViewTestCase, TestCase):
             context_keys=self.context_keys
         )
         self.assertEqual(
-            Counter(["address_line_1", "country"]),
+            Counter(["country"]),
             Counter(list(response.context["form"].errors.as_data()))
         )
 
@@ -390,7 +390,7 @@ class TestAddressUpdateView(BaseModelViewTestCase, TestCase):
             context_keys=self.context_keys
         )
         self.assertEqual(
-            Counter(["address_line_1", "city", "country"]),
+            Counter(["city", "country"]),
             Counter(list(response.context["form"].errors.as_data()))
         )
 
