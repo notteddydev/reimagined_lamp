@@ -286,12 +286,12 @@ class AddressType(ContactableType):
 
 class Address(models.Model):
     user=models.ForeignKey(User, on_delete=models.CASCADE)
-    address_line_1=models.CharField(max_length=100)
+    address_line_1=models.CharField(blank=True, max_length=100)
     address_line_2=models.CharField(blank=True, max_length=100)
     neighbourhood=models.CharField(blank=True, max_length=100)
     city=models.CharField(max_length=100)
     state=models.CharField(blank=True, max_length=100)
-    postcode=models.CharField(max_length=20)
+    postcode=models.CharField(blank=True, max_length=20)
     country=models.ForeignKey(Nation, on_delete=models.SET_NULL, null=True)
     notes=models.TextField(blank=True)
 
