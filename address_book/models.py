@@ -155,7 +155,7 @@ class Contact(models.Model):
     last_name=models.CharField(blank=True, max_length=100)
     nickname=models.CharField(blank=True, max_length=50)
     gender=models.CharField(
-        choices=[(None, "-- Select Gender --"), ("m", "Male"), ("f", "Female")],
+        choices=[(None, "-- Select Gender --"), (constants.CONTACT_GENDER_MALE, "Male"), (constants.CONTACT_GENDER_FEMALE, "Female")],
         max_length=1,
     )
     dob=models.DateField(blank=True, null=True)
