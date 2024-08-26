@@ -5,6 +5,7 @@ forms.py
 - Consolidate VERY NOT DRY code in Email and Phone Forms and Formsets. And Address. cleaning types.
 - Find out how to not have to create 'CreateFormSet' and 'UpdateFormSet' just to set the can_delete value differently.
 - Make InlineFormSets work consistently whereby they do not throw just one error if there are many; the array of errors is thrown as in the TenancyFormSet
+- get_years_from_1920 improve reusability and move into utils.
 
 models.py
 - Maybe more effort that it's worth, but attach vcard to email / sms / whatsapp message
