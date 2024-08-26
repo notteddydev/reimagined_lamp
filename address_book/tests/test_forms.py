@@ -173,7 +173,7 @@ class TestContactForm(BaseFormTestCase, TestCase):
         self.assertEqual(
             Counter([
                 "anniversary", "dob", "dod", "family_members", "first_name", "gender",
-                "is_business", "last_name", "middle_names", "nationality", "nickname",
+                "is_business", "last_name", "middle_names", "nationalities", "nickname",
                 "notes", "profession", "tags", "website", "year_met",
             ]),
             Counter(form.fields.keys())
@@ -259,7 +259,7 @@ class TestContactForm(BaseFormTestCase, TestCase):
             "is_business": "on",
             "last_name": "Smith",
             "middle_names": "Egbert",
-            "nationality": [197],
+            "nationalities": [197],
             "nickname": "Maxbert",
             "notes": "Not a real person",
             "profession": 2,
@@ -288,7 +288,7 @@ class TestContactForm(BaseFormTestCase, TestCase):
         self.assertEqual(contact.year_met, 2001)
         self.assertEqual(1, contact.family_members.count())
         self.assertIn(family_member.id, contact.family_members.values_list("id", flat=True))
-        self.assertEqual(1, contact.nationality.count())
-        self.assertIn(197, contact.nationality.values_list("id", flat=True))
+        self.assertEqual(1, contact.nationalities.count())
+        self.assertIn(197, contact.nationalities.values_list("id", flat=True))
         self.assertEqual(1, contact.tags.count())
         self.assertIn(tag.id, contact.tags.values_list("id", flat=True))
