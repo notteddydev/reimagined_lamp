@@ -1,7 +1,6 @@
 from collections import Counter
 
 from django.apps import apps
-from django.contrib.auth.models import User
 from django.http import HttpResponse
 from django.template.defaultfilters import slugify
 from django.test import Client, TestCase
@@ -9,6 +8,7 @@ from django.urls import reverse
 
 from typing import Optional
 
+from address_book.factories.address_factories import AddressFactory
 from address_book.factories.contact_factories import ContactFactory
 from address_book.factories.user_factories import UserFactory
 from address_book.models import Address, Contact
@@ -264,17 +264,7 @@ class TestAddressCreateView(BaseModelViewTestCase, TestCase):
 class TestAddressUpdateView(BaseModelViewTestCase, TestCase):
     def setUp(self):
         super().setUp()
-        self.address = Address.objects.create(
-            address_line_1="1 easily identifiable road",
-            address_line_2="apartment 100",
-            neighbourhood="Mayfair",
-            city="London",
-            state="London",
-            postcode="SN1 8GB",
-            country_id=56,
-            notes="Not a real address tbh",
-            user_id=self.primary_user.id
-        )
+        self.address = AddressFactory.create(user=self.primary_user)
         self.context_keys = ("form", "object", "phonenumber_formset",)
         self.template = "address_book/address_form.html"
         self.url = reverse("address-update", args=[self.address.id])
@@ -454,17 +444,7 @@ class TestContactCreateView(BaseModelViewTestCase, TestCase):
         Test that posting valid data is successful and redirects to the appropriate contact-detail
         page for the appropriate contact.
         """
-        address = Address.objects.create(
-            address_line_1="1 easily identifiable road",
-            address_line_2="apartment 100",
-            neighbourhood="Mayfair",
-            city="London",
-            state="London",
-            postcode="SN1 8GB",
-            country_id=56,
-            notes="Not a real address tbh",
-            user_id=self.primary_user.id
-        )
+        address = AddressFactory.create(user=self.primary_user)
 
         valid_form_data = {
             "first_name": ["Jack"],
@@ -859,7 +839,7 @@ class TestContactUpdateView(BaseModelViewTestCase, TestCase):
             password=self.other_user_password
         )
         self.assertEqual(response.status_code, 403)
-        self.assertTemplateNotUsed("adddress_book/contact_form.html")
+        self.assertTemplateNotUsed("address_book/contact_form.html")
 
     def test_get_view_for_logged_in_user(self):
         """
@@ -879,17 +859,7 @@ class TestContactUpdateView(BaseModelViewTestCase, TestCase):
         Test that posting valid data is successful and redirects to the appropriate contact-detail
         page for the appropriate contact.
         """
-        address = Address.objects.create(
-            address_line_1="1 easily identifiable road",
-            address_line_2="apartment 100",
-            neighbourhood="Mayfair",
-            city="London",
-            state="London",
-            postcode="SN1 8GB",
-            country_id=56,
-            notes="Not a real address tbh",
-            user_id=self.primary_user.id
-        )
+        address = AddressFactory.create(user=self.primary_user)
 
         valid_form_data = {
             "first_name": ["Jack"],
@@ -957,17 +927,7 @@ class TestContactUpdateView(BaseModelViewTestCase, TestCase):
         Test that posting invalid data is unsuccessful and renders the contact-update
         template again displaying errors.
         """
-        address = Address.objects.create(
-            address_line_1="1 easily identifiable road",
-            address_line_2="apartment 100",
-            neighbourhood="Mayfair",
-            city="London",
-            state="London",
-            postcode="SN1 8GB",
-            country_id=56,
-            notes="Not a real address tbh",
-            user_id=self.primary_user.id
-        )
+        address = AddressFactory.create(user=self.primary_user)
 
         invalid_form_data = {
             "first_name": [""],
