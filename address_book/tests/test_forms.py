@@ -7,25 +7,17 @@ from django.contrib.auth.models import User
 from django.test import TestCase
 
 from address_book import constants
+from address_book.factories.contact_factories import ContactFactory
+from address_book.factories.tag_factories import TagFactory
+from address_book.factories.user_factories import UserFactory
 from address_book.forms import AddressForm, ContactForm
 from address_book.models import Address, Contact, Tag
 
 
 class BaseFormTestCase:
     def setUp(self) -> None:
-        self.other_user_password = "password"
-        self.other_user = User.objects.create_user(
-            username="tess_ting2",
-            email="tess@ting2.com",
-            password=self.other_user_password
-        )
-
-        self.primary_user_password = "password"
-        self.primary_user = User.objects.create_user(
-            username="tess_ting",
-            email="tess@ting.com",
-            password=self.primary_user_password
-        )
+        self.other_user = UserFactory.create()
+        self.primary_user = UserFactory.create()
 
 
 class TestAddressForm(BaseFormTestCase, TestCase):
@@ -131,27 +123,13 @@ class TestContactForm(BaseFormTestCase, TestCase):
         Test that the ContactForm is correctly initialised setting the user_id to the form instance.
         """
         form = ContactForm(self.primary_user)       
-        other_user_tags = Tag.objects.bulk_create([
-            Tag(name="Runner", user=self.other_user),
-            Tag(name="London University", user=self.other_user),
-            Tag(name="Footballer", user=self.other_user),
-        ])
-        #Alphabetical order important so that queries match up.
-        primary_user_tags = Tag.objects.bulk_create([
-            Tag(name="Birmingham College", user=self.primary_user),
-            Tag(name="Jogger", user=self.primary_user),
-            Tag(name="New Zealand Fan", user=self.primary_user),
-        ])
-
-        other_user_contacts = Contact.objects.bulk_create([
-            Contact(first_name="Jimmy", gender=constants.CONTACT_GENDER_MALE, user=self.other_user, year_met=2020),
-            Contact(first_name="Jet", gender=constants.CONTACT_GENDER_MALE, user=self.other_user, year_met=2006),
-        ])
-
-        primary_user_contacts = Contact.objects.bulk_create([
-            Contact(first_name="Dani", gender=constants.CONTACT_GENDER_FEMALE, user=self.primary_user, year_met=2010),
-            Contact(first_name="Optimus", gender=constants.CONTACT_GENDER_MALE, user=self.primary_user, year_met=2018),
-        ])
+        
+        # Create Tags and Contacts for both Users, to ensure that only the primary Users'
+        # Tags and Contacts appear in the respective querysets for selection.
+        TagFactory.create_batch(3, user=self.other_user)
+        TagFactory.create_batch(3, user=self.primary_user)
+        ContactFactory.create_batch(2, user=self.other_user)
+        ContactFactory.create_batch(2, user=self.primary_user)
 
         self.assertEqual(self.primary_user.id, form.instance.user_id)
         self.assertQuerySetEqual(Tag.objects.filter(user=self.primary_user), form.fields["tags"].queryset)
@@ -224,24 +202,13 @@ class TestContactForm(BaseFormTestCase, TestCase):
         """
         Test that the form validates successfully with comprehensive data including the required fields.
         """
-        Tag.objects.create(
-            name="Birmingham College", user=self.primary_user
-        )
-        tag = Tag.objects.create(
-            name="Jogger", user=self.primary_user
-        )
-        Contact.objects.create(
-            first_name="Jimmy",
-            gender=constants.CONTACT_GENDER_MALE,
-            user=self.primary_user,
-            year_met=2020
-        )
-        family_member = Contact.objects.create(
-            first_name="Jet",
-            gender=constants.CONTACT_GENDER_MALE,
-            user=self.primary_user,
-            year_met=2006
-        )
+        # Create a Tag and a Contact (potential FamilyMember) that ARE NOT
+        # going to be associated with the saved Contact.
+        TagFactory.create(user=self.primary_user)
+        ContactFactory.create(user=self.primary_user)
+
+        tag = TagFactory.create(user=self.primary_user)
+        family_member = ContactFactory.create(user=self.primary_user)
 
         form = ContactForm(self.primary_user, {
             "anniversary_day": "1",
@@ -292,3 +259,7 @@ class TestContactForm(BaseFormTestCase, TestCase):
         self.assertIn(197, contact.nationalities.values_list("id", flat=True))
         self.assertEqual(1, contact.tags.count())
         self.assertIn(tag.id, contact.tags.values_list("id", flat=True))
+
+
+    class TestEmailForm(BaseFormTestCase, TestCase):
+        pass
