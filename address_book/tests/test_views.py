@@ -9,6 +9,8 @@ from django.urls import reverse
 
 from typing import Optional
 
+from address_book.factories.contact_factories import ContactFactory
+from address_book.factories.user_factories import UserFactory
 from address_book.models import Address, Contact
 
 def get_pref_contactable_type_id(contactable_type: str) -> int | None:
@@ -24,20 +26,10 @@ def get_pref_contactable_type_id(contactable_type: str) -> int | None:
 class BaseModelViewTestCase:
     def setUp(self):
         self.client = Client()
-        
-        self.other_user_password = "password"
-        self.other_user = User.objects.create_user(
-            username="tess_ting2",
-            email="tess@ting2.com",
-            password=self.other_user_password
-        )
-
+        self.other_user_password = "password2"
+        self.other_user = UserFactory.create(password=self.other_user_password)
         self.primary_user_password = "password"
-        self.primary_user = User.objects.create_user(
-            username="tess_ting",
-            email="tess@ting.com",
-            password=self.primary_user_password
-        )
+        self.primary_user = UserFactory.create(password=self.primary_user_password)
 
     def _login_user(self, username: Optional[str] = None, password: Optional[str] = None) -> None:
         """
@@ -147,8 +139,8 @@ class TestAddressCreateView(BaseModelViewTestCase, TestCase):
 
     def test_post_with_valid_data_and_next_url_passed(self):
         """
-        Test that posting valid data is successful and redirects to the appropriate address-detail
-        page for the appropriate address.
+        Test that posting valid data is successful and redirects to the appropriate url, passed in as
+        a 'next' param.
         """
         valid_form_data = {
             "address_line_1": "1 easily identifiable road",
@@ -173,13 +165,7 @@ class TestAddressCreateView(BaseModelViewTestCase, TestCase):
             "phonenumber_set-1-id": [""],
             "phonenumber_set-1-address": [""]
         }
-        contact = Contact.objects.create(
-            first_name="Wanted",
-            middle_names="In",
-            last_name="Response",
-            user=self.primary_user,
-            year_met=2000
-        )
+        contact = ContactFactory.create(user=self.primary_user)
         redirect_url = reverse("contact-update", args=[contact.id])
         response = self._login_user_and_get_post_response(
             url=f"{self.url}?next={redirect_url}",
@@ -629,13 +615,7 @@ class TestContactCreateView(BaseModelViewTestCase, TestCase):
 class TestContactDetailView(BaseModelViewTestCase, TestCase):
     def setUp(self):
         super().setUp()
-        self.contact = Contact.objects.create(
-            first_name="Wanted",
-            middle_names="In",
-            last_name="Response",
-            user=self.primary_user,
-            year_met=2000
-        )
+        self.contact = ContactFactory.create(user=self.primary_user)
         self.context_keys = ("object",)
         self.template = "address_book/contact_detail.html"
         self.url = reverse("contact-detail", args=[self.contact.id])
@@ -679,13 +659,7 @@ class TestContactDetailView(BaseModelViewTestCase, TestCase):
 class TestContactDownloadView(BaseModelViewTestCase, TestCase):
     def setUp(self):
         super().setUp()
-        self.contact = Contact.objects.create(
-            first_name="Wanted",
-            middle_names="In",
-            last_name="Response",
-            user=self.primary_user,
-            year_met=2000
-        )
+        self.contact = ContactFactory.create(user=self.primary_user)
         self.url = reverse("contact-download", args=[self.contact.id])
 
     def test_view_url_exists_for_logged_in_user_who_owns_contact(self):
@@ -731,24 +705,12 @@ class TestContactListDownloadView(BaseModelViewTestCase, TestCase):
         super().setUp()
         self.url = reverse("contact-list-download")
 
-    def _create_contact_for_user(self):
-        """
-        Creates a Contact for the user.
-        """
-        return Contact.objects.create(
-            first_name="Wanted",
-            middle_names="In",
-            last_name="Response",
-            user=self.primary_user,
-            year_met=2000
-        )
-
     def test_view_url_exists_for_logged_in_user_with_contacts(self):
         """
         Make sure that if a logged in user with contacts attempts to access the contact-list-download
         view, they can do with success.
         """
-        self._create_contact_for_user()
+        ContactFactory.create(user=self.primary_user)
         response = self._login_user_and_get_get_response()
         self.assertEqual(response.status_code, 200)
 
@@ -756,7 +718,7 @@ class TestContactListDownloadView(BaseModelViewTestCase, TestCase):
         """
         Make sure that if there are Contacts present, the response is a download.
         """
-        self._create_contact_for_user()
+        ContactFactory.create(user=self.primary_user)
         response = self._login_user_and_get_get_response()
         self.assertIn("Content-Disposition", response)
         self.assertEqual(response["Content-Disposition"], "attachment; filename=contacts.vcf")
@@ -774,14 +736,8 @@ class TestContactListDownloadView(BaseModelViewTestCase, TestCase):
         Make sure that if there are Contacts present for other users,
         they are not included in the download.
         """
-        Contact.objects.create(
-            first_name="Nobody",
-            middle_names="Likes",
-            last_name="Me",
-            user=self.other_user,
-            year_met=2000
-        )
-        self._create_contact_for_user()
+        other_user_contact = ContactFactory.create(user=self.other_user)
+        primary_user_contact = ContactFactory.create(user=self.primary_user)
         response = self._login_user_and_get_get_response()
 
         self.assertIn("Content-Disposition", response)
@@ -789,8 +745,8 @@ class TestContactListDownloadView(BaseModelViewTestCase, TestCase):
         self.assertEqual(response["Content-Type"], "text/vcard")
 
         vcard_data = response.content.decode("utf-8")
-        self.assertIn("Wanted In Response", vcard_data)
-        self.assertNotIn("Nobody Likes Me", vcard_data)
+        self.assertIn(primary_user_contact.full_name, vcard_data)
+        self.assertNotIn(other_user_contact.full_name, vcard_data)
 
 
 class TestContactListView(BaseModelViewTestCase, TestCase):
@@ -800,25 +756,13 @@ class TestContactListView(BaseModelViewTestCase, TestCase):
         self.template = "address_book/contact_list.html"
         self.url = reverse("contact-list")
 
-    def _create_contact_for_user(self):
-        """
-        Creates a Contact for the user.
-        """
-        return Contact.objects.create(
-            first_name="Wanted",
-            middle_names="In",
-            last_name="Response",
-            user=self.primary_user,
-            year_met=2000
-        )
-
     def test_view_renders_correct_template_and_context_and_user_contact_appears_in_response(self):
         """
         Test that the view for a logged in user returns the contact_list.html template,
         that the Download List button appears if Contacts are found for the list, and that
         any User Contacts are rendered in the response.
         """
-        contact = self._create_contact_for_user()
+        contact = ContactFactory.create(user=self.primary_user)
         response = self._login_user_and_get_get_response()
         self.assert_view_renders_correct_template_and_context(
             response=response,
@@ -844,13 +788,7 @@ class TestContactListView(BaseModelViewTestCase, TestCase):
         Make sure that Contacts belonging to another User are not present in the contexts
         object_list.
         """
-        Contact.objects.create(
-            first_name="Unwanted",
-            middle_names="In",
-            last_name="Response",
-            user=self.other_user,
-            year_met=2000
-        )
+        ContactFactory.create(user=self.other_user)
         response = self._login_user_and_get_get_response()
         self.assert_view_renders_correct_template_and_context(
             response=response,
@@ -863,13 +801,7 @@ class TestContactListView(BaseModelViewTestCase, TestCase):
 class TestContactQrCodeView(BaseModelViewTestCase, TestCase):
     def setUp(self):
         super().setUp()
-        self.contact = Contact.objects.create(
-            first_name="Wanted",
-            middle_names="In",
-            last_name="Response",
-            user=self.primary_user,
-            year_met=2000
-        )
+        self.contact = ContactFactory.create(user=self.primary_user)
         self.url = reverse("contact-qrcode", args=[self.contact.id])
 
     def test_view_url_exists_for_logged_in_user_who_owns_contact(self):
@@ -912,13 +844,7 @@ class TestContactQrCodeView(BaseModelViewTestCase, TestCase):
 class TestContactUpdateView(BaseModelViewTestCase, TestCase):
     def setUp(self):
         super().setUp()
-        self.contact = Contact.objects.create(
-            first_name="Wanted",
-            middle_names="In",
-            last_name="Response",
-            user=self.primary_user,
-            year_met=2000
-        )
+        self.contact = ContactFactory.create(user=self.primary_user)
         self.context_keys = ("email_formset", "form", "object", "phonenumber_formset", "tenancy_formset", "walletaddress_formset",)
         self.template = "address_book/contact_form.html"
         self.url = reverse("contact-update", args=[self.contact.id])
@@ -1232,13 +1158,7 @@ class TestTagCreateView(BaseModelViewTestCase, TestCase):
         the forms initial value contains the valid contact_id passed in params, and that
         the associated contact comes preselected in the multiple choice menu.
         """
-        contact = Contact.objects.create(
-            first_name="Wanted",
-            middle_names="In",
-            last_name="Response",
-            user=self.primary_user,
-            year_met=2000
-        )
+        contact = ContactFactory.create(user=self.primary_user)
         response = self._login_user_and_get_get_response(
             url=f"{self.url}?contact_id={contact.id}"
         )
@@ -1258,13 +1178,7 @@ class TestTagCreateView(BaseModelViewTestCase, TestCase):
         """
         Test that posting valid data is successful and redirects to the contact-list page.
         """
-        contact = Contact.objects.create(
-            first_name="Wanted",
-            middle_names="In",
-            last_name="Response",
-            user=self.primary_user,
-            year_met=2000
-        )
+        contact = ContactFactory.create(user=self.primary_user)
         valid_form_data = {
             "name": "Supercalafragalistically unique tag name",
             "contacts": [contact.id],
