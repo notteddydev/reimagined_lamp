@@ -3,7 +3,6 @@ import datetime
 from collections import Counter
 
 from django import forms
-from django.contrib.auth.models import User
 from django.test import TestCase
 
 from address_book import constants
