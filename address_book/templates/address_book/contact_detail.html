@@ -67,6 +67,22 @@
             </table>
         </section>
     {% endif %}
+    {% if contact.family_members.all|length %}
+        <section>
+            <table>
+                <caption>Family Members</caption>
+                <tbody>
+                    {% for family_member in contact.family_members.all %}
+                        <th>{{ family_member }}</th>
+                        <td>
+                            <a href="{% url "contact-detail" family_member.id %}">View</a>
+                            <a href="{% url "contact-update" family_member.id %}">Update</a>
+                        </td>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </section>
+    {% endif %}
     <section>
         <table>
             <caption>Further Information</caption>
@@ -75,6 +91,16 @@
                     <th>Met:</th>
                     <td>{{ contact.year_met }} (known for {{ contact.known_for_years }} years)</td>
                 </tr>
+                {% if contact.nationalities.all|length %}
+                    <tr>
+                        <th>Nationalities:</th>
+                        <td>
+                            {% for nationality in contact.nationalities.all %}
+                                <a href="{% url "contact-list" %}?filter_field=nationality&amp;filter_value={{nationality.id}}">{{ nationality }}</a>{% if not forloop.last %}, {% endif %}
+                            {% endfor %}
+                        </td>
+                    </tr>
+                {% endif %}
                 {% if contact.website %}
                     <tr>
                         <th>Website:</th>
@@ -178,7 +204,7 @@
                         <tr>
                             <td>{{ tag.name }}</td>
                             <td>
-                                <a href='{% url "contact-list" %}?filter_field=tags__name&amp;filter_value={{ tag.name }}'>View Contacts</a>
+                                <a href="{% url "contact-list" %}?filter_field=tags__name&amp;filter_value={{ tag.name }}">View Contacts</a>
                             </td>
                         </tr>
                     {% endfor %}
