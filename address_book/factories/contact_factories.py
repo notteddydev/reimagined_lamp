@@ -22,7 +22,7 @@ class ContactFactory(factory.django.DjangoModelFactory):
     )
     notes: str = factory.Faker("text", max_nb_chars=1000)
     last_name: str = factory.Faker("last_name")
-    middle_names: str = f"{factory.Faker('first_name')} {factory.Faker('first_name')}"
+    middle_names: str = factory.Faker("first_name")
     nickname: str = factory.Faker("first_name")
     website: str = factory.Faker("url")
 
