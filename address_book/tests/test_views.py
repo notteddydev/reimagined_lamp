@@ -836,7 +836,7 @@ class TestContactListView(BaseModelViewTestCase, TestCase):
         """
         response = self._login_user_and_get_get_response()
         self.assertEqual(response.status_code, 200)
-        self.assertQuerysetEqual(response.context["object_list"], [])
+        self.assertQuerySetEqual(response.context["object_list"], [])
         self.assertNotContains(response, "Download List")
 
     def test_other_users_contacts_not_present_in_context_data(self):
