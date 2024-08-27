@@ -5,9 +5,11 @@ forms.py
 - Find out how to not have to create 'CreateFormSet' and 'UpdateFormSet' just to set the can_delete value differently.
 - Make InlineFormSets work consistently whereby they do not throw just one error if there are many; the array of errors is thrown as in the TenancyFormSet
 - get_years_from_1920 improve reusability and move into utils.
+- validate that dod is greater than dob, anniversary, year met...
 
 models.py
 - Maybe more effort that it's worth, but attach vcard to email / sms / whatsapp message
+- validate that dod is greater than dob
 
 views.py
 - Create option to download a "lite" vcard, or customise what is downloaded.
