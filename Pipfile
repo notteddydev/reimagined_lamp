@@ -13,6 +13,7 @@ django-phonenumber-field = {extras = ["phonenumberslite"], version = "*"}
 babel = "*"
 qrcode = {extras = ["pil"], version = "*"}
 factory-boy = "*"
+faker = "*"
 
 [dev-packages]
 
