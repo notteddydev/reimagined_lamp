@@ -6,6 +6,8 @@ forms.py
 - Make InlineFormSets work consistently whereby they do not throw just one error if there are many; the array of errors is thrown as in the TenancyFormSet
 - get_years_from_1920 improve reusability and move into utils.
 - validate that dod is greater than dob, anniversary, year met...
+- validate that for forms with ModelMultipleChoice, and a User passed in form validation fails if Models that belong to another User are selected.
+- Ensure that when a Tag is Updated (new TagUpdate view mentioned in views.py list), the disassociated contacts ARE disassociated. TESTS.
 
 models.py
 - Maybe more effort that it's worth, but attach vcard to email / sms / whatsapp message
