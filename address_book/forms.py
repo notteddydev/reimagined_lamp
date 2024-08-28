@@ -12,6 +12,18 @@ from typing import List
 from .models import Address, AddressType, Contact, Email, EmailType, PhoneNumber, PhoneNumberType, Tag, Tenancy, WalletAddress
 
 
+class ContactableMixin:
+    def clean(self):
+        super().clean()
+        if self.pref_contactable_type:
+            contactable_types = self.cleaned_data.get(self.contactable_types_field_name, [])
+            if self.pref_contactable_type in contactable_types:
+                if self.cleaned_data.get("archived", False):
+                    self.add_error(self.contactable_types_field_name, "Being 'preferred' and archived is not allowed.")
+                if len(contactable_types) == 1:
+                    self.add_error(self.contactable_types_field_name, "'Preferred' is not allowed as the only type.")
+
+
 class SaveFormSetIfNotEmptyMixin:
     def save_if_not_empty(self, instance: models.Model) -> List[models.Model]:
         has_valid_data = any(
@@ -116,18 +128,6 @@ class ContactForm(forms.ModelForm):
             years=get_years_from_1920(),
         )
     )
-
-
-class ContactableMixin:
-    def clean(self):
-        super().clean()
-        if self.pref_contactable_type:
-            contactable_types = self.cleaned_data.get(self.contactable_types_field_name, [])
-            if self.pref_contactable_type in contactable_types:
-                if self.cleaned_data.get("archived", False):
-                    self.add_error(self.contactable_types_field_name, "Being 'preferred' and archived is not allowed.")
-                if len(contactable_types) == 1:
-                    self.add_error(self.contactable_types_field_name, "'Preferred' is not allowed as the only type.")
 
 
 class EmailForm(ContactableMixin, forms.ModelForm):
