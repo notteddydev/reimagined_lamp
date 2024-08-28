@@ -118,21 +118,25 @@ class ContactForm(forms.ModelForm):
     )
 
 
-class EmailForm(forms.ModelForm):
+class ContactableMixin:
+    def clean(self):
+        super().clean()
+        if self.pref_contactable_type:
+            contactable_types = self.cleaned_data.get(self.contactable_types_field_name, [])
+            if self.pref_contactable_type in contactable_types:
+                if self.cleaned_data.get("archived", False):
+                    self.add_error(self.contactable_types_field_name, "Being 'preferred' and archived is not allowed.")
+                if len(contactable_types) == 1:
+                    self.add_error(self.contactable_types_field_name, "'Preferred' is not allowed as the only type.")
+
+
+class EmailForm(ContactableMixin, forms.ModelForm):
     class Meta:
         model = Email
         exclude = ["contact"]
 
-    def clean(self):
-        super().clean()
-        pref_type = EmailType.objects.preferred().first()
-        if pref_type:
-            email_types = self.cleaned_data.get("email_types", [])
-            if pref_type in email_types:
-                if self.cleaned_data.get("archived", False):
-                    self.add_error("email_types", "An email may not be 'preferred', and archived.")
-                if len(email_types) == 1:
-                    self.add_error("email_types", "'Preferred' is not allowed as the only type.")
+    contactable_types_field_name = "email_types"
+    pref_contactable_type = EmailType.objects.preferred().first()
 
 
 class BaseEmailInlineFormSet(SaveFormSetIfNotEmptyMixin, forms.BaseInlineFormSet):
@@ -187,23 +191,15 @@ class CustomSplitPhoneNumberField(SplitPhoneNumberField):
         return PrefixChoiceField(choices=choices)
 
 
-class PhoneNumberForm(forms.ModelForm):
+class PhoneNumberForm(ContactableMixin, forms.ModelForm):
     class Meta:
         model = PhoneNumber
         exclude = ["address", "contact"]
 
-    number = CustomSplitPhoneNumberField()
+    contactable_types_field_name = "phonenumber_types"
+    pref_contactable_type = PhoneNumberType.objects.preferred().first()
 
-    def clean(self):
-        super().clean()
-        pref_type = PhoneNumberType.objects.preferred().first()
-        if pref_type:
-            phonenumber_types = self.cleaned_data.get("phonenumber_types", [])
-            if pref_type in phonenumber_types:
-                if self.cleaned_data.get("archived", False):
-                    self.add_error("phonenumber_types", "A phone number may not be 'preferred', and archived.")
-                if len(phonenumber_types) == 1:
-                    self.add_error("phonenumber_types", "'Preferred' is not allowed as the only type.")
+    number = CustomSplitPhoneNumberField()
 
 
 class BasePhoneNumberInlineFormSet(SaveFormSetIfNotEmptyMixin, forms.BaseInlineFormSet):
@@ -288,7 +284,7 @@ class TagForm(forms.ModelForm):
         return tag
 
 
-class TenancyForm(forms.ModelForm):
+class TenancyForm(ContactableMixin, forms.ModelForm):
     class Meta:
         model = Tenancy
         exclude = ["contact"]
@@ -305,16 +301,8 @@ class TenancyForm(forms.ModelForm):
             empty_label="-- Select Address --"
         )
 
-    def clean(self):
-        super().clean()
-        pref_type = AddressType.objects.preferred().first()
-        if pref_type:
-            tenancy_types = self.cleaned_data.get("tenancy_types", [])
-            if pref_type in tenancy_types:
-                if self.cleaned_data.get("archived", False):
-                    self.add_error("tenancy_types", "An address may not be 'preferred', and archived.")
-                if len(tenancy_types) == 1:
-                    self.add_error("tenancy_types", "'Preferred' is not allowed as the only type.")
+    contactable_types_field_name = "tenancy_types"
+    pref_contactable_type = AddressType.objects.preferred().first()
 
 
 class BaseTenancyInlineFormSet(SaveFormSetIfNotEmptyMixin, forms.BaseInlineFormSet):
@@ -387,7 +375,7 @@ class WalletAddressForm(forms.ModelForm):
     class Meta:
         model = WalletAddress
         exclude = ["contact"]
-        
+
     def __init__(self, *args, **kwargs):
         super(WalletAddressForm, self).__init__(*args, **kwargs)
         self.fields["network"].empty_label = "-- Select Network --"

@@ -373,7 +373,7 @@ class TestEmailForm(BaseFormTestCase, TestCase):
             Counter(["email_types"]),
             Counter(list(form.errors.as_data()))
         )
-        self.assertEqual(form.errors["email_types"], ["An email may not be 'preferred', and archived."])
+        self.assertEqual(form.errors["email_types"], ["Being 'preferred' and archived is not allowed."])
 
     def test_not_validates_if_only_pref_type(self) -> None:
         """
@@ -414,7 +414,7 @@ class TestEmailForm(BaseFormTestCase, TestCase):
         self.assertEqual(
             Counter([
                 "'Preferred' is not allowed as the only type.",
-                "An email may not be 'preferred', and archived."
+                "Being 'preferred' and archived is not allowed."
             ]),
             Counter(form.errors["email_types"])
         )
@@ -536,7 +536,7 @@ class TestPhoneNumberForm(BaseFormTestCase, TestCase):
             Counter(["phonenumber_types"]),
             Counter(list(form.errors.as_data()))
         )
-        self.assertEqual(form.errors["phonenumber_types"], ["A phone number may not be 'preferred', and archived."])
+        self.assertEqual(form.errors["phonenumber_types"], ["Being 'preferred' and archived is not allowed."])
 
     def test_not_validates_if_only_pref_type(self) -> None:
         """
@@ -579,7 +579,7 @@ class TestPhoneNumberForm(BaseFormTestCase, TestCase):
         self.assertEqual(
             Counter([
                 "'Preferred' is not allowed as the only type.",
-                "A phone number may not be 'preferred', and archived."
+                "Being 'preferred' and archived is not allowed."
             ]),
             Counter(form.errors["phonenumber_types"])
         )
@@ -816,7 +816,7 @@ class TestTenancyForm(BaseFormTestCase, TestCase):
             Counter(["tenancy_types"]),
             Counter(list(form.errors.as_data()))
         )
-        self.assertEqual(form.errors["tenancy_types"], ["An address may not be 'preferred', and archived."])
+        self.assertEqual(form.errors["tenancy_types"], ["Being 'preferred' and archived is not allowed."])
 
     def test_not_validates_if_only_pref_type(self) -> None:
         """
@@ -859,7 +859,7 @@ class TestTenancyForm(BaseFormTestCase, TestCase):
         self.assertEqual(
             Counter([
                 "'Preferred' is not allowed as the only type.",
-                "An address may not be 'preferred', and archived."
+                "Being 'preferred' and archived is not allowed."
             ]),
             Counter(form.errors["tenancy_types"])
         )
