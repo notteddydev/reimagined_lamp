@@ -351,8 +351,8 @@ class CryptoNetwork(models.Model):
 class WalletAddress(Archiveable):
     TRANSMISSION_CHOICES = [
         (None, "-- Select Transmission --"),
-        ("they_receive", "They receive to this address",),
-        ("you_receive", "You receive from this address",)
+        (constants.WALLETADDRESS_TRANSMISSION_THEY_RECEIVE, "They receive to this address",),
+        (constants.WALLETADDRESS_TRANSMISSION_YOU_RECEIVE, "You receive from this address",)
     ]
 
     network=models.ForeignKey(CryptoNetwork, on_delete=models.CASCADE)
