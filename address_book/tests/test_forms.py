@@ -1,16 +1,31 @@
 import datetime
 
 from collections import Counter
-
 from django import forms
+from django.apps import apps
+from django.db.models import QuerySet
 from django.test import TestCase
+from faker import Faker
+from typing import List
 
 from address_book import constants
 from address_book.factories.contact_factories import ContactFactory
 from address_book.factories.tag_factories import TagFactory
 from address_book.factories.user_factories import UserFactory
-from address_book.forms import AddressForm, ContactForm
-from address_book.models import Address, Contact, Tag
+from address_book.forms import AddressForm, ContactForm, EmailForm
+from address_book.models import Address, Contact, Email, EmailType, Tag
+
+fake = Faker()
+
+
+def get_pref_contactable_type_id(contactable_type: str) -> int | None:
+    """
+    If there is no 'preferred' ContactableType, returns None. Otherwise, returns the ContactableType.id.
+    """
+    contactable_type = apps.get_model("address_book", contactable_type)
+    contactable_type_id = contactable_type.objects.preferred().values_list("id", flat=True).first()
+
+    return contactable_type_id
 
 
 class BaseFormTestCase:
@@ -260,5 +275,144 @@ class TestContactForm(BaseFormTestCase, TestCase):
         self.assertIn(tag.id, contact.tags.values_list("id", flat=True))
 
 
-    class TestEmailForm(BaseFormTestCase, TestCase):
-        pass
+class TestEmailForm(BaseFormTestCase, TestCase):
+    def test_fields_present(self) -> None:
+        """
+        Test that the correct fields are included/excluded.
+        """
+        form = EmailForm()
+
+        self.assertEqual(
+            Counter(["archived", "email", "email_types"]),
+            Counter(form.fields.keys())
+        )
+
+    def test_not_validates_without_required_fields(self) -> None:
+        """
+        Test that the form fails to validate successfully without the required fields.
+        """
+        form = EmailForm({"archived": True})
+        self.assertFalse(form.is_valid())
+        self.assertEqual(
+            Counter(["email", "email_types"]),
+            Counter(list(form.errors.as_data()))
+        )
+
+    def test_validates_and_saves_with_comprehensive_valid_data_archived(self) -> None:
+        """
+        Test that form validation is successful with valid data and an archived
+        email is successfully saved to db.
+        """
+        pref_type_id = get_pref_contactable_type_id("EmailType")
+        email_types: QuerySet = EmailType.objects.exclude(pk=pref_type_id).order_by("?")[:2]
+        email_type_ids: List[int] = list(email_types.values_list("id", flat=True))
+
+        form = EmailForm({
+            "archived": True,
+            "email": "superunique@email.com",
+            "email_types": email_type_ids,
+        })
+        self.assertTrue(form.is_valid())
+
+        email: Email = form.save(commit=False)
+        email.contact = ContactFactory.create()
+        email.save()
+        form.save_m2m()
+
+        self.assertTrue(Email.objects.filter(pk=email.id).exists())
+        self.assertEqual(
+            Counter(email_type_ids),
+            Counter(email.email_types.values_list("id", flat=True))
+        )
+        self.assertEqual("superunique@email.com", email.email)
+
+    def test_validates_and_saves_with_comprehensive_valid_data_unarchived(self) -> None:
+        """
+        Test that form validation is successful with valid data and an unarchived
+        email is successfully saved to db.
+        """
+        email_types: QuerySet = EmailType.objects.order_by("?")[:2]
+        email_type_ids: List[int] = list(email_types.values_list("id", flat=True))
+
+        form = EmailForm({
+            "archived": False,
+            "email": "superunique@email.com",
+            "email_types": email_type_ids,
+        })
+        self.assertTrue(form.is_valid())
+
+        email: Email = form.save(commit=False)
+        email.contact = ContactFactory.create()
+        email.save()
+        form.save_m2m()
+
+        self.assertTrue(Email.objects.filter(pk=email.id).exists())
+        self.assertEqual(
+            Counter(email_type_ids),
+            Counter(email.email_types.values_list("id", flat=True))
+        )
+        self.assertEqual("superunique@email.com", email.email)
+
+    def test_not_validates_if_archived_and_pref(self) -> None:
+        """
+        Test that the form validation fails if the Email is set as archived, and
+        linked with the 'preferred' EmailType, among other EmailTypes.
+        """
+        pref_type_id = get_pref_contactable_type_id("EmailType")
+        non_pref_type = EmailType.objects.exclude(pk=pref_type_id).order_by("?").first()
+
+        form = EmailForm({
+            "archived": True,
+            "email": fake.email(),
+            "email_types": [pref_type_id, non_pref_type.id]
+        })
+        self.assertFalse(form.is_valid())
+        self.assertEqual(
+            Counter(["email_types"]),
+            Counter(list(form.errors.as_data()))
+        )
+        self.assertEqual(form.errors["email_types"], ["An email may not be 'preferred', and archived."])
+
+    def test_not_validates_if_only_pref_type(self) -> None:
+        """
+        Test that the form validation fails if the Email is linked with the 'preferred'
+        EmailType alone.
+        """
+        pref_type_id = get_pref_contactable_type_id("EmailType")
+
+        form = EmailForm({
+            "archived": False,
+            "email": fake.email(),
+            "email_types": [pref_type_id],
+        })
+        self.assertFalse(form.is_valid())
+        self.assertEqual(
+            Counter(["email_types"]),
+            Counter(list(form.errors.as_data()))
+        )
+        self.assertEqual(form.errors["email_types"], ["'Preferred' is not allowed as the only type."])
+
+    def test_both_errors_thrown_if_only_pref_type_and_archived(self) -> None:
+        """
+        Test that the form validation fails if the Email is linked with the 'preferred'
+        EmailType alone, AND it is archived. Ensure that both errors are thrown.
+        """
+        pref_type_id = get_pref_contactable_type_id("EmailType")
+
+        form = EmailForm({
+            "archived": True,
+            "email": fake.email(),
+            "email_types": [pref_type_id],
+        })
+        self.assertFalse(form.is_valid())
+        self.assertEqual(
+            Counter(["email_types"]),
+            Counter(list(form.errors.as_data()))
+        )
+        self.assertEqual(
+            Counter([
+                "'Preferred' is not allowed as the only type.",
+                "An email may not be 'preferred', and archived."
+            ]),
+            Counter(form.errors["email_types"])
+        )
