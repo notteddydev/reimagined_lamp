@@ -305,11 +305,7 @@ class TagCreateView(LoginRequiredMixin, View):
         form = TagForm(request.user, request.POST)
 
         if form.is_valid():
-            tag = form.save()
-            
-            contacts_selected = form.cleaned_data["contacts"]
-            for contact in contacts_selected:
-                contact.tags.add(tag)
+            form.save()
 
             return redirect("contact-list")
 
