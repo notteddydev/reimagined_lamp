@@ -1,4 +1,5 @@
 import datetime
+import random
 
 from collections import Counter
 from django import forms
@@ -14,7 +15,7 @@ from address_book.factories.contact_factories import ContactFactory
 from address_book.factories.tag_factories import TagFactory
 from address_book.factories.user_factories import UserFactory
 from address_book.forms import AddressForm, ContactForm, CustomSplitPhoneNumberField, EmailForm, PhoneNumberForm, TagForm, TenancyForm, WalletAddressForm
-from address_book.models import Address, AddressType, Contact, Email, EmailType, PhoneNumber, PhoneNumberType, Tag, Tenancy, WalletAddress
+from address_book.models import Address, AddressType, Contact, CryptoNetwork, Email, EmailType, PhoneNumber, PhoneNumberType, Tag, Tenancy, WalletAddress
 
 fake = Faker()
 
@@ -862,3 +863,87 @@ class TestTenancyForm(BaseFormTestCase, TestCase):
             ]),
             Counter(form.errors["tenancy_types"])
         )
+
+
+class TestWalletAddressForm(BaseFormTestCase, TestCase):
+    def test_fields_present(self) -> None:
+        """
+        Test that the correct fields are included/excluded.
+        """
+        form = WalletAddressForm()
+
+        self.assertEqual(
+            Counter(["address", "archived", "network", "transmission"]),
+            Counter(form.fields.keys())
+        )
+
+    def test_network_and_transmission_fields_empty_labels(self) -> None:
+        """
+        Test that the network empty_label is set as desired, and that the first choice for
+        transmission (empty label) is set as desired.
+        """
+        form = WalletAddressForm()
+
+        self.assertEqual("-- Select Network --", form.fields["network"].empty_label)
+        value, label = form.fields["transmission"].choices[0]
+        self.assertIsNone(value)
+        self.assertEqual("-- Select Transmission --", label)
+
+    def test_validates_with_only_required_fields(self) -> None:
+        """
+        Test that the form validates successfully with only the required fields.
+        """
+        network = CryptoNetwork.objects.order_by("?").first()
+        form = WalletAddressForm({
+            "address": "0xjdfhgkjh2kjh2345jkh23k4jh234jkh23jk4h",
+            "network": network.id,
+            "transmission": random.choice([
+                constants.WALLETADDRESS_TRANSMISSION_THEY_RECEIVE,
+                constants.WALLETADDRESS_TRANSMISSION_YOU_RECEIVE,
+            ]),
+        })
+        
+        self.assertTrue(form.is_valid())
+
+    def test_not_validates_without_required_fields(self) -> None:
+        """
+        Test that the form fails to validate successfully without the required fields.
+        """
+        form = WalletAddressForm({"archived": True})
+        self.assertFalse(form.is_valid())
+        self.assertEqual(
+            Counter(["address", "network", "transmission"]),
+            Counter(list(form.errors.as_data()))
+        )
+
+    def test_validates_and_saves_with_comprehensive_valid_data(self) -> None:
+        """
+        Test that form validation is successful with valid data and a wallet address
+        is successfully saved to db.
+        """
+        network = CryptoNetwork.objects.order_by("?").first()
+
+        form = WalletAddressForm({
+            "address": "0x8sd7fg89sd7fg89s7as89d7fs98d7f8s9d7fsd9f",
+            "archived": fake.boolean(),
+            "network": network.id,
+            "transmission": random.choice([
+                constants.WALLETADDRESS_TRANSMISSION_THEY_RECEIVE,
+                constants.WALLETADDRESS_TRANSMISSION_YOU_RECEIVE,
+            ]),
+        })
+        self.assertTrue(form.is_valid())
+
+        wallet_address: WalletAddress = form.save(commit=False)
+        contact: Contact = ContactFactory.create(user=self.primary_user)
+        wallet_address.contact = contact
+        wallet_address.save()
+
+        self.assertTrue(WalletAddress.objects.filter(pk=wallet_address.id).exists())
+        self.assertIn(wallet_address.transmission, [
+            constants.WALLETADDRESS_TRANSMISSION_THEY_RECEIVE,
+            constants.WALLETADDRESS_TRANSMISSION_YOU_RECEIVE,
+        ])
+        self.assertEqual(wallet_address.contact_id, contact.id)
+        self.assertEqual(wallet_address.network_id, network.id)
+        self.assertEqual(wallet_address.address, "0x8sd7fg89sd7fg89s7as89d7fs98d7f8s9d7fsd9f")
