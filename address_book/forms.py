@@ -27,14 +27,14 @@ class SaveFormSetIfNotEmptyMixin:
 
 
 class AddressForm(forms.ModelForm):
+    class Meta:
+        model = Address
+        exclude = ["user"]
+
     def __init__(self, user, *args, **kwargs):
         super(AddressForm, self).__init__(*args, **kwargs)
         self.instance.user_id = user.id
         self.fields["country"].empty_label = "-- Select Country --"
-
-    class Meta:
-        model = Address
-        exclude = ["user"]
 
 
 class ContactFilterForm(forms.Form):
@@ -80,6 +80,10 @@ ContactFilterFormSet = forms.formset_factory(ContactFilterForm, BaseContactFilte
 
 
 class ContactForm(forms.ModelForm):
+    class Meta:
+        model = Contact
+        exclude = ["addresses", "user"]
+
     def get_years_from_1920():
         #TODO improve reusability and move into utils
         return [year for year in range(1920, datetime.now().year + 1)][::-1]
@@ -113,12 +117,12 @@ class ContactForm(forms.ModelForm):
         )
     )
 
-    class Meta:
-        model = Contact
-        exclude = ["addresses", "user"]
-
 
 class EmailForm(forms.ModelForm):
+    class Meta:
+        model = Email
+        exclude = ["contact"]
+
     def clean(self):
         super().clean()
         pref_type = EmailType.objects.preferred().first()
@@ -129,10 +133,6 @@ class EmailForm(forms.ModelForm):
                     self.add_error("email_types", "An email may not be 'preferred', and archived.")
                 if len(email_types) == 1:
                     self.add_error("email_types", "'Preferred' is not allowed as the only type.")
-
-    class Meta:
-        model = Email
-        exclude = ["contact"]
 
 
 class BaseEmailInlineFormSet(SaveFormSetIfNotEmptyMixin, forms.BaseInlineFormSet):
@@ -188,6 +188,10 @@ class CustomSplitPhoneNumberField(SplitPhoneNumberField):
 
 
 class PhoneNumberForm(forms.ModelForm):
+    class Meta:
+        model = PhoneNumber
+        exclude = ["address", "contact"]
+
     number = CustomSplitPhoneNumberField()
 
     def clean(self):
@@ -200,10 +204,6 @@ class PhoneNumberForm(forms.ModelForm):
                     self.add_error("phonenumber_types", "A phone number may not be 'preferred', and archived.")
                 if len(phonenumber_types) == 1:
                     self.add_error("phonenumber_types", "'Preferred' is not allowed as the only type.")
-
-    class Meta:
-        model = PhoneNumber
-        exclude = ["address", "contact"]
 
 
 class BasePhoneNumberInlineFormSet(SaveFormSetIfNotEmptyMixin, forms.BaseInlineFormSet):
@@ -265,6 +265,10 @@ AddressPhoneNumberUpdateFormSet = forms.inlineformset_factory(
 )
 
 class TagForm(forms.ModelForm):
+    class Meta:
+        model = Tag
+        exclude = ["user"]
+
     def __init__(self, user, *args, **kwargs):
         super(TagForm, self).__init__(*args, **kwargs)
         self.instance.user_id = user.id
@@ -283,12 +287,12 @@ class TagForm(forms.ModelForm):
 
         return tag
 
-    class Meta:
-        model = Tag
-        exclude = ["user"]
-
 
 class TenancyForm(forms.ModelForm):
+    class Meta:
+        model = Tenancy
+        exclude = ["contact"]
+
     def __init__(self, *args, **kwargs):
         user = kwargs.pop("user", None)
         if not user:
@@ -311,10 +315,6 @@ class TenancyForm(forms.ModelForm):
                     self.add_error("tenancy_types", "An address may not be 'preferred', and archived.")
                 if len(tenancy_types) == 1:
                     self.add_error("tenancy_types", "'Preferred' is not allowed as the only type.")
-
-    class Meta:
-        model = Tenancy
-        exclude = ["contact"]
 
 
 class BaseTenancyInlineFormSet(SaveFormSetIfNotEmptyMixin, forms.BaseInlineFormSet):
@@ -384,13 +384,13 @@ TenancyUpdateFormSet = forms.inlineformset_factory(
 
 
 class WalletAddressForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        super(WalletAddressForm, self).__init__(*args, **kwargs)
-        self.fields["network"].empty_label = "-- Select Network --"
-
     class Meta:
         model = WalletAddress
         exclude = ["contact"]
+        
+    def __init__(self, *args, **kwargs):
+        super(WalletAddressForm, self).__init__(*args, **kwargs)
+        self.fields["network"].empty_label = "-- Select Network --"
 
 
 class BaseWalletAddressInlineFormSet(SaveFormSetIfNotEmptyMixin, forms.BaseInlineFormSet):
