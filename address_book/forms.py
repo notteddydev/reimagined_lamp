@@ -273,6 +273,16 @@ class TagForm(forms.ModelForm):
             widget=forms.CheckboxSelectMultiple
         )
 
+    def save(self, commit=True):
+        tag = super().save(commit=commit)
+
+        if commit:
+            contacts_selected = self.cleaned_data["contacts"]
+            for contact in contacts_selected:
+                contact.tags.add(tag)
+
+        return tag
+
     class Meta:
         model = Tag
         exclude = ["user"]
@@ -280,7 +290,10 @@ class TagForm(forms.ModelForm):
 
 class TenancyForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
-        self.user = kwargs.pop("user", None)
+        user = kwargs.pop("user", None)
+        if not user:
+            raise TypeError("TenancyForm.__init__() missing 1 required keyword argument: 'user'")
+        self.user = user
         super(TenancyForm, self).__init__(*args, **kwargs)
 
         self.fields["address"] = forms.ModelChoiceField(
