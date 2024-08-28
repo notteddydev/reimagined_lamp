@@ -12,6 +12,7 @@ forms.py
 models.py
 - Maybe more effort that it's worth, but attach vcard to email / sms / whatsapp message
 - validate that dod is greater than dob
+- change tag.name from unique; unique_together instead, for user and name.
 
 views.py
 - Create option to download a "lite" vcard, or customise what is downloaded.
@@ -38,6 +39,7 @@ other
 general
 - Erm... add docblocks, pattern code, add typehints, refactor code - view classes particularly.
 - Add a site-wide button which hides archived items from all views.
+- Remove typehints from variables. Only put them on method definitions.
 
 
 ### Long-term
