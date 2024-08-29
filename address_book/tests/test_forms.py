@@ -1175,3 +1175,36 @@ class TestEmailUpdateFormSet(BaseFormTestCase, TestCase):
         formset.save()
         self.assertEqual(1, Email.objects.count())
         self.assertFalse(Email.objects.filter(email=non_pref_email.email).exists())
+
+    def test_delete_preferred_unsuccessful_if_no_replacement(self) -> None:
+        """
+        Test that when delete is selected on the 'preferred' Email, form validation fails unless
+        there is a newly selected 'preferred' Email.
+        """
+        contact = ContactFactory.create()
+        pref_email = EmailFactory.create(contact=contact)
+        non_pref_email = EmailFactory.create(contact=contact)
+
+        data = {
+            "email_set-TOTAL_FORMS": "2",
+            "email_set-INITIAL_FORMS": "2",
+            "email_set-MIN_NUM_FORMS": "0",
+            "email_set-MAX_NUM_FORMS": "1000",
+
+            "email_set-0-archived": False,
+            "email_set-0-contact": str(contact.id),
+            "email_set-0-DELETE": True,
+            "email_set-0-email": pref_email.email,
+            "email_set-0-email_types": self._get_email_type_ids_for_email(pref_email),
+            "email_set-0-id": str(pref_email.id),
+            
+            "email_set-1-archived": False,
+            "email_set-1-contact": str(contact.id),
+            "email_set-1-email": non_pref_email.email,
+            "email_set-1-email_types": self._get_email_type_ids_for_email(non_pref_email),
+            "email_set-1-id": str(non_pref_email.id),
+        }
+
+        formset = EmailUpdateFormSet(data=data, instance=contact)
+        self.assertFalse(formset.is_valid())
+        self.assertIn("One must be designated as 'preferred'.", formset.non_form_errors())
