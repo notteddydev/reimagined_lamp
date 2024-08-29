@@ -8,10 +8,12 @@ forms.py
 - validate that dod is greater than dob, anniversary, year met...
 - validate that for forms with ModelMultipleChoice, and a User passed in form validation fails if Models that belong to another User are selected.
 - Ensure that when a Tag is Updated (new TagUpdate view mentioned in views.py list), the disassociated contacts ARE disassociated. TESTS.
+- refactor the date fields on Contact - anniversary, dod, dob.
 
 models.py
 - Maybe more effort that it's worth, but attach vcard to email / sms / whatsapp message
-- validate that dod is greater than dob
+- validate that anniversary/dod is greater than dob
+- validate that dod is greater than anniversary/dob
 - change tag.name from unique; unique_together instead, for user and name.
 
 views.py
