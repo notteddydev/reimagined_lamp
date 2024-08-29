@@ -10,6 +10,7 @@ from phonenumber_field.formfields import localized_choices, PrefixChoiceField, S
 from typing import List
 
 from .models import Address, AddressType, Contact, Email, EmailType, PhoneNumber, PhoneNumberType, Tag, Tenancy, WalletAddress
+from .utils import get_years_from_year
 
 
 class ContactableMixin:
@@ -96,10 +97,6 @@ class ContactForm(forms.ModelForm):
         model = Contact
         exclude = ["addresses", "user"]
 
-    def get_years_from_1920():
-        #TODO improve reusability and move into utils
-        return [year for year in range(1920, datetime.now().year + 1)][::-1]
-
     def __init__(self, user, *args, **kwargs):
         super(ContactForm, self).__init__(*args, **kwargs)
         self.instance.user_id = user.id
@@ -111,21 +108,21 @@ class ContactForm(forms.ModelForm):
         required=False,
         widget=forms.widgets.SelectDateWidget(
             empty_label=("-- Select Year --", "-- Select Month --", "-- Select Day --"),
-            years=get_years_from_1920(),
+            years=get_years_from_year(),
         )
     )
     dob = forms.DateField(
         required=False,
         widget=forms.widgets.SelectDateWidget(
             empty_label=("-- Select Year --", "-- Select Month --", "-- Select Day --"),
-            years=get_years_from_1920(),
+            years=get_years_from_year(),
         )
     )
     dod = forms.DateField(
         required=False,
         widget=forms.widgets.SelectDateWidget(
             empty_label=("-- Select Year --", "-- Select Month --", "-- Select Day --"),
-            years=get_years_from_1920(),
+            years=get_years_from_year(),
         )
     )
 
