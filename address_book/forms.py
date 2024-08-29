@@ -7,10 +7,20 @@ from django.utils import translation
 
 from phonenumber_field.formfields import localized_choices, PrefixChoiceField, SplitPhoneNumberField
 
-from typing import List
+from typing import List, Optional
 
 from .models import Address, AddressType, Contact, Email, EmailType, PhoneNumber, PhoneNumberType, Tag, Tenancy, WalletAddress
 from .utils import get_years_from_year
+
+
+def create_date_field(required: Optional[bool] = False, from_year: Optional[int] = 1920) -> forms.DateField:
+    return forms.DateField(
+        required=required,
+        widget=forms.widgets.SelectDateWidget(
+            empty_label=("-- Select Year --", "-- Select Month --", "-- Select Day --"),
+            years=get_years_from_year(year=from_year),
+        )
+    )
 
 
 class ContactableMixin:
@@ -104,27 +114,9 @@ class ContactForm(forms.ModelForm):
         self.fields["tags"].queryset = Tag.objects.filter(user=user.id)
         self.fields["family_members"].queryset = Contact.objects.filter(user=user.id)
 
-    anniversary = forms.DateField(
-        required=False,
-        widget=forms.widgets.SelectDateWidget(
-            empty_label=("-- Select Year --", "-- Select Month --", "-- Select Day --"),
-            years=get_years_from_year(),
-        )
-    )
-    dob = forms.DateField(
-        required=False,
-        widget=forms.widgets.SelectDateWidget(
-            empty_label=("-- Select Year --", "-- Select Month --", "-- Select Day --"),
-            years=get_years_from_year(),
-        )
-    )
-    dod = forms.DateField(
-        required=False,
-        widget=forms.widgets.SelectDateWidget(
-            empty_label=("-- Select Year --", "-- Select Month --", "-- Select Day --"),
-            years=get_years_from_year(),
-        )
-    )
+    anniversary = create_date_field()
+    dob = create_date_field()
+    dod = create_date_field()
 
 
 class EmailForm(ContactableMixin, forms.ModelForm):
