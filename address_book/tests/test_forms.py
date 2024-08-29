@@ -53,7 +53,7 @@ class TestAddressForm(BaseFormTestCase, TestCase):
         with self.assertRaises(TypeError) as cm:
             form = AddressForm()
             
-        self.assertEquals(str(cm.exception), "AddressForm.__init__() missing 1 required positional argument: 'user'")
+        self.assertEqual(str(cm.exception), "AddressForm.__init__() missing 1 required positional argument: 'user'")
 
     def test_country_field_empty_label(self) -> None:
         """
@@ -608,7 +608,7 @@ class TestTagForm(BaseFormTestCase, TestCase):
         with self.assertRaises(TypeError) as cm:
             form = TagForm()
             
-        self.assertEquals(str(cm.exception), "TagForm.__init__() missing 1 required positional argument: 'user'")
+        self.assertEqual(str(cm.exception), "TagForm.__init__() missing 1 required positional argument: 'user'")
 
     def test_fields_present(self) -> None:
         """
@@ -695,7 +695,7 @@ class TestTenancyForm(BaseFormTestCase, TestCase):
         with self.assertRaises(TypeError) as cm:
             form = TenancyForm()
             
-        self.assertEquals(str(cm.exception), "TenancyForm.__init__() missing 1 required keyword argument: 'user'")
+        self.assertEqual(str(cm.exception), "TenancyForm.__init__() missing 1 required keyword argument: 'user'")
 
     def test_address_field_empty_label(self) -> None:
         """
