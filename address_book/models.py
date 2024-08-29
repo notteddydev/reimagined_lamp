@@ -8,6 +8,7 @@ from django.urls import reverse
 from phonenumber_field.modelfields import PhoneNumberField
 
 from . import constants
+from .utils import get_years_from_year
 
 
 class ArchiveableQuerySet(models.QuerySet):
@@ -147,8 +148,6 @@ class Tenancy(Archiveable, Contactable):
         
 
 class Contact(models.Model):
-    YEAR_MET_CHOICES = list(map(lambda year: (year, str(year)), range(1996, datetime.now().year + 1)[::-1]))
-
     user=models.ForeignKey(User, on_delete=models.CASCADE)
     first_name=models.CharField(blank=False, max_length=100)
     middle_names=models.CharField(blank=True, max_length=200)
@@ -165,7 +164,7 @@ class Contact(models.Model):
     nationalities=models.ManyToManyField(Nation, blank=True)
     year_met=models.SmallIntegerField(
         blank=False,
-        choices=[(None, "-- Select Year --")] + YEAR_MET_CHOICES,
+        choices=[(None, "-- Select Year --")] + [(year, str(year)) for year in get_years_from_year(year=1996)],
         null=False,
     )
     is_business=models.BooleanField(default=False, null=False)
