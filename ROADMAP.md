@@ -9,6 +9,7 @@ forms.py
 - validate that for forms with ModelMultipleChoice, and a User passed in form validation fails if Models that belong to another User are selected.
 - Ensure that when a Tag is Updated (new TagUpdate view mentioned in views.py list), the disassociated contacts ARE disassociated. TESTS.
 - refactor the date fields on Contact - anniversary, dod, dob.
+- Make sure formsets are all instantiated correctly, i.e. EmailCreateFormSet() rather than EmailCreateFormSet where necessary in creation methods.
 
 models.py
 - Maybe more effort that it's worth, but attach vcard to email / sms / whatsapp message
