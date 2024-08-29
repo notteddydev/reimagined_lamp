@@ -158,10 +158,10 @@ class BaseEmailInlineFormSet(SaveFormSetIfNotEmptyMixin, forms.BaseInlineFormSet
                     unarchived_count += 1
 
             if pref_count > 1:
-                raise forms.ValidationError(f"Only one email may be designated as 'preferred'.")
+                raise forms.ValidationError(f"Only one may be designated as 'preferred'.")
             
             if pref_count < 1 <= unarchived_count:
-                raise forms.ValidationError(f"One email must be designated as 'preferred'.")
+                raise forms.ValidationError(f"One must be designated as 'preferred'.")
 
 EmailCreateFormSet = forms.inlineformset_factory(
     Contact,
