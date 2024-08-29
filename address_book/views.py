@@ -6,7 +6,7 @@ from django.template.defaultfilters import slugify
 from django.urls import reverse
 from django.views.generic import DetailView, View
 
-from .forms import AddressForm, AddressPhoneNumberCreateFormSet, AddressPhoneNumberUpdateFormSet, ContactFilterFormSet, ContactForm, ContactPhoneNumberCreateFormSet, ContactPhoneNumberUpdateFormSet, EmailFormSet, TagForm, TenancyCreateFormSet, TenancyUpdateFormSet, WalletAddressCreateFormSet, WalletAddressUpdateFormSet
+from .forms import AddressForm, AddressPhoneNumberFormSet, ContactFilterFormSet, ContactForm, ContactPhoneNumberFormSet, EmailFormSet, TagForm, TenancyFormSet, WalletAddressFormSet
 from .models import Address, Contact
 from app.decorators import owned_by_user
 from app.mixins import OwnedByUserMixin
@@ -103,7 +103,7 @@ class AddressCreateView(LoginRequiredMixin, View):
         """
         return render(request, "address_book/address_form.html", {
             "form": AddressForm(request.user),
-            "phonenumber_formset": AddressPhoneNumberCreateFormSet,
+            "phonenumber_formset": AddressPhoneNumberFormSet(),
         })
     
     def post(self, request: HttpRequest) -> HttpResponse:
@@ -113,7 +113,7 @@ class AddressCreateView(LoginRequiredMixin, View):
         errors.
         """
         form = AddressForm(request.user, request.POST)
-        phonenumber_formset = AddressPhoneNumberCreateFormSet(request.POST)
+        phonenumber_formset = AddressPhoneNumberFormSet(request.POST)
 
         if form.is_valid() and phonenumber_formset.is_valid():
             address = form.save()
@@ -149,7 +149,7 @@ class AddressUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
         return render(request, "address_book/address_form.html", {
             "form": AddressForm(request.user, instance=address),
             "object": address,
-            "phonenumber_formset": AddressPhoneNumberUpdateFormSet(instance=address),
+            "phonenumber_formset": AddressPhoneNumberFormSet(instance=address),
         })
     
     def post(self, request: HttpRequest, pk: int) -> HttpResponse:
@@ -160,7 +160,7 @@ class AddressUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
         """
         address = get_object_or_404(Address, pk=pk)
         form = AddressForm(request.user, request.POST, instance=address)
-        phonenumber_formset = AddressPhoneNumberUpdateFormSet(request.POST, instance=address)
+        phonenumber_formset = AddressPhoneNumberFormSet(request.POST, instance=address)
 
         if form.is_valid() and phonenumber_formset.is_valid():
             address = form.save()
@@ -186,9 +186,9 @@ class ContactCreateView(LoginRequiredMixin, View):
         return render(request, "address_book/contact_form.html", {
             "email_formset": EmailFormSet(),
             "form": ContactForm(request.user),
-            "phonenumber_formset": ContactPhoneNumberCreateFormSet,
-            "tenancy_formset": TenancyCreateFormSet(user=request.user),
-            "walletaddress_formset": WalletAddressCreateFormSet,
+            "phonenumber_formset": ContactPhoneNumberFormSet(),
+            "tenancy_formset": TenancyFormSet(user=request.user),
+            "walletaddress_formset": WalletAddressFormSet(),
         })
     
     def post(self, request: HttpRequest) -> HttpResponse:
@@ -201,9 +201,9 @@ class ContactCreateView(LoginRequiredMixin, View):
         
         formsets = {
             "email_formset": EmailFormSet(request.POST),
-            "phonenumber_formset": ContactPhoneNumberCreateFormSet(request.POST),
-            "tenancy_formset": TenancyCreateFormSet(request.POST, user=request.user),
-            "walletaddress_formset": WalletAddressCreateFormSet(request.POST),
+            "phonenumber_formset": ContactPhoneNumberFormSet(request.POST),
+            "tenancy_formset": TenancyFormSet(request.POST, user=request.user),
+            "walletaddress_formset": WalletAddressFormSet(request.POST),
         }
 
         if form.is_valid() and all(formset.is_valid() for formset in formsets.values()):
@@ -238,9 +238,9 @@ class ContactUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
             "email_formset": EmailFormSet(instance=contact),
             "form": ContactForm(request.user, instance=contact),
             "object": contact,
-            "phonenumber_formset": ContactPhoneNumberUpdateFormSet(instance=contact),
-            "tenancy_formset": TenancyUpdateFormSet(instance=contact, user=request.user),
-            "walletaddress_formset": WalletAddressUpdateFormSet(instance=contact),
+            "phonenumber_formset": ContactPhoneNumberFormSet(instance=contact),
+            "tenancy_formset": TenancyFormSet(instance=contact, user=request.user),
+            "walletaddress_formset": WalletAddressFormSet(instance=contact),
         })
     
     def post(self, request: HttpRequest, pk: int) -> HttpResponse:
@@ -254,9 +254,9 @@ class ContactUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
 
         formsets = {
             "email_formset": EmailFormSet(request.POST, instance=contact),
-            "phonenumber_formset": ContactPhoneNumberUpdateFormSet(request.POST, instance=contact),
-            "tenancy_formset": TenancyUpdateFormSet(request.POST, instance=contact, user=request.user),
-            "walletaddress_formset": WalletAddressUpdateFormSet(request.POST, instance=contact),
+            "phonenumber_formset": ContactPhoneNumberFormSet(request.POST, instance=contact),
+            "tenancy_formset": TenancyFormSet(request.POST, instance=contact, user=request.user),
+            "walletaddress_formset": WalletAddressFormSet(request.POST, instance=contact),
         }
 
         if form.is_valid() and all(formset.is_valid() for formset in formsets.values()):

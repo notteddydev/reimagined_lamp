@@ -205,37 +205,19 @@ class BasePhoneNumberInlineFormSet(SaveFormSetIfNotEmptyMixin, forms.BaseInlineF
                 raise forms.ValidationError(f"One phone number must be designated as 'preferred'.")
 
 
-ContactPhoneNumberCreateFormSet = forms.inlineformset_factory(
+ContactPhoneNumberFormSet = forms.inlineformset_factory(
     Contact,
     PhoneNumber,
     form=PhoneNumberForm,
     formset=BasePhoneNumberInlineFormSet,
-    extra=3,
-    can_delete=False
+    extra=3
 )
-ContactPhoneNumberUpdateFormSet = forms.inlineformset_factory(
-    Contact,
-    PhoneNumber,
-    form=PhoneNumberForm,
-    formset=BasePhoneNumberInlineFormSet,
-    extra=3,
-    can_delete=True
-)
-AddressPhoneNumberCreateFormSet = forms.inlineformset_factory(
+AddressPhoneNumberFormSet = forms.inlineformset_factory(
     Address,
     PhoneNumber,
     form=PhoneNumberForm,
     formset=BasePhoneNumberInlineFormSet,
-    extra=2,
-    can_delete=False
-)
-AddressPhoneNumberUpdateFormSet = forms.inlineformset_factory(
-    Address,
-    PhoneNumber,
-    form=PhoneNumberForm,
-    formset=BasePhoneNumberInlineFormSet,
-    extra=2,
-    can_delete=True
+    extra=2
 )
 
 class TagForm(forms.ModelForm):
@@ -331,21 +313,12 @@ class BaseTenancyInlineFormSet(SaveFormSetIfNotEmptyMixin, forms.BaseInlineFormS
             raise forms.ValidationError(errors)
 
 
-TenancyCreateFormSet = forms.inlineformset_factory(
+TenancyFormSet = forms.inlineformset_factory(
     Contact,
     Tenancy,
     form=TenancyForm,
     formset=BaseTenancyInlineFormSet,
-    extra=2,
-    can_delete=False
-)
-TenancyUpdateFormSet = forms.inlineformset_factory(
-    Contact,
-    Tenancy,
-    form=TenancyForm,
-    formset=BaseTenancyInlineFormSet,
-    extra=2,
-    can_delete=True
+    extra=2
 )
 
 
@@ -363,19 +336,10 @@ class BaseWalletAddressInlineFormSet(SaveFormSetIfNotEmptyMixin, forms.BaseInlin
     pass
 
 
-WalletAddressCreateFormSet = forms.inlineformset_factory(
+WalletAddressFormSet = forms.inlineformset_factory(
     Contact,
     WalletAddress,
     form=WalletAddressForm,
     formset=BaseWalletAddressInlineFormSet,
-    extra=1,
-    can_delete=False
-)
-WalletAddressUpdateFormSet = forms.inlineformset_factory(
-    Contact,
-    WalletAddress,
-    form=WalletAddressForm,
-    formset=BaseWalletAddressInlineFormSet,
-    extra=1,
-    can_delete=True
+    extra=1
 )
