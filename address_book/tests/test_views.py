@@ -589,7 +589,7 @@ class TestContactCreateView(BaseModelViewTestCase, TestCase):
             {"email": ["This field is required."]},
             response.context["email_formset"].errors[0]
         )
-        self.assertIn("One email must be designated as 'preferred'.", response.context["email_formset"].non_form_errors())
+        self.assertIn("One must be designated as 'preferred'.", response.context["email_formset"].non_form_errors())
 
 
 class TestContactDetailView(BaseModelViewTestCase, TestCase):
@@ -1010,7 +1010,7 @@ class TestContactUpdateView(BaseModelViewTestCase, TestCase):
             {"email": ["This field is required."]},
             response.context["email_formset"].errors[0]
         )
-        self.assertIn("One email must be designated as 'preferred'.", response.context["email_formset"].non_form_errors())
+        self.assertIn("One must be designated as 'preferred'.", response.context["email_formset"].non_form_errors())
         self.assertIn("Only one address may be designated as 'preferred'.", response.context["tenancy_formset"].non_form_errors())
         self.assertIn("An address may only be assigned to a contact once.", response.context["tenancy_formset"].non_form_errors())
 
