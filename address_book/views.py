@@ -6,7 +6,7 @@ from django.template.defaultfilters import slugify
 from django.urls import reverse
 from django.views.generic import DetailView, View
 
-from .forms import AddressForm, AddressPhoneNumberCreateFormSet, AddressPhoneNumberUpdateFormSet, ContactFilterFormSet, ContactForm, ContactPhoneNumberCreateFormSet, ContactPhoneNumberUpdateFormSet, EmailCreateFormSet, EmailUpdateFormSet, TagForm, TenancyCreateFormSet, TenancyUpdateFormSet, WalletAddressCreateFormSet, WalletAddressUpdateFormSet
+from .forms import AddressForm, AddressPhoneNumberCreateFormSet, AddressPhoneNumberUpdateFormSet, ContactFilterFormSet, ContactForm, ContactPhoneNumberCreateFormSet, ContactPhoneNumberUpdateFormSet, EmailFormSet, TagForm, TenancyCreateFormSet, TenancyUpdateFormSet, WalletAddressCreateFormSet, WalletAddressUpdateFormSet
 from .models import Address, Contact
 from app.decorators import owned_by_user
 from app.mixins import OwnedByUserMixin
@@ -184,7 +184,7 @@ class ContactCreateView(LoginRequiredMixin, View):
         Return the contact_form template for creating an Contact.
         """
         return render(request, "address_book/contact_form.html", {
-            "email_formset": EmailCreateFormSet,
+            "email_formset": EmailFormSet(),
             "form": ContactForm(request.user),
             "phonenumber_formset": ContactPhoneNumberCreateFormSet,
             "tenancy_formset": TenancyCreateFormSet(user=request.user),
@@ -200,7 +200,7 @@ class ContactCreateView(LoginRequiredMixin, View):
         form = ContactForm(request.user, request.POST)
         
         formsets = {
-            "email_formset": EmailCreateFormSet(request.POST),
+            "email_formset": EmailFormSet(request.POST),
             "phonenumber_formset": ContactPhoneNumberCreateFormSet(request.POST),
             "tenancy_formset": TenancyCreateFormSet(request.POST, user=request.user),
             "walletaddress_formset": WalletAddressCreateFormSet(request.POST),
@@ -235,7 +235,7 @@ class ContactUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
 
         # TODO Look at changing the ContactForm so that in this case the user does not need passing in.
         return render(request, "address_book/contact_form.html", {
-            "email_formset": EmailUpdateFormSet(instance=contact),
+            "email_formset": EmailFormSet(instance=contact),
             "form": ContactForm(request.user, instance=contact),
             "object": contact,
             "phonenumber_formset": ContactPhoneNumberUpdateFormSet(instance=contact),
@@ -253,7 +253,7 @@ class ContactUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
         form = ContactForm(request.user, request.POST, instance=contact)
 
         formsets = {
-            "email_formset": EmailUpdateFormSet(request.POST, instance=contact),
+            "email_formset": EmailFormSet(request.POST, instance=contact),
             "phonenumber_formset": ContactPhoneNumberUpdateFormSet(request.POST, instance=contact),
             "tenancy_formset": TenancyUpdateFormSet(request.POST, instance=contact, user=request.user),
             "walletaddress_formset": WalletAddressUpdateFormSet(request.POST, instance=contact),
