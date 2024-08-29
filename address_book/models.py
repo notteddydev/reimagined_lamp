@@ -1,4 +1,4 @@
-from datetime import date, datetime
+from datetime import date
 from dateutil.relativedelta import relativedelta
 
 from django.contrib.auth.models import User
