@@ -1011,7 +1011,7 @@ class TestContactUpdateView(BaseModelViewTestCase, TestCase):
             response.context["email_formset"].errors[0]
         )
         self.assertIn("One must be designated as 'preferred'.", response.context["email_formset"].non_form_errors())
-        self.assertIn("Only one address may be designated as 'preferred'.", response.context["tenancy_formset"].non_form_errors())
+        self.assertIn("Only one may be designated as 'preferred'.", response.context["tenancy_formset"].non_form_errors())
         self.assertIn("An address may only be assigned to a contact once.", response.context["tenancy_formset"].non_form_errors())
 
     def test_post_with_valid_data_not_owner(self):
