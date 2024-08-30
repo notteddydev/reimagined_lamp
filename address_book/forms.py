@@ -33,6 +33,33 @@ class ContactableMixin:
                     self.add_error(self.contactable_types_field_name, "'Preferred' is not allowed as the only type.")
 
 
+class ContactableFormSetMixin:
+    def _get_contactable_type_errors(self) -> List[str]:
+        errors = []
+
+        if self.pref_contactable_type:
+            pref_count = 0
+            unarchived_count = 0
+
+            for form in self.forms:
+                if not form.cleaned_data or form.cleaned_data.get("DELETE", False):
+                    continue
+
+                if self.pref_contactable_type in form.cleaned_data.get(self.contactable_types_field_name, []):
+                    pref_count += 1
+
+                if not form.cleaned_data.get("archived", False):
+                    unarchived_count += 1
+
+            if pref_count > 1:
+                errors.append(f"Only one may be designated as 'preferred'.")
+            
+            if pref_count < 1 <= unarchived_count:
+                errors.append(f"One must be designated as 'preferred'.")
+
+        return errors
+
+
 class SaveFormSetIfNotEmptyMixin:
     def save_if_not_empty(self, instance: models.Model) -> List[models.Model]:
         has_valid_data = any(
@@ -105,16 +132,16 @@ class ContactForm(forms.ModelForm):
         model = Contact
         exclude = ["addresses", "user"]
 
+    anniversary = create_date_field()
+    dob = create_date_field()
+    dod = create_date_field()
+
     def __init__(self, user, *args, **kwargs):
         super(ContactForm, self).__init__(*args, **kwargs)
         self.instance.user_id = user.id
         self.fields["profession"].empty_label = "-- Select Profession --"
         self.fields["tags"].queryset = Tag.objects.filter(user=user.id)
         self.fields["family_members"].queryset = Contact.objects.filter(user=user.id)
-
-    anniversary = create_date_field()
-    dob = create_date_field()
-    dod = create_date_field()
 
 
 class EmailForm(ContactableMixin, forms.ModelForm):
@@ -126,29 +153,16 @@ class EmailForm(ContactableMixin, forms.ModelForm):
     pref_contactable_type = EmailType.objects.preferred().first()
 
 
-class BaseEmailInlineFormSet(SaveFormSetIfNotEmptyMixin, forms.BaseInlineFormSet):
+class BaseEmailInlineFormSet(ContactableFormSetMixin, SaveFormSetIfNotEmptyMixin, forms.BaseInlineFormSet):
+    contactable_types_field_name = "email_types"
+    pref_contactable_type = EmailType.objects.preferred().first()
+
     def clean(self):
         super().clean()
-        pref_type = EmailType.objects.preferred().first()
-        if pref_type:
-            pref_count = 0
-            unarchived_count = 0
+        errors = self._get_contactable_type_errors()
+        if errors:
+            raise forms.ValidationError(errors)
 
-            for form in self.forms:
-                if not form.cleaned_data or form.cleaned_data.get("DELETE", False):
-                    continue
-
-                if pref_type in form.cleaned_data.get("email_types", []):
-                    pref_count += 1
-
-                if not form.cleaned_data.get("archived", False):
-                    unarchived_count += 1
-
-            if pref_count > 1:
-                raise forms.ValidationError(f"Only one may be designated as 'preferred'.")
-            
-            if pref_count < 1 <= unarchived_count:
-                raise forms.ValidationError(f"One must be designated as 'preferred'.")
 
 EmailFormSet = forms.inlineformset_factory(
     Contact,
@@ -180,29 +194,15 @@ class PhoneNumberForm(ContactableMixin, forms.ModelForm):
     number = CustomSplitPhoneNumberField()
 
 
-class BasePhoneNumberInlineFormSet(SaveFormSetIfNotEmptyMixin, forms.BaseInlineFormSet):
+class BasePhoneNumberInlineFormSet(ContactableFormSetMixin, SaveFormSetIfNotEmptyMixin, forms.BaseInlineFormSet):
+    contactable_types_field_name = "phonenumber_types"
+    pref_contactable_type = PhoneNumberType.objects.preferred().first()
+
     def clean(self):
         super().clean()
-        pref_type = PhoneNumberType.objects.preferred().first()
-        if pref_type:
-            pref_count = 0
-            unarchived_count = 0
-
-            for form in self.forms:
-                if not form.cleaned_data or form.cleaned_data.get("DELETE", False):
-                    continue
-
-                if pref_type in form.cleaned_data.get("phonenumber_types", []):
-                    pref_count += 1
-
-                if not form.cleaned_data.get("archived", False):
-                    unarchived_count += 1
-
-            if pref_count > 1:
-                raise forms.ValidationError(f"Only one phone number may be designated as 'preferred'.")
-            
-            if pref_count < 1 <= unarchived_count:
-                raise forms.ValidationError(f"One phone number must be designated as 'preferred'.")
+        errors = self._get_contactable_type_errors()
+        if errors:
+            raise forms.ValidationError(errors)
 
 
 ContactPhoneNumberFormSet = forms.inlineformset_factory(
@@ -249,6 +249,9 @@ class TenancyForm(ContactableMixin, forms.ModelForm):
         model = Tenancy
         exclude = ["contact"]
 
+    contactable_types_field_name = "tenancy_types"
+    pref_contactable_type = AddressType.objects.preferred().first()
+
     def __init__(self, *args, **kwargs):
         user = kwargs.pop("user", None)
         if not user:
@@ -261,11 +264,11 @@ class TenancyForm(ContactableMixin, forms.ModelForm):
             empty_label="-- Select Address --"
         )
 
+
+class BaseTenancyInlineFormSet(ContactableFormSetMixin, SaveFormSetIfNotEmptyMixin, forms.BaseInlineFormSet):
     contactable_types_field_name = "tenancy_types"
     pref_contactable_type = AddressType.objects.preferred().first()
 
-
-class BaseTenancyInlineFormSet(SaveFormSetIfNotEmptyMixin, forms.BaseInlineFormSet):
     def __init__(self, *args, **kwargs):
         self.user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
@@ -277,7 +280,7 @@ class BaseTenancyInlineFormSet(SaveFormSetIfNotEmptyMixin, forms.BaseInlineFormS
 
     def clean(self):
         super().clean()
-        errors = []
+        errors = self._get_contactable_type_errors()
 
         addresses = []
         for form in self.forms:
@@ -287,27 +290,6 @@ class BaseTenancyInlineFormSet(SaveFormSetIfNotEmptyMixin, forms.BaseInlineFormS
                     errors.append("An address may only be assigned to a contact once.")
                     break
                 addresses.append(address)
-
-        pref_type = AddressType.objects.preferred().first()
-        if pref_type:
-            pref_count = 0
-            unarchived_count = 0
-
-            for form in self.forms:
-                if not form.cleaned_data or form.cleaned_data.get("DELETE", False):
-                    continue
-
-                if pref_type in form.cleaned_data.get("tenancy_types", []):
-                    pref_count += 1
-
-                if not form.cleaned_data.get("archived", False):
-                    unarchived_count += 1
-
-            if pref_count > 1:
-                errors.append("Only one address may be designated as 'preferred'.")
-            
-            if pref_count < 1 <= unarchived_count:
-                errors.append("One address must be designated as 'preferred'.")
 
         if errors:
             raise forms.ValidationError(errors)
