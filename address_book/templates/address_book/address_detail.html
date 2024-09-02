@@ -19,7 +19,7 @@
                     {% for phone_number in address.phonenumber_set.all %}
                         <tr>
                             <th {% if phone_number.archived %} class="linethrough" {% endif %}>{{ phone_number.readable_types }}</th>
-                            <td {% if phone_number.archived %} class="linethrough" {% endif %}>{{ phone_number.number }}</td>
+                            <td {% if phone_number.archived %} class="linethrough" {% endif %}>{{ phone_number.formatted }}</td>
                             <td>
                                 {% if not phone_number.archived %}
                                     <a href="{{ phone_number.tel_href }}" target="_blank">Call</a>

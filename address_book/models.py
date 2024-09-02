@@ -6,6 +6,7 @@ from django.db import models
 from django.urls import reverse
 
 from phonenumber_field.modelfields import PhoneNumberField
+import phonenumbers
 
 from . import constants
 from .utils import get_years_from_year
@@ -261,6 +262,26 @@ class PhoneNumber(Archiveable, Contactable):
     address=models.ForeignKey("Address", on_delete=models.CASCADE, null=True)
     contact=models.ForeignKey(Contact, on_delete=models.CASCADE, null=True)
     phonenumber_types=models.ManyToManyField(PhoneNumberType)
+
+    @property
+    def country_code(self):
+        return phonenumbers.region_code_for_country_code(self.country_prefix)
+
+    @property
+    def country_prefix(self):
+        return self.parsed.country_code
+    
+    @property
+    def formatted(self):
+        return phonenumbers.format_number(self.parsed, phonenumbers.PhoneNumberFormat.INTERNATIONAL)
+    
+    @property
+    def national_number(self):
+        return self.parsed.national_number
+    
+    @property
+    def parsed(self):
+        return phonenumbers.parse(str(self.number))
     
     @property
     def sms_href(self):
