@@ -13,10 +13,10 @@ from address_book import constants
 from address_book.factories.address_factories import AddressFactory
 from address_book.factories.contact_factories import ContactFactory
 from address_book.factories.email_factories import EmailFactory
-from address_book.factories.phonenumber_factories import ContactPhoneNumberFactory
+from address_book.factories.phonenumber_factories import AddressPhoneNumberFactory, ContactPhoneNumberFactory
 from address_book.factories.tag_factories import TagFactory
 from address_book.factories.user_factories import UserFactory
-from address_book.forms import AddressForm, ContactForm, ContactPhoneNumberFormSet, CustomSplitPhoneNumberField, EmailForm, EmailFormSet, PhoneNumberForm, TagForm, TenancyForm, WalletAddressForm
+from address_book.forms import AddressForm, AddressPhoneNumberFormSet, ContactForm, ContactPhoneNumberFormSet, CustomSplitPhoneNumberField, EmailForm, EmailFormSet, PhoneNumberForm, TagForm, TenancyForm, WalletAddressForm
 from address_book.models import Address, AddressType, Contact, Contactable, CryptoNetwork, Email, EmailType, PhoneNumber, PhoneNumberType, Tag, Tenancy, WalletAddress
 
 fake = Faker()
@@ -1424,6 +1424,257 @@ class TestContactPhoneNumberFormSet(BaseFormTestCase, TestCase):
         formset = ContactPhoneNumberFormSet(data=data)
         self.assertTrue(formset.is_valid())
         formset.instance = ContactFactory.create()
+        formset.save()
+
+        self.assertEqual(PhoneNumber.objects.all().count(), 2)
+        
+        first_phonenumber_query = PhoneNumber.objects.filter(number="+447711222333")
+        self.assertTrue(first_phonenumber_query.exists())
+
+        first_phonenumber = first_phonenumber_query.first()
+        self.assertTrue(first_phonenumber.archived)
+        self.assertEqual(
+            Counter([self.non_pref_type.id]),
+            Counter(first_phonenumber.phonenumber_types.values_list("id", flat=True))
+        )
+        
+        second_phonenumber_query = PhoneNumber.objects.filter(number="+12015550123")
+        self.assertTrue(second_phonenumber_query.exists())
+
+        second_phonenumber = second_phonenumber_query.first()
+        self.assertTrue(second_phonenumber.archived)
+        self.assertEqual(
+            Counter([self.non_pref_type.id]),
+            Counter(second_phonenumber.phonenumber_types.values_list("id", flat=True))
+        )
+
+    
+class TestAddressPhoneNumberFormSet(BaseFormTestCase, TestCase):
+    def setUp(self):
+        super().setUp()
+        self.address = AddressFactory.create(user=self.primary_user)
+        self.pref_type = PhoneNumberType.objects.preferred().first()
+        self.non_pref_types = PhoneNumberType.objects.exclude(pk=self.pref_type.id).order_by("?")
+        self.non_pref_type = self.non_pref_types.first()
+
+    def _create_phonenumber(self, pref: bool, address: Optional[Contact] = None):
+        """
+        Create a PhoneNumber for a provided Address (or not); optionally make it the preferred PhoneNumber.
+        """
+        if pref:
+            phonenumber_types = [self.pref_type, self.non_pref_type]
+        else:
+            phonenumber_types = self.non_pref_types[:2]
+        return AddressPhoneNumberFactory.create(
+            address=address or self.address,
+            phonenumber_types=phonenumber_types
+        )
+    
+    def _get_management_form_data(self, initial: Optional[int] = 0, total: int = 2):
+        """
+        Create management form data for a PhoneNumber FormSet.
+        """
+        return {
+            "phonenumber_set-TOTAL_FORMS": str(total),
+            "phonenumber_set-INITIAL_FORMS": str(initial),
+            "phonenumber_set-MIN_NUM_FORMS": "0",
+            "phonenumber_set-MAX_NUM_FORMS": "1000",
+        }
+
+    def test_delete_present(self) -> None:
+        """
+        Test that the delete fields are present.
+        """
+        formset = AddressPhoneNumberFormSet(instance=self.address)
+        for form in formset.forms:
+            self.assertIn("DELETE", form.fields)
+
+    def test_delete_successful(self) -> None:
+        """
+        Test that when delete is selected, the PhoneNumber is successfully deleted from db.
+        """
+        pref_phonenumber = self._create_phonenumber(pref=True)
+        non_pref_phonenumber = self._create_phonenumber(pref=False)
+
+        data = {
+            **self._get_management_form_data(initial=2),
+
+            "phonenumber_set-0-address": str(self.address.id),
+            "phonenumber_set-0-archived": False,
+            "phonenumber_set-0-number_0": pref_phonenumber.country_code,
+            "phonenumber_set-0-number_1": pref_phonenumber.national_number,
+            "phonenumber_set-0-phonenumber_types": get_contactable_type_ids_for_contactable(pref_phonenumber),
+            "phonenumber_set-0-id": str(pref_phonenumber.id),
+            
+            "phonenumber_set-1-address": str(self.address.id),
+            "phonenumber_set-1-archived": False,
+            "phonenumber_set-1-DELETE": True,
+            "phonenumber_set-1-number_0": non_pref_phonenumber.country_code,
+            "phonenumber_set-1-number_1": non_pref_phonenumber.national_number,
+            "phonenumber_set-1-phonenumber_types": get_contactable_type_ids_for_contactable(non_pref_phonenumber),
+            "phonenumber_set-1-id": str(non_pref_phonenumber.id),
+        }
+
+        formset = AddressPhoneNumberFormSet(data=data, instance=self.address)
+        self.assertTrue(formset.is_valid())
+        formset.save()
+        self.assertEqual(1, PhoneNumber.objects.count())
+        self.assertFalse(PhoneNumber.objects.filter(number=non_pref_phonenumber.number).exists())
+
+    def test_delete_preferred_unsuccessful_if_no_replacement(self) -> None:
+        """
+        Test that when delete is selected on the 'preferred' PhoneNumber, form validation fails unless
+        there is a newly selected 'preferred' PhoneNumber.
+        """
+        pref_phonenumber = self._create_phonenumber(pref=True)
+        non_pref_phonenumber = self._create_phonenumber(pref=False)
+
+        data = {
+            **self._get_management_form_data(initial=2),
+
+            "phonenumber_set-0-address": str(self.address.id),
+            "phonenumber_set-0-archived": False,
+            "phonenumber_set-0-DELETE": True,
+            "phonenumber_set-0-number_0": pref_phonenumber.country_code,
+            "phonenumber_set-0-number_1": pref_phonenumber.national_number,
+            "phonenumber_set-0-phonenumber_types": get_contactable_type_ids_for_contactable(pref_phonenumber),
+            "phonenumber_set-0-id": str(pref_phonenumber.id),
+            
+            "phonenumber_set-1-address": str(self.address.id),
+            "phonenumber_set-1-archived": False,
+            "phonenumber_set-1-number_0": non_pref_phonenumber.country_code,
+            "phonenumber_set-1-number_1": non_pref_phonenumber.national_number,
+            "phonenumber_set-1-phonenumber_types": get_contactable_type_ids_for_contactable(non_pref_phonenumber),
+            "phonenumber_set-1-id": str(non_pref_phonenumber.id),
+        }
+
+        formset = AddressPhoneNumberFormSet(data=data, instance=self.address)
+        self.assertFalse(formset.is_valid())
+        self.assertIn("One must be designated as 'preferred'.", formset.non_form_errors())
+
+    def test_not_validates_with_multiple_preferred_phonenumbers(self) -> None:
+        """
+        Test that form validation fails if more than one PhoneNumber in the formset is set as PhoneNumberType, 'preferred'.
+        """
+        data = {
+            **self._get_management_form_data(),
+
+            "phonenumber_set-0-address": "",
+            "phonenumber_set-0-number_0": "GB",
+            "phonenumber_set-0-number_1": "7783444445",
+            "phonenumber_set-0-phonenumber_types": [self.pref_type.id, self.non_pref_type.id],
+            "phonenumber_set-0-id": "",
+            
+            "phonenumber_set-1-address": "",
+            "phonenumber_set-1-number_0": "US",
+            "phonenumber_set-1-number_1": "4249998888",
+            "phonenumber_set-1-phonenumber_types": [self.pref_type.id, self.non_pref_type.id],
+            "phonenumber_set-1-id": "",
+        }
+
+        formset = AddressPhoneNumberFormSet(data=data, instance=self.address)
+        self.assertFalse(formset.is_valid())
+        self.assertIn("Only one may be designated as 'preferred'.", formset.non_form_errors())
+
+    def test_not_validates_without_preferred_phonenumber_when_unarchived(self) -> None:
+        """
+        Test that form validation fails if no PhoneNumber in the formset is set as PhoneNumberType, 'preferred'.
+        """
+        data = {
+            **self._get_management_form_data(),
+
+            "phonenumber_set-0-address": "",
+            "phonenumber_set-0-number_0": "GB",
+            "phonenumber_set-0-number_1": "7783444445",
+            "phonenumber_set-0-phonenumber_types": [self.non_pref_type.id],
+            "phonenumber_set-0-id": "",
+            
+            "phonenumber_set-1-address": "",
+            "phonenumber_set-1-number_0": "US",
+            "phonenumber_set-1-number_1": "4249998888",
+            "phonenumber_set-1-phonenumber_types": [self.non_pref_type.id],
+            "phonenumber_set-1-id": "",
+        }
+
+        formset = AddressPhoneNumberFormSet(data=data, instance=self.address)
+        self.assertFalse(formset.is_valid())
+        self.assertIn("One must be designated as 'preferred'.", formset.non_form_errors())
+
+    def test_validates_and_saves_with_comprehensive_valid_data_unarchived(self) -> None:
+        """
+        Test that formset validation is successful with valid data and PhoneNumbers are successfully saved to db
+        when PhoneNumbers are unarchived.
+        """
+        data = {
+            **self._get_management_form_data(),
+
+            "phonenumber_set-0-address": "",
+            "phonenumber_set-0-number_0": "GB",
+            "phonenumber_set-0-number_1": "7783444445",
+            "phonenumber_set-0-phonenumber_types": [self.pref_type.id, self.non_pref_type.id],
+            "phonenumber_set-0-id": "",
+            
+            "phonenumber_set-1-address": "",
+            "phonenumber_set-1-number_0": "US",
+            "phonenumber_set-1-number_1": "4249998888",
+            "phonenumber_set-1-phonenumber_types": [self.non_pref_type.id],
+            "phonenumber_set-1-id": "",
+        }
+
+        formset = AddressPhoneNumberFormSet(data=data)
+        self.assertTrue(formset.is_valid())
+        formset.instance = AddressFactory.create()
+        formset.save()
+
+        self.assertEqual(PhoneNumber.objects.all().count(), 2)
+        
+        pref_phonenumber_query = PhoneNumber.objects.filter(number="+447783444445")
+        self.assertTrue(pref_phonenumber_query.exists())
+
+        pref_phonenumber = pref_phonenumber_query.first()
+        self.assertFalse(pref_phonenumber.archived)
+        self.assertEqual(
+            Counter([self.pref_type.id, self.non_pref_type.id]),
+            Counter(pref_phonenumber.phonenumber_types.values_list("id", flat=True))
+        )
+        
+        secondary_phonenumber_query = PhoneNumber.objects.filter(number="+14249998888")
+        self.assertTrue(secondary_phonenumber_query.exists())
+
+        secondary_phonenumber = secondary_phonenumber_query.first()
+        self.assertFalse(secondary_phonenumber.archived)
+        self.assertEqual(
+            Counter([self.non_pref_type.id]),
+            Counter(secondary_phonenumber.phonenumber_types.values_list("id", flat=True))
+        )
+
+    def test_validates_and_saves_with_comprehensive_valid_data_archived(self) -> None:
+        """
+        Test that formset validation is successful with valid data and PhoneNumbers are successfully saved to db
+        when all PhoneNumbers are archived - ensure that despite not having any 'preferred' PhoneNumber, validation and
+        save is still successful.
+        """
+        data = {
+            **self._get_management_form_data(),
+
+            "phonenumber_set-0-address": "",
+            "phonenumber_set-0-archived": True,
+            "phonenumber_set-0-number_0": "GB",
+            "phonenumber_set-0-number_1": "7711222333",
+            "phonenumber_set-0-phonenumber_types": [self.non_pref_type.id],
+            "phonenumber_set-0-id": "",
+            
+            "phonenumber_set-1-address": "",
+            "phonenumber_set-1-archived": True,
+            "phonenumber_set-1-number_0": "US",
+            "phonenumber_set-1-number_1": "2015550123",
+            "phonenumber_set-1-phonenumber_types": [self.non_pref_type.id],
+            "phonenumber_set-1-id": "",
+        }
+
+        formset = AddressPhoneNumberFormSet(data=data)
+        self.assertTrue(formset.is_valid())
+        formset.instance = AddressFactory.create()
         formset.save()
 
         self.assertEqual(PhoneNumber.objects.all().count(), 2)
