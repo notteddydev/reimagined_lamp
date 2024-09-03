@@ -3,6 +3,7 @@ from django.conf import settings
 from django.db import models
 from django.utils import translation
 
+import datetime
 from phonenumber_field.formfields import localized_choices, PrefixChoiceField, SplitPhoneNumberField
 
 from typing import List, Optional
@@ -142,6 +143,39 @@ class ContactForm(forms.ModelForm):
         self.fields["profession"].empty_label = "-- Select Profession --"
         self.fields["tags"].queryset = Tag.objects.filter(user=user.id)
         self.fields["family_members"].queryset = Contact.objects.filter(user=user.id)
+
+    def clean(self) -> None:
+        cleaned_data = super().clean()
+        self.clean_dates(cleaned_data=cleaned_data)
+
+    def clean_dates(self, cleaned_data: dict) -> None:
+        anniversary = cleaned_data.get("anniversary", None)
+        dob = cleaned_data.get("dob", None)
+        dod = cleaned_data.get("dod", None)
+        year_met = cleaned_data.get("year_met", None)
+            
+        if dob:
+            if anniversary and anniversary <= dob:
+                self.add_error("anniversary", "Anniversary must be greater than the date of birth.")
+
+            if dob > datetime.date.today():
+                self.add_error("dob", "Date of birth may not be set to a future date.")
+
+            if year_met and dob.year > year_met:
+                self.add_error("year_met", "Year met may not be before the date of birth.")
+
+        if dod:
+            if anniversary and anniversary > dod:
+                self.add_error("anniversary", "Anniversary must be sooner than the date of passing.")
+
+            if dob and dob > dod:
+                self.add_error("dob", "Date of birth may not be after date of passing.")
+
+            if dod > datetime.date.today():
+                self.add_error("dod", "Date of passing may not be set to a future date.")
+
+            if year_met and dod.year < year_met:
+                self.add_error("year_met", "Year met may not be after date of passing.")
 
 
 class EmailForm(ContactableMixin, forms.ModelForm):
