@@ -15,36 +15,36 @@ class ContactFactory(factory.django.DjangoModelFactory):
     class Meta:
         model = Contact
 
-    first_name: str = factory.Faker("first_name")
-    gender: str = factory.Iterator([constants.CONTACT_GENDER_FEMALE, constants.CONTACT_GENDER_MALE])
-    is_business: bool = factory.LazyAttribute(
+    first_name = factory.Faker("first_name")
+    gender = factory.Iterator([constants.CONTACT_GENDER_FEMALE, constants.CONTACT_GENDER_MALE])
+    is_business = factory.LazyAttribute(
         lambda o: random.choice([True, False])
     )
-    notes: str = factory.Faker("text", max_nb_chars=1000)
-    last_name: str = factory.Faker("last_name")
-    middle_names: str = factory.Faker("first_name")
-    nickname: str = factory.Faker("first_name")
-    website: str = factory.Faker("url")
+    notes = factory.Faker("text", max_nb_chars=1000)
+    last_name = factory.Faker("last_name")
+    middle_names = factory.Faker("first_name")
+    nickname = factory.Faker("first_name")
+    website = factory.Faker("url")
 
     @factory.lazy_attribute
     def anniversary(self) -> datetime:
-        delta_days: int = (self.dod - self.dob).days
-        random_days: int = random.randint(0, delta_days)
+        delta_days = (self.dod - self.dob).days
+        random_days = random.randint(0, delta_days)
         return self.dob + timedelta(days=random_days)
 
     @factory.lazy_attribute
     def dob(self) -> datetime:
-        start_date: datetime = datetime(1900, 1, 1)
-        end_date: datetime = datetime.now()
-        delta_days: int = (end_date - start_date).days
-        random_days: int = random.randint(0, delta_days)
+        start_date = datetime(1900, 1, 1)
+        end_date = datetime.now()
+        delta_days = (end_date - start_date).days
+        random_days = random.randint(0, delta_days)
         return start_date + timedelta(days=random_days)
     
     @factory.lazy_attribute
     def dod(self) -> datetime:
-        end_date: datetime = datetime.now()
-        delta_days: int = (end_date - self.dob).days
-        random_days: int = random.randint(0, delta_days)
+        end_date = datetime.now()
+        delta_days = (end_date - self.dob).days
+        random_days = random.randint(0, delta_days)
         return self.dob + timedelta(days=random_days)
 
     @factory.lazy_attribute
@@ -58,7 +58,7 @@ class ContactFactory(factory.django.DjangoModelFactory):
 
     @factory.lazy_attribute
     def user(self) -> User:
-        existing_users: QuerySet[User] = User.objects.all()
+        existing_users = User.objects.all()
 
         if existing_users.exists():
             return random.choice(existing_users)
@@ -67,8 +67,8 @@ class ContactFactory(factory.django.DjangoModelFactory):
     
     @factory.lazy_attribute
     def year_met(self) -> int:
-        delta_days: int = (self.dod - self.dob).days
-        random_days: int = random.randint(0, delta_days)
+        delta_days = (self.dod - self.dob).days
+        random_days = random.randint(0, delta_days)
         return (self.dob + timedelta(days=random_days)).year
     
     @factory.post_generation
@@ -86,7 +86,7 @@ class ContactFactory(factory.django.DjangoModelFactory):
             return
         
         if nationalities is None:
-            nationalities: QuerySet[Nation] = Nation.objects.order_by("?")[:random.randint(1, 3)]
+            nationalities = Nation.objects.order_by("?")[:random.randint(1, 3)]
 
         for nationality in nationalities:
             self.nationalities.add(nationality)
