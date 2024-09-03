@@ -1,10 +1,6 @@
 ### ToDo (AddressBook)
 
 forms.py
-- Consolidate VERY NOT DRY code in Email and Phone Forms and Formsets. And Address. cleaning types.
-- Find out how to not have to create 'CreateFormSet' and 'UpdateFormSet' just to set the can_delete value differently.
-- Make InlineFormSets work consistently whereby they do not throw just one error if there are many; the array of errors is thrown as in the TenancyFormSet
-- get_years_from_1920 improve reusability and move into utils.
 - validate that dod is greater than dob, anniversary, year met...
 - validate that for forms with ModelMultipleChoice, and a User passed in form validation fails if Models that belong to another User are selected.
 - Ensure that when a Tag is Updated (new TagUpdate view mentioned in views.py list), the disassociated contacts ARE disassociated. TESTS.
@@ -26,9 +22,6 @@ views.py
 - Make nationality links on contact-detail page link to contact-list filtering by nationality.
 - Make sure that when creating an Address for a given Contact (passing contact-update contact.id to the address-create url as a next param), that the Address is pre-selected for a new Tenancy in the TenancyInlineFormSet.
 - Add a TagUpdate view
-
-tests.py
-- Test everything.
 
 templates
 - Add JavaScript for adding / removing forms from formsets for tidier forms.
