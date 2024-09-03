@@ -1,15 +1,11 @@
 ### ToDo (AddressBook)
 
 forms.py
-- validate that for forms with ModelMultipleChoice, and a User passed in form validation fails if Models that belong to another User are selected.
 - Ensure that when a Tag is Updated (new TagUpdate view mentioned in views.py list), the disassociated contacts ARE disassociated. TESTS.
 - Make it so that only existing models being updated in formsets have the option to be deleted.
 
 models.py
 - Maybe more effort that it's worth, but attach vcard to email / sms / whatsapp message
-- validate that anniversary/dod is greater than dob
-- validate that dod is greater than anniversary/dob
-- change tag.name from unique; unique_together instead, for user and name.
 
 views.py
 - Create option to download a "lite" vcard, or customise what is downloaded.
