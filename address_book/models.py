@@ -121,13 +121,14 @@ class Nation(models.Model):
 
 class Tag(models.Model):
     user=models.ForeignKey(User, on_delete=models.CASCADE)
-    name=models.CharField(max_length=50, unique=True)
+    name=models.CharField(max_length=50)
 
     def __str__(self):
         return self.name
 
     class Meta:
         ordering = ["name"]
+        unique_together = ("name", "user",)
 
 
 class Tenancy(Archiveable, Contactable):
@@ -145,7 +146,7 @@ class Tenancy(Archiveable, Contactable):
         return f"{adr}{self.address.city};{self.address.state};{self.address.postcode};{self.address.country.verbose}"
 
     class Meta(Archiveable.Meta):
-        unique_together = ("contact", "address")
+        unique_together = ("contact", "address",)
         
 
 class Contact(models.Model):
