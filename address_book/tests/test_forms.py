@@ -4,7 +4,7 @@ import random
 from collections import Counter
 from django import forms
 from django.apps import apps
-from django.db.models import QuerySet
+from django.db.models import Count, QuerySet
 from django.test import TestCase
 from faker import Faker
 from typing import List, Optional
@@ -16,7 +16,7 @@ from address_book.factories.email_factories import EmailFactory
 from address_book.factories.phonenumber_factories import AddressPhoneNumberFactory, ContactPhoneNumberFactory
 from address_book.factories.tag_factories import TagFactory
 from address_book.factories.user_factories import UserFactory
-from address_book.forms import AddressForm, AddressPhoneNumberFormSet, ContactForm, ContactPhoneNumberFormSet, CustomSplitPhoneNumberField, EmailForm, EmailFormSet, PhoneNumberForm, TagForm, TenancyForm, WalletAddressForm
+from address_book.forms import AddressForm, AddressPhoneNumberFormSet, ContactForm, ContactPhoneNumberFormSet, CustomSplitPhoneNumberField, EmailForm, EmailFormSet, PhoneNumberForm, TagForm, TenancyForm, TenancyFormSet, WalletAddressForm
 from address_book.models import Address, AddressType, Contact, Contactable, CryptoNetwork, Email, EmailType, PhoneNumber, PhoneNumberType, Tag, Tenancy, WalletAddress
 
 fake = Faker()
@@ -1457,7 +1457,7 @@ class TestAddressPhoneNumberFormSet(BaseFormTestCase, TestCase):
         self.non_pref_types = PhoneNumberType.objects.exclude(pk=self.pref_type.id).order_by("?")
         self.non_pref_type = self.non_pref_types.first()
 
-    def _create_phonenumber(self, pref: bool, address: Optional[Contact] = None):
+    def _create_phonenumber(self, pref: bool, address: Optional[Address] = None):
         """
         Create a PhoneNumber for a provided Address (or not); optionally make it the preferred PhoneNumber.
         """
@@ -1697,4 +1697,235 @@ class TestAddressPhoneNumberFormSet(BaseFormTestCase, TestCase):
         self.assertEqual(
             Counter([self.non_pref_type.id]),
             Counter(second_phonenumber.phonenumber_types.values_list("id", flat=True))
+        )
+
+    
+class TestTenancyFormSet(BaseFormTestCase, TestCase):
+    def setUp(self):
+        super().setUp()
+        self.address_1 = AddressFactory.create(user=self.primary_user)
+        self.address_2 = AddressFactory.create(user=self.primary_user)
+        self.contact = ContactFactory.create(user=self.primary_user)
+        self.pref_type = AddressType.objects.preferred().first()
+        self.non_pref_types = AddressType.objects.exclude(pk=self.pref_type.id).order_by("?")
+        self.non_pref_type = self.non_pref_types.first()
+
+    def _create_tenancy(self, pref: bool, address: Address, contact: Optional[Contact] = None):
+        """
+        Create a Tenancy for a provided Address (or not); optionally make it the preferred Tenancy.
+        """
+        if pref:
+            address_types = [self.pref_type, self.non_pref_type]
+        else:
+            address_types = self.non_pref_types[:2]
+        tenancy = Tenancy.objects.create(
+            address=address,
+            contact=contact or self.contact,
+        )
+        tenancy.tenancy_types.set(address_types)
+        return tenancy
+    
+    def _get_management_form_data(self, initial: Optional[int] = 0, total: int = 2):
+        """
+        Create management form data for a PhoneNumber FormSet.
+        """
+        return {
+            "tenancy_set-TOTAL_FORMS": str(total),
+            "tenancy_set-INITIAL_FORMS": str(initial),
+            "tenancy_set-MIN_NUM_FORMS": "0",
+            "tenancy_set-MAX_NUM_FORMS": "1000",
+        }
+
+    def test_delete_present(self) -> None:
+        """
+        Test that the delete fields are present.
+        """
+        formset = TenancyFormSet(instance=self.contact, user=self.primary_user)
+        for form in formset.forms:
+            self.assertIn("DELETE", form.fields)
+
+    def test_delete_successful(self) -> None:
+        """
+        Test that when delete is selected, the Tenancy is successfully deleted from db.
+        """
+        pref_tenancy = self._create_tenancy(pref=True, address=self.address_1)
+        non_pref_tenancy = self._create_tenancy(pref=False, address=self.address_2)
+
+        data = {
+            **self._get_management_form_data(initial=2),
+
+            "tenancy_set-0-address": str(self.address_1.id),
+            "tenancy_set-0-archived": False,
+            "tenancy_set-0-tenancy_types": get_contactable_type_ids_for_contactable(pref_tenancy),
+            "tenancy_set-0-id": str(pref_tenancy.id),
+            
+            "tenancy_set-1-address": str(self.address_2.id),
+            "tenancy_set-1-archived": False,
+            "tenancy_set-1-DELETE": True,
+            "tenancy_set-1-tenancy_types": get_contactable_type_ids_for_contactable(non_pref_tenancy),
+            "tenancy_set-1-id": str(non_pref_tenancy.id),
+        }
+
+        formset = TenancyFormSet(data=data, instance=self.contact, user=self.primary_user)
+        self.assertTrue(formset.is_valid())
+        formset.save()
+        self.assertEqual(1, Tenancy.objects.count())
+        self.assertFalse(Tenancy.objects.filter(pk=non_pref_tenancy.id).exists())
+
+    def test_delete_preferred_unsuccessful_if_no_replacement(self) -> None:
+        """
+        Test that when delete is selected on the 'preferred' Tenancy, form validation fails unless
+        there is a newly selected 'preferred' Tenancy.
+        """
+        pref_tenancy = self._create_tenancy(pref=True, address=self.address_1)
+        non_pref_tenancy = self._create_tenancy(pref=False, address=self.address_2)
+
+        data = {
+            **self._get_management_form_data(initial=2),
+
+            "tenancy_set-0-address": str(self.address_1.id),
+            "tenancy_set-0-archived": False,
+            "tenancy_set-0-DELETE": True,
+            "tenancy_set-0-tenancy_types": get_contactable_type_ids_for_contactable(pref_tenancy),
+            "tenancy_set-0-id": str(pref_tenancy.id),
+            
+            "tenancy_set-1-address": str(self.address_2.id),
+            "tenancy_set-1-archived": False,
+            "tenancy_set-1-tenancy_types": get_contactable_type_ids_for_contactable(non_pref_tenancy),
+            "tenancy_set-1-id": str(non_pref_tenancy.id),
+        }
+
+        formset = TenancyFormSet(data=data, instance=self.contact, user=self.primary_user)
+        self.assertFalse(formset.is_valid())
+        self.assertIn("One must be designated as 'preferred'.", formset.non_form_errors())
+
+    def test_not_validates_with_multiple_preferred_tenancies(self) -> None:
+        """
+        Test that form validation fails if more than one Tenancy in the formset is set as AddressType, 'preferred'.
+        """
+        data = {
+            **self._get_management_form_data(),
+
+            "tenancy_set-0-address": str(self.address_1.id),
+            "tenancy_set-0-tenancy_types": [self.pref_type.id, self.non_pref_type.id],
+            "tenancy_set-0-id": "",
+            
+            "tenancy_set-1-address": str(self.address_2.id),
+            "tenancy_set-1-tenancy_types": [self.pref_type.id, self.non_pref_type.id],
+            "tenancy_set-1-id": "",
+        }
+
+        formset = TenancyFormSet(data=data, instance=self.contact, user=self.primary_user)
+        self.assertFalse(formset.is_valid())
+        self.assertIn("Only one may be designated as 'preferred'.", formset.non_form_errors())
+
+    def test_not_validates_without_preferred_tenancy_when_unarchived(self) -> None:
+        """
+        Test that form validation fails if no Tenancy in the formset is set as AddressType, 'preferred'.
+        """
+        data = {
+            **self._get_management_form_data(),
+
+            "tenancy_set-0-address": str(self.address_1.id),
+            "tenancy_set-0-tenancy_types": [self.non_pref_type.id],
+            "tenancy_set-0-id": "",
+            
+            "tenancy_set-1-address": str(self.address_2.id),
+            "tenancy_set-1-tenancy_types": [self.non_pref_type.id],
+            "tenancy_set-1-id": "",
+        }
+
+        formset = TenancyFormSet(data=data, instance=self.contact, user=self.primary_user)
+        self.assertFalse(formset.is_valid())
+        self.assertIn("One must be designated as 'preferred'.", formset.non_form_errors())
+
+    def test_validates_and_saves_with_comprehensive_valid_data_unarchived(self) -> None:
+        """
+        Test that formset validation is successful with valid data and Tenancies are successfully saved to db
+        when Tenancies are unarchived.
+        """
+        data = {
+            **self._get_management_form_data(),
+
+            "tenancy_set-0-address": str(self.address_1.id),
+            "tenancy_set-0-tenancy_types": [self.pref_type.id, self.non_pref_type.id],
+            "tenancy_set-0-id": "",
+            
+            "tenancy_set-1-address": str(self.address_2.id),
+            "tenancy_set-1-tenancy_types": [self.non_pref_type.id],
+            "tenancy_set-1-id": "",
+        }
+
+        formset = TenancyFormSet(data=data, user=self.primary_user)
+        self.assertTrue(formset.is_valid())
+        formset.instance = self.contact
+        formset.save()
+
+        self.assertEqual(Tenancy.objects.all().count(), 2)
+        
+        pref_tenancy_query = Tenancy.objects.filter(address=self.address_1.id)
+        self.assertTrue(pref_tenancy_query.exists())
+
+        pref_tenancy = pref_tenancy_query.first()
+        self.assertFalse(pref_tenancy.archived)
+        self.assertEqual(
+            Counter([self.pref_type.id, self.non_pref_type.id]),
+            Counter(pref_tenancy.tenancy_types.values_list("id", flat=True))
+        )
+        
+        secondary_tenancy_query = Tenancy.objects.filter(address=self.address_2.id)
+        self.assertTrue(secondary_tenancy_query.exists())
+
+        secondary_tenancy = secondary_tenancy_query.first()
+        self.assertFalse(secondary_tenancy.archived)
+        self.assertEqual(
+            Counter([self.non_pref_type.id]),
+            Counter(secondary_tenancy.tenancy_types.values_list("id", flat=True))
+        )
+
+    def test_validates_and_saves_with_comprehensive_valid_data_archived(self) -> None:
+        """
+        Test that formset validation is successful with valid data and Tenancies are successfully saved to db
+        when all Tenancies are archived - ensure that despite not having any 'preferred' Tenancy, validation and
+        save is still successful.
+        """
+        data = {
+            **self._get_management_form_data(),
+
+            "tenancy_set-0-address": str(self.address_1.id),
+            "tenancy_set-0-archived": True,
+            "tenancy_set-0-tenancy_types": [self.non_pref_type.id],
+            "tenancy_set-0-id": "",
+            
+            "tenancy_set-1-address": str(self.address_2.id),
+            "tenancy_set-1-archived": True,
+            "tenancy_set-1-tenancy_types": [self.non_pref_type.id],
+            "tenancy_set-1-id": "",
+        }
+
+        formset = TenancyFormSet(data=data, user=self.primary_user)
+        self.assertTrue(formset.is_valid())
+        formset.instance = self.contact
+        formset.save()
+
+        self.assertEqual(Tenancy.objects.all().count(), 2)
+        
+        first_tenancy_query = Tenancy.objects.filter(address=self.address_1.id)
+        self.assertTrue(first_tenancy_query.exists())
+
+        first_tenancy = first_tenancy_query.first()
+        self.assertTrue(first_tenancy.archived)
+        self.assertEqual(
+            Counter([self.non_pref_type.id]),
+            Counter(first_tenancy.tenancy_types.values_list("id", flat=True))
+        )
+        
+        second_tenancy_query = Tenancy.objects.filter(address=self.address_2.id)
+        self.assertTrue(second_tenancy_query.exists())
+
+        second_tenancy = second_tenancy_query.first()
+        self.assertTrue(second_tenancy.archived)
+        self.assertEqual(
+            Counter([self.non_pref_type.id]),
+            Counter(second_tenancy.tenancy_types.values_list("id", flat=True))
         )
