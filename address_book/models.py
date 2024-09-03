@@ -2,6 +2,7 @@ from datetime import date
 from dateutil.relativedelta import relativedelta
 
 from django.contrib.auth.models import User
+from django.core.exceptions import ValidationError
 from django.db import models
 from django.urls import reverse
 
@@ -243,9 +244,46 @@ class Contact(models.Model):
     @property
     def years_married(self):
         return relativedelta(date.today(), self.anniversary).years if self.anniversary else None
+    
+    def clean(self) -> None:
+        super().clean()
+        errors = {
+            "anniversary": [],
+            "dob": [],
+            "dod": [],
+            "year_met": [],
+        }
+
+        if self.dob:
+            if self.anniversary and self.anniversary <= self.dob:
+                errors["anniversary"].append("Anniversary must be greater than the date of birth.")
+            if self.dob > date.today():
+                errors["dob"].append("Date of birth may not be set to a future date.")
+            if self.year_met and self.dob.year > self.year_met:
+                errors["year_met"].append("Year met may not be before the date of birth.")
+        if self.dod:
+            if self.anniversary and self.anniversary > self.dod:
+                errors["anniversary"].append("Anniversary must be sooner than the date of passing.")
+            if self.dob and self.dob > self.dod:
+                errors["dob"].append("Date of birth may not be after date of passing.")
+            if self.dod > date.today():
+                errors["dod"].append("Date of passing may not be set to a future date.")
+            if self.year_met and self.dod.year < self.year_met:
+                errors["year_met"].append("Year met may not be after date of passing.")
+        if self.year_met and self.year_met not in dict(self._meta.get_field("year_met").choices):
+            errors["year_met"].append(f"Select a valid choice. {self.year_met} is not one of the available choices.")
+
+        errors = {field: errorlist for field, errorlist in errors.items() if errorlist}
+
+        if errors:
+            raise ValidationError(errors)
 
     def get_absolute_url(self):
         return reverse("contact-detail", args=[self.id])
+    
+    def save(self, *args, **kwargs) -> None:
+        self.clean()
+        super().save(*args, **kwargs)
     
     def __str__(self):
         return f"{self.first_name} {self.last_name}"
