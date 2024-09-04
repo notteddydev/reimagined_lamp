@@ -47,16 +47,24 @@ class ContactableTypeQuerySet(models.QuerySet):
         model_name = self.model._meta.object_name
         const_name = f"{model_name.upper()}__NAME_PREF"
         pref = getattr(constants, const_name)
-        
         return self.filter(name=pref)
+    
+    def unpreferred(self):
+        model_name = self.model._meta.object_name
+        const_name = f"{model_name.upper()}__NAME_PREF"
+        pref = getattr(constants, const_name)
+        return self.exclude(name=pref)
 
 
-class ContactableTypeManager(ArchiveableManager):
+class ContactableTypeManager(models.Manager):
     def get_queryset(self):
         return ContactableTypeQuerySet(self.model, using=self._db)
     
     def preferred(self):
         return self.get_queryset().preferred()
+    
+    def unpreferred(self):
+        return self.get_queryset().unpreferred()
 
 
 class ContactableType(models.Model):
@@ -76,19 +84,51 @@ class ContactableType(models.Model):
 class ContactableQuerySet(models.QuerySet):
     def preferred(self):
         model_name = self.model._meta.object_name
-        const_name = f"{model_name.upper()}TYPE__NAME_PREF"
-        name_field = f"{model_name.lower()}_types__name"
-        pref = getattr(constants, const_name)
-        
-        return self.filter(**{name_field: pref})
+        field_name = f"{model_name.lower()}_types"
+        field = self.model._meta.get_field(field_name)
+        subquery = field.related_model.objects.preferred().values("id")
+        qkwargs = {f"{field_name}__in": models.Subquery(subquery)}
+        return self.filter(**qkwargs)
+    
+    def unpreferred(self):
+        model_name = self.model._meta.object_name
+        field_name = f"{model_name.lower()}_types"
+        field = self.model._meta.get_field(field_name)
+        subquery = field.related_model.objects.preferred().values("id")
+        qkwargs = {f"{field_name}__in": models.Subquery(subquery)}
+        return self.exclude(**qkwargs)
 
 
-class ContactableManager(ArchiveableManager):
+class ContactableManager(models.Manager):
     def get_queryset(self):
         return ContactableQuerySet(self.model, using=self._db)
     
     def preferred(self):
         return self.get_queryset().preferred()
+    
+    def unpreferred(self):
+        return self.get_queryset().unpreferred()
+
+
+class ArchiveableContactableQuerySet(ArchiveableQuerySet, ContactableQuerySet, models.QuerySet):
+    pass
+
+
+class ArchiveableContactableManager(models.Manager):
+    def get_queryset(self):
+        return ArchiveableContactableQuerySet(self.model, using=self._db)
+
+    def archived(self):
+        return self.get_queryset().archived()
+
+    def preferred(self):
+        return self.get_queryset().preferred()
+    
+    def unarchived(self):
+        return self.get_queryset().unarchived()
+    
+    def unpreferred(self):
+        return self.get_queryset().unpreferred()
 
 
 class Contactable(models.Model):
@@ -133,7 +173,9 @@ class Tag(models.Model):
         unique_together = ("name", "user",)
 
 
-class Tenancy(Archiveable, Contactable):
+class Tenancy(Archiveable, Contactable, models.Model):
+    objects = ArchiveableContactableManager()
+
     contact=models.ForeignKey("Contact", on_delete=models.CASCADE)
     address=models.ForeignKey("Address", on_delete=models.CASCADE)
     tenancy_types=models.ManyToManyField("AddressType")
@@ -168,7 +210,7 @@ class Contact(models.Model):
     nationalities=models.ManyToManyField(Nation, blank=True)
     year_met=models.SmallIntegerField(
         blank=False,
-        choices=[(None, "-- Select Year --")] + [(year, str(year)) for year in get_years_from_year(year=1996)],
+        choices=[(None, "-- Select Year --")] + [(year, str(year)) for year in get_years_from_year()],
         null=False,
     )
     is_business=models.BooleanField(default=False, null=False)
@@ -293,11 +335,13 @@ class Contact(models.Model):
         ordering = ["first_name"]
 
 
-class PhoneNumberType(ContactableType):
+class PhoneNumberType(ContactableType, models.Model):
     pass
     
 
-class PhoneNumber(Archiveable, Contactable):
+class PhoneNumber(Archiveable, Contactable, models.Model):
+    objects = ArchiveableContactableManager()
+
     number=PhoneNumberField(null=False)
     address=models.ForeignKey("Address", on_delete=models.CASCADE, null=True)
     contact=models.ForeignKey(Contact, on_delete=models.CASCADE, null=True)
@@ -340,7 +384,7 @@ class PhoneNumber(Archiveable, Contactable):
         return f"https://wa.me/{self.number}"
     
 
-class AddressType(ContactableType):
+class AddressType(ContactableType, models.Model):
     pass
 
 
@@ -379,11 +423,13 @@ class Address(models.Model):
         ordering = ["country__verbose", "city", "address_line_1"]
     
 
-class EmailType(ContactableType):
+class EmailType(ContactableType, models.Model):
     pass
 
 
-class Email(Archiveable, Contactable):
+class Email(Archiveable, Contactable, models.Model):
+    objects = ArchiveableContactableManager()
+
     email=models.EmailField(unique=True)
     contact=models.ForeignKey(Contact, on_delete=models.CASCADE)
     email_types=models.ManyToManyField(EmailType)
@@ -408,7 +454,7 @@ class CryptoNetwork(models.Model):
         ordering = ["name"]
 
 
-class WalletAddress(Archiveable):
+class WalletAddress(Archiveable, models.Model):
     TRANSMISSION_CHOICES = [
         (None, "-- Select Transmission --"),
         (constants.WALLETADDRESS_TRANSMISSION_THEY_RECEIVE, "They receive to this address",),
