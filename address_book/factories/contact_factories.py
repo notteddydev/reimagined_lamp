@@ -1,7 +1,7 @@
 import factory
 import random
 
-from datetime import datetime, timedelta
+from datetime import date, timedelta
 from django.db.models import QuerySet
 from typing import List, Optional
 
@@ -27,22 +27,22 @@ class ContactFactory(factory.django.DjangoModelFactory):
     website = factory.Faker("url")
 
     @factory.lazy_attribute
-    def anniversary(self) -> datetime:
+    def anniversary(self) -> date:
         delta_days = (self.dod - self.dob).days
         random_days = random.randint(0, delta_days)
         return self.dob + timedelta(days=random_days)
 
     @factory.lazy_attribute
-    def dob(self) -> datetime:
-        start_date = datetime(1900, 1, 1)
-        end_date = datetime.now()
+    def dob(self) -> date:
+        start_date = date(1900, 1, 1)
+        end_date = date.today()
         delta_days = (end_date - start_date).days
         random_days = random.randint(0, delta_days)
         return start_date + timedelta(days=random_days)
     
     @factory.lazy_attribute
-    def dod(self) -> datetime:
-        end_date = datetime.now()
+    def dod(self) -> date:
+        end_date = date.today()
         delta_days = (end_date - self.dob).days
         random_days = random.randint(0, delta_days)
         return self.dob + timedelta(days=random_days)
