@@ -13,13 +13,13 @@ class TestGetYearsFromYear(TestCase):
         """
         years = get_years_from_year()
         
-        year = 1920
+        year = 1900
         while year <= self.current_year:
             self.assertIn(year, years)
             year += 1
 
         self.assertEqual(years[0], self.current_year)
-        self.assertEqual(years[-1], 1920)
+        self.assertEqual(years[-1], 1900)
 
     def test_custom_year(self) -> None:
         """
@@ -42,12 +42,12 @@ class TestGetYearsFromYear(TestCase):
         """
         years = get_years_from_year(desc=False)
         
-        year = 1920
+        year = 1900
         while year <= self.current_year:
             self.assertIn(year, years)
             year += 1
 
-        self.assertEqual(years[0], 1920)
+        self.assertEqual(years[0], 1900)
         self.assertEqual(years[-1], self.current_year)
 
     def test_future_year_raises_exception(self) -> None:

@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List, Optional
 
-def get_years_from_year(year: Optional[int] = 1920, desc: Optional[bool] = True) -> List[int]:
+def get_years_from_year(year: Optional[int] = 1900, desc: Optional[bool] = True) -> List[int]:
     current_year = datetime.now().year
 
     if year > current_year:
