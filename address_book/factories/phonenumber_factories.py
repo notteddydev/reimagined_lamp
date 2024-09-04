@@ -1,7 +1,6 @@
 import factory
 import random
 
-from django.db.models import QuerySet
 from typing import List, Optional
 
 from address_book import constants
@@ -21,7 +20,7 @@ class ContactPhoneNumberFactory(factory.django.DjangoModelFactory):
 
     @factory.lazy_attribute
     def contact(self) -> Contact:
-        existing_contacts: QuerySet[Contact] = Contact.objects.all()
+        existing_contacts = Contact.objects.all()
 
         if existing_contacts.exists():
             return random.choice(existing_contacts)
@@ -60,7 +59,7 @@ class AddressPhoneNumberFactory(factory.django.DjangoModelFactory):
 
     @factory.lazy_attribute
     def address(self) -> Address:
-        existing_addresss: QuerySet[Address] = Address.objects.all()
+        existing_addresss = Address.objects.all()
 
         if existing_addresss.exists():
             return random.choice(existing_addresss)
