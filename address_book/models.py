@@ -70,6 +70,7 @@ class ContactableType(models.Model):
 
     class Meta:
         abstract = True
+        ordering = ["verbose"]
     
 
 class ContactableQuerySet(models.QuerySet):
