@@ -1,10 +1,16 @@
 import datetime
+import random
 
+from collections import Counter
 from django.core.exceptions import ValidationError
 from django.test import TestCase
 from faker import Faker
 
 from address_book.factories.contact_factories import ContactFactory
+from address_book.factories.phonenumber_factories import ContactPhoneNumberFactory
+from address_book.factories.email_factories import EmailFactory
+from address_book.factories.tenancy_factories import TenancyFactory
+from address_book.models import Email, PhoneNumber, Tenancy
 
 fake = Faker()
 
@@ -19,7 +25,6 @@ class TestContactModel(TestCase):
 
         self.assertIn(errorfield_to_test, cm.exception.message_dict)
         self.assertIn(errormsg_to_check, cm.exception.message_dict[errorfield_to_test])
-        
 
     def test_dod_lt_dob_fails_validation(self) -> None:
         """
@@ -160,3 +165,117 @@ class TestContactModel(TestCase):
             errorfield_to_test="year_met",
             errormsg_to_check=f"Select a valid choice. {bad_year} is not one of the available choices."
         )
+
+
+class TestArchiveableContactableQuerySet(TestCase):
+    def setUp(self):
+        self.archiveable_contactables = [
+            (ContactPhoneNumberFactory, PhoneNumber,),
+            (EmailFactory, Email,),
+            (TenancyFactory, Tenancy,),
+        ]
+
+    def test_archived_unarchived_querying_for_model(self) -> None:
+        """
+        Test that the archived() and unarchived() methods on the Archiveable models filter
+        as expected.
+        """
+        for ContactableFactory, ContactableModel in self.archiveable_contactables:
+            archived_count = random.randint(1, 7)
+            unarchived_count = random.randint(1, 7)
+
+            contact = ContactFactory.create()
+            archived_archiveablecontactable = ContactableFactory.create_batch(archived_count, **{
+                "archived": True,
+                "contact": contact,
+            })
+            unarchived_archiveablecontactable = ContactableFactory.create_batch(unarchived_count, **{
+                "archived": False,
+                "contact": contact,
+            })
+
+            archived_found_in_query = ContactableModel.objects.archived().all()
+            unarchived_found_in_query = ContactableModel.objects.unarchived().all()
+
+            self.assertEqual(archived_count, archived_found_in_query.count())
+            self.assertEqual(unarchived_count, unarchived_found_in_query.count())
+
+            self.assertEqual(
+                Counter([ac.id for ac in archived_archiveablecontactable]),
+                Counter(archived_found_in_query.values_list("id", flat=True))
+            )
+            self.assertEqual(
+                Counter([ac.id for ac in unarchived_archiveablecontactable]),
+                Counter(unarchived_found_in_query.values_list("id", flat=True))
+            )
+
+    def test_preferred_non_preferred_querying_for_model(self) -> None:
+        """
+        Test that the preferred() and unpreferred() methods on the Contactable models filter
+        as expected.
+        """
+        for ContactableFactory, ContactableModel in self.archiveable_contactables:
+            unpreferred_count = random.randint(1, 7)
+
+            contact = ContactFactory.create()
+            preferred_archiveable_contactable = ContactableFactory.create(**{
+                "contact": contact,
+            })
+            unpreferred_archiveable_contactables = ContactableFactory.create_batch(unpreferred_count, **{
+                "contact": contact,
+            })
+
+            preferred_found_in_query = ContactableModel.objects.preferred().all()
+            unpreferred_found_in_query = ContactableModel.objects.unpreferred().all()
+
+            self.assertEqual(1, preferred_found_in_query.count())
+            self.assertEqual(unpreferred_count, unpreferred_found_in_query.count())
+            
+            self.assertEqual(preferred_archiveable_contactable.id, preferred_found_in_query.first().id)
+            self.assertEqual(
+                Counter([ac.id for ac in unpreferred_archiveable_contactables]),
+                Counter(unpreferred_found_in_query.values_list("id", flat=True))
+            )
+
+    def test_combo_querying_for_model(self) -> None:
+        """
+        Test that the archived() and unarchived() methods and preferred() and unpreferred()
+        methods work and chain on one another filtering the ArchiveableContactable models
+        as expected.
+        """
+        for ContactableFactory, ContactableModel in self.archiveable_contactables:
+            unpreferred_archived_count = random.randint(1, 7)
+            unpreferred_unarchived_count = random.randint(1, 7)
+
+            contact = ContactFactory.create()
+            preferred = ContactableFactory.create(**{
+                "contact": contact,
+            })
+            unpreferred_archived = ContactableFactory.create_batch(unpreferred_archived_count, **{
+                "contact": contact,
+                "archived": True,
+            })
+            unpreferred_unarchived = ContactableFactory.create_batch(unpreferred_unarchived_count, **{
+                "contact": contact,
+                "archived": False,
+            })
+
+            preferred_archived_found_in_query = ContactableModel.objects.preferred().archived().all()
+            preferred_unarchived_found_in_query = ContactableModel.objects.preferred().unarchived().all()
+            unpreferred_archived_found_in_query = ContactableModel.objects.unpreferred().archived().all()
+            unpreferred_unarchived_found_in_query = ContactableModel.objects.unpreferred().unarchived().all()
+
+            self.assertEqual(0, preferred_archived_found_in_query.count())
+            self.assertEqual(1, preferred_unarchived_found_in_query.count())
+            self.assertEqual(unpreferred_archived_count, unpreferred_archived_found_in_query.count())
+            self.assertEqual(unpreferred_unarchived_count, unpreferred_unarchived_found_in_query.count())
+            
+            self.assertEqual(preferred.id, preferred_unarchived_found_in_query.first().id)
+            self.assertEqual(
+                Counter([ac.id for ac in unpreferred_archived]),
+                Counter(unpreferred_archived_found_in_query.values_list("id", flat=True))
+            )
+            self.assertEqual(
+                Counter([ac.id for ac in unpreferred_unarchived]),
+                Counter(unpreferred_unarchived_found_in_query.values_list("id", flat=True))
+            )
