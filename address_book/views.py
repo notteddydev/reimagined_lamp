@@ -6,6 +6,8 @@ from django.template.defaultfilters import slugify
 from django.urls import reverse
 from django.views.generic import DetailView, View
 
+from urllib.parse import urlparse, parse_qs
+
 from .forms import AddressForm, AddressPhoneNumberFormSet, ContactFilterFormSet, ContactForm, ContactPhoneNumberFormSet, EmailFormSet, TagForm, TenancyFormSet, WalletAddressFormSet
 from .models import Address, Contact
 from app.decorators import owned_by_user
@@ -300,12 +302,21 @@ class TagCreateView(LoginRequiredMixin, View):
         """
         Creates an Tag with valid data and redirects to the ContactList view, filtering by
         the created Tag; or, if incorrect data provided, returns the tag_form template once
-        again displaying errors.
+        again displaying errors. Conditionally redirects to either the 'contact-list' template
+        or the 'contact-detail' template.
         """
         form = TagForm(request.user, request.POST)
 
         if form.is_valid():
             form.save()
+
+            get_url = request.META.get("HTTP_REFERER")
+            parsed = urlparse(get_url)
+            params = parse_qs(parsed.query)
+            referred_from_contact_id = params.get("contact_id", [None])[0]
+
+            if referred_from_contact_id and parsed.path == reverse("tag-create"):
+                return redirect(reverse("contact-detail", args=[referred_from_contact_id]))
 
             return redirect("contact-list")
 
