@@ -29,7 +29,7 @@ class ContactFactory(factory.django.DjangoModelFactory):
     @factory.lazy_attribute
     def anniversary(self) -> date:
         delta_days = (self.dod - self.dob).days
-        random_days = random.randint(0, delta_days)
+        random_days = random.randint(1, delta_days)
         return self.dob + timedelta(days=random_days)
 
     @factory.lazy_attribute
