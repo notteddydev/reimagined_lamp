@@ -12,7 +12,6 @@ views.py
 - Create option to download a "lite" vcard, or customise what is downloaded.
 - Deletion logic - contacts, addresses
 - Allow importing of contacts from .vcf files.
-- Make redirect from tag-create go to the contact that it was added from. From there they can click on the 'View Contacts' link to filter contacts by that tag.
 - Make nationality links on contact-detail page link to contact-list filtering by nationality.
 - Make sure that when creating an Address for a given Contact (passing contact-update contact.id to the address-create url as a next param), that the Address is pre-selected for a new Tenancy in the TenancyInlineFormSet.
 - Add a TagUpdate view
