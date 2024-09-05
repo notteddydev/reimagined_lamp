@@ -1,4 +1,5 @@
 {% extends "address_book/address_book_base.html" %}
+{% load hreffer %}
 {% load static %}
 
 {% block title %}Address Book{% endblock title %}
@@ -36,9 +37,9 @@
                             <td {% if phone_number.archived %} class="linethrough" {% endif %}>{{ phone_number.formatted }}</td>
                             <td>
                                 {% if not phone_number.archived %}
-                                    <a href="{{ phone_number.sms_href }}" target="_blank">SMS</a>
-                                    <a href="{{ phone_number.tel_href }}" target="_blank">Call</a>
-                                    <a href="{{ phone_number.wa_href }}" target="_blank">WhatsApp</a>
+                                    <a href="{{ phone_number.number|hreffer:"sms" }}" target="_blank">SMS</a>
+                                    <a href="{{ phone_number.number|hreffer:"tel" }}" target="_blank">Call</a>
+                                    <a href="{{ phone_number.number|hreffer:"whatsapp" }}" target="_blank">WhatsApp</a>
                                 {% endif %}
                             </td>
                         </tr>
@@ -58,7 +59,7 @@
                             <td {% if email.archived %} class="linethrough" {% endif %}>{{ email.email }}</td>
                             <td>
                                 {% if not email.archived %}
-                                    <a href="{{ email.href }}" target="_blank">Email</a>
+                                    <a href="{{ email.email|hreffer:"email" }}" target="_blank">Email</a>
                                 {% endif %}
                             </td>
                         </tr>

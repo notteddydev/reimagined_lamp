@@ -1,5 +1,6 @@
 {% extends "address_book/address_book_base.html" %}
 {% load getattribute %}
+{% load hreffer %}
 {% load static %}
 
 {% block title %}Address Book{% endblock title %}
@@ -22,7 +23,7 @@
                             <td {% if phone_number.archived %} class="linethrough" {% endif %}>{{ phone_number.formatted }}</td>
                             <td>
                                 {% if not phone_number.archived %}
-                                    <a href="{{ phone_number.tel_href }}" target="_blank">Call</a>
+                                    <a href="{{ phone_number.number|hreffer:"tel" }}" target="_blank">Call</a>
                                 {% endif %}
                             </td>
                         </tr>

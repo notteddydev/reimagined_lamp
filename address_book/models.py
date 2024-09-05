@@ -511,32 +511,11 @@ class PhoneNumber(Archiveable, Contactable, models.Model):
         return phonenumbers.parse(str(self.number))
     
     @property
-    def sms_href(self) -> str:
-        """
-        Returns the href for the SMS messaging the PhoneNumber.
-        """
-        return f"sms:{self.number}"
-
-    @property
-    def tel_href(self) -> str:
-        """
-        Returns the href for calling the PhoneNumber.
-        """
-        return f"tel:{self.number}"
-    
-    @property
     def vcard_entry(self) -> str:
         """
         Prepares a PhoneNumber entry for a vcard to be included in a .vcf file for a Contact.
         """
         return f"TEL;TYPE={self.types_for_vcard}:{self.number}"
-    
-    @property
-    def wa_href(self) -> str:
-        """
-        Returns the href for WhatsApp messaging the PhoneNumber.
-        """
-        return f"https://wa.me/{self.number}"
     
 
 class AddressType(ContactableType, models.Model):
@@ -594,13 +573,6 @@ class Email(Archiveable, Contactable, models.Model):
     email=models.EmailField(unique=True)
     contact=models.ForeignKey(Contact, on_delete=models.CASCADE)
     email_types=models.ManyToManyField(EmailType)
-
-    @property
-    def href(self) -> str:
-        """
-        Returns the href for sending an email to the Email address.
-        """
-        return f"mailto:{self.email}"
     
     @property
     def vcard_entry(self) -> str:

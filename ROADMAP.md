@@ -7,7 +7,6 @@ forms.py
 models.py
 - Maybe more effort that it's worth, but attach vcard to email / sms / whatsapp message
 - Timestamping / soft deleting
-- Replace sms_href, wa_href, tel_href with template filters.
 
 views.py
 - Create option to download a "lite" vcard, or customise what is downloaded.
