@@ -6,7 +6,7 @@ from django.template.defaultfilters import slugify
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from typing import Optional
+from typing import Any, Optional
 
 from address_book.factories.address_factories import AddressFactory
 from address_book.factories.contact_factories import ContactFactory
@@ -50,13 +50,13 @@ class BaseModelViewTestCase:
         response = self.client.get(url or self.url)
         return response
     
-    def _login_user_and_get_post_response(self, url: Optional[str] = None, post_data: Optional[dict] = {}, username: Optional[str] = None, password: Optional[str] = None) -> HttpResponse:
+    def _login_user_and_get_post_response(self, url: Optional[str] = None, post_data: Optional[dict] = {}, username: Optional[str] = None, password: Optional[str] = None, **kwargs: Any) -> HttpResponse:
         """
         Logs in a user and makes a post request to the url provided, if none is provided it defaults to the
         url that has been set on the class. Returns the resulting HttpResponse object.
         """
         self._login_user(username=username, password=password)
-        response = self.client.post(url or self.url, post_data)
+        response = self.client.post(url or self.url, post_data, **kwargs)
         return response
     
     def test_get_request_redirects_if_not_logged_in(self):
@@ -1136,7 +1136,8 @@ class TestTagCreateView(BaseModelViewTestCase, TestCase):
 
     def test_post_with_valid_data(self):
         """
-        Test that posting valid data is successful and redirects to the contact-list page.
+        Test that posting valid data is successful and redirects to the contact-list page,
+        with no contact_id in the HTTP_REFERER, and not referring from the TagCreate 'get' url.
         """
         contact = ContactFactory.create(user=self.primary_user)
         valid_form_data = {
@@ -1148,6 +1149,23 @@ class TestTagCreateView(BaseModelViewTestCase, TestCase):
         )
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("contact-list"))
+
+    def test_post_with_valid_data_and_contact_id_in_previous_get_request(self):
+        """
+        Test that posting valid data is successful and redirects to the contact-detail page
+        for the Contact that referred to the TagCreate page.
+        """
+        contact = ContactFactory.create(user=self.primary_user)
+        valid_form_data = {
+            "name": "Supercalafragalistically unique tag name",
+            "contacts": [contact.id],
+        }
+        response = self._login_user_and_get_post_response(
+            post_data=valid_form_data,
+            HTTP_REFERER=f"{reverse('tag-create')}?contact_id={contact.id}"
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertRedirects(response, reverse("contact-detail", args=[contact.id]))
 
     def test_post_with_invalid_data(self):
         """
