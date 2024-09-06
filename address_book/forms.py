@@ -263,6 +263,7 @@ class TagForm(forms.ModelForm):
         super(TagForm, self).__init__(*args, **kwargs)
         self.instance.user_id = user.id
         self.fields["contacts"] = forms.ModelMultipleChoiceField(
+            initial=self.instance.contact_set.all() if self.instance.id else [],
             queryset=Contact.objects.filter(user=user),
             widget=forms.CheckboxSelectMultiple
         )
@@ -272,6 +273,10 @@ class TagForm(forms.ModelForm):
 
         if commit:
             contacts_selected = self.cleaned_data["contacts"]
+            for contact in self.instance.contact_set.all():
+                if contact not in contacts_selected:
+                    contact.tags.remove(tag)
+
             for contact in contacts_selected:
                 contact.tags.add(tag)
 
