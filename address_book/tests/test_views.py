@@ -1,3 +1,5 @@
+import random
+
 from collections import Counter
 
 from django.apps import apps
@@ -5,13 +7,18 @@ from django.http import HttpResponse
 from django.template.defaultfilters import slugify
 from django.test import Client, TestCase
 from django.urls import reverse
+from faker import Faker
 
 from typing import Any, Optional
 
 from address_book.factories.address_factories import AddressFactory
 from address_book.factories.contact_factories import ContactFactory
+from address_book.factories.tag_factories import TagFactory
 from address_book.factories.user_factories import UserFactory
-from address_book.models import Address, Contact
+from address_book.models import Address, Contact, Tag
+
+fake = Faker()
+
 
 def get_pref_contactable_type_id(contactable_type: str) -> int | None:
     """
@@ -1187,3 +1194,127 @@ class TestTagCreateView(BaseModelViewTestCase, TestCase):
             Counter(["name", "contacts"]),
             Counter(list(response.context["form"].errors.as_data()))
         )
+
+
+class TestTagUpdateView(BaseModelViewTestCase, TestCase):
+    def setUp(self):
+        super().setUp()
+        self.tag = TagFactory.create(name="Is a silly billy", user=self.primary_user)
+        self.context_keys = ("form", "object",)
+        self.template = "address_book/tag_form.html"
+        self.url = reverse("tag-update", args=[self.tag.id])
+    
+    def test_403_if_not_owner(self):
+        """
+        Make sure that if a logged in user attempts to access the tag-update view
+        for a tag they do not own, they are thrown a tasty 403. See how they like that.
+        """
+        response = self._login_user_and_get_get_response(
+            username=self.other_user.username,
+            password=self.other_user_password
+        )
+        self.assertEqual(response.status_code, 403)
+        self.assertTemplateNotUsed("address_book/tag_form.html")
+
+    def test_get_view_for_logged_in_user(self):
+        """
+        Test correct template is used and appropriate keys are passed to the context
+        when a logged in user attempts to access the tag-update view.
+        """
+        response = self._login_user_and_get_get_response()
+        self.assert_view_renders_correct_template_and_context(
+            response=response,
+            template=self.template,
+            context_keys=self.context_keys
+        )
+        self.assertEqual(self.tag.id, response.context["object"].id)
+
+    def test_post_with_valid_data(self):
+        """
+        Test that posting valid data is successful and redirects to the appropriate contact-list page.
+        """
+        contacts = ContactFactory.create_batch(7, user=self.primary_user)
+        selected_contact_ids = [contact.id for contact in contacts[:random.randint(1, 6)]]
+
+        valid_form_data = {
+            "name": "Cries all the time",
+            "contacts": selected_contact_ids,
+        }
+        response = self._login_user_and_get_post_response(
+            post_data=valid_form_data
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(Tag.objects.filter(name="Cries all the time").exists())
+        self.assertFalse(Tag.objects.filter(name="Is a silly billy").exists())
+        self.assertEqual(
+            Counter(selected_contact_ids),
+            Counter(Contact.objects.filter(tags__name="Cries all the time").values_list("id", flat=True)),
+        )
+        self.assertRedirects(response, reverse("contact-list"))
+
+    def test_post_with_valid_data_and_contact_id_in_previous_get_request(self):
+        """
+        Test that posting valid data is successful and redirects to the appropriate contact-detail page.
+        """
+        contacts = ContactFactory.create_batch(7, user=self.primary_user)
+        selected_contact_ids = [contact.id for contact in contacts[:random.randint(1, 6)]]
+        referred_from_contact_id = contacts[random.randint(0, 6)].id
+
+        valid_form_data = {
+            "name": "Cries all the time",
+            "contacts": selected_contact_ids,
+        }
+        response = self._login_user_and_get_post_response(
+            post_data=valid_form_data,
+            HTTP_REFERER=f"{reverse('tag-update', args=[self.tag.id])}?contact_id={referred_from_contact_id}",
+        )
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(Tag.objects.filter(name="Cries all the time").exists())
+        self.assertFalse(Tag.objects.filter(name="Is a silly billy").exists())
+        self.assertEqual(
+            Counter(selected_contact_ids),
+            Counter(Contact.objects.filter(tags__name="Cries all the time").values_list("id", flat=True)),
+        )
+        self.assertRedirects(response, reverse("contact-detail", args=[referred_from_contact_id]))
+
+    def test_post_with_invalid_data(self):
+        """
+        Test that posting invalid data is unsuccessful and renders the tag-update
+        template again displaying errors.
+        """
+        other_contacts = ContactFactory.create_batch(4, user=self.other_user)
+
+        invalid_form_data = {
+            "name": "This string is longer than 50 characters deliberately so that it fails validation",
+            "contacts": [contact.id for contact in other_contacts],
+        }
+        response = self._login_user_and_get_post_response(
+            post_data=invalid_form_data
+        )
+        self.assert_view_renders_correct_template_and_context(
+            response=response,
+            template=self.template,
+            context_keys=self.context_keys
+        )
+        self.assertEqual(
+            Counter(["contacts", "name"]),
+            Counter(list(response.context["form"].errors.as_data()))
+        )
+
+    def test_post_with_valid_data_not_owner(self):
+        """
+        Test that posting valid data as another user is unsuccessful and throws
+        a tasty 403.
+        """
+        contacts = ContactFactory.create_batch(4, user=self.primary_user)
+        valid_form_data = {
+            "contacts": [contact.id for contact in contacts],
+            "name": fake.word(),
+        }
+        response = self._login_user_and_get_post_response(
+            post_data=valid_form_data,
+            username=self.other_user.username,
+            password=self.other_user_password
+        )
+        self.assertEqual(response.status_code, 403)
+        self.assertTemplateNotUsed(response, self.template)
