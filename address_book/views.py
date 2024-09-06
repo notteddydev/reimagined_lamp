@@ -9,7 +9,7 @@ from django.views.generic import DetailView, View
 from urllib.parse import urlparse, parse_qs
 
 from .forms import AddressForm, AddressPhoneNumberFormSet, ContactFilterFormSet, ContactForm, ContactPhoneNumberFormSet, EmailFormSet, TagForm, TenancyFormSet, WalletAddressFormSet
-from .models import Address, Contact
+from .models import Address, Contact, Tag
 from app.decorators import owned_by_user
 from app.mixins import OwnedByUserMixin
 
@@ -323,3 +323,38 @@ class TagCreateView(LoginRequiredMixin, View):
         return render(request, "address_book/tag_form.html", {
             "form": form,
         })
+    
+
+class TagUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
+    def get(self, request: HttpRequest, pk: int) -> HttpResponse:
+        tag = get_object_or_404(Tag, pk=pk)
+        form = TagForm(instance=tag, user=request.user)
+        return render(request, "address_book/tag_form.html", {
+            "form": form,
+            "object": tag,
+        })
+
+    def post(self, request: HttpRequest, pk: int) -> HttpResponse:
+        tag = get_object_or_404(Tag, pk=pk)
+        form = TagForm(data=request.POST, instance=tag, user=request.user)
+
+        if form.is_valid():
+            form.save()
+
+            get_url = request.META.get("HTTP_REFERER")
+            parsed = urlparse(get_url)
+            params = parse_qs(parsed.query)
+            referred_from_contact_id = params.get("contact_id", [None])[0]
+
+            if referred_from_contact_id and parsed.path == reverse("tag-update", args=[tag.id]):
+                return redirect(reverse("contact-detail", args=[referred_from_contact_id]))
+
+            return redirect("contact-list")
+        
+        return render(request, "address_book/tag_form.html", {
+            "form": form,
+            "object": tag,
+        })
+
+    def test_func(self) -> bool | None:
+        return Tag.objects.filter(id=self.kwargs["pk"], user=self.request.user).exists()
