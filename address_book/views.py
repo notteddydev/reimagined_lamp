@@ -104,7 +104,7 @@ class AddressCreateView(LoginRequiredMixin, View):
         Return the address_form template for creating an Address.
         """
         return render(request, "address_book/address_form.html", {
-            "form": AddressForm(request.user),
+            "form": AddressForm(user=request.user),
             "phonenumber_formset": AddressPhoneNumberFormSet(),
         })
     
@@ -114,7 +114,7 @@ class AddressCreateView(LoginRequiredMixin, View):
         or, if incorrect data provided, returns the address_form template once again displaying
         errors.
         """
-        form = AddressForm(request.user, request.POST)
+        form = AddressForm(data=request.POST, user=request.user)
         phonenumber_formset = AddressPhoneNumberFormSet(request.POST)
 
         if form.is_valid() and phonenumber_formset.is_valid():
@@ -149,7 +149,7 @@ class AddressUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
 
         # TODO Look at changing the AddressForm so that in this case the user does not need passing in.
         return render(request, "address_book/address_form.html", {
-            "form": AddressForm(request.user, instance=address),
+            "form": AddressForm(instance=address, user=request.user),
             "object": address,
             "phonenumber_formset": AddressPhoneNumberFormSet(instance=address),
         })
@@ -161,7 +161,7 @@ class AddressUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
         errors.
         """
         address = get_object_or_404(Address, pk=pk)
-        form = AddressForm(request.user, request.POST, instance=address)
+        form = AddressForm(data=request.POST, instance=address, user=request.user)
         phonenumber_formset = AddressPhoneNumberFormSet(request.POST, instance=address)
 
         if form.is_valid() and phonenumber_formset.is_valid():
@@ -187,7 +187,7 @@ class ContactCreateView(LoginRequiredMixin, View):
         """
         return render(request, "address_book/contact_form.html", {
             "email_formset": EmailFormSet(),
-            "form": ContactForm(request.user),
+            "form": ContactForm(user=request.user),
             "phonenumber_formset": ContactPhoneNumberFormSet(),
             "tenancy_formset": TenancyFormSet(user=request.user),
             "walletaddress_formset": WalletAddressFormSet(),
@@ -199,13 +199,13 @@ class ContactCreateView(LoginRequiredMixin, View):
         or, if incorrect data provided, returns the contact_form template once again displaying
         errors.
         """
-        form = ContactForm(request.user, request.POST)
+        form = ContactForm(data=request.POST, user=request.user)
         
         formsets = {
-            "email_formset": EmailFormSet(request.POST),
-            "phonenumber_formset": ContactPhoneNumberFormSet(request.POST),
-            "tenancy_formset": TenancyFormSet(request.POST, user=request.user),
-            "walletaddress_formset": WalletAddressFormSet(request.POST),
+            "email_formset": EmailFormSet(data=request.POST),
+            "phonenumber_formset": ContactPhoneNumberFormSet(data=request.POST),
+            "tenancy_formset": TenancyFormSet(data=request.POST, user=request.user),
+            "walletaddress_formset": WalletAddressFormSet(data=request.POST),
         }
 
         if form.is_valid() and all(formset.is_valid() for formset in formsets.values()):
@@ -238,7 +238,7 @@ class ContactUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
         # TODO Look at changing the ContactForm so that in this case the user does not need passing in.
         return render(request, "address_book/contact_form.html", {
             "email_formset": EmailFormSet(instance=contact),
-            "form": ContactForm(request.user, instance=contact),
+            "form": ContactForm(instance=contact, user=request.user),
             "object": contact,
             "phonenumber_formset": ContactPhoneNumberFormSet(instance=contact),
             "tenancy_formset": TenancyFormSet(instance=contact, user=request.user),
@@ -252,13 +252,13 @@ class ContactUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
         errors.
         """
         contact = get_object_or_404(Contact, pk=pk)
-        form = ContactForm(request.user, request.POST, instance=contact)
+        form = ContactForm(data=request.POST, instance=contact, user=request.user)
 
         formsets = {
-            "email_formset": EmailFormSet(request.POST, instance=contact),
-            "phonenumber_formset": ContactPhoneNumberFormSet(request.POST, instance=contact),
-            "tenancy_formset": TenancyFormSet(request.POST, instance=contact, user=request.user),
-            "walletaddress_formset": WalletAddressFormSet(request.POST, instance=contact),
+            "email_formset": EmailFormSet(data=request.POST, instance=contact),
+            "phonenumber_formset": ContactPhoneNumberFormSet(data=request.POST, instance=contact),
+            "tenancy_formset": TenancyFormSet(data=request.POST, instance=contact, user=request.user),
+            "walletaddress_formset": WalletAddressFormSet(data=request.POST, instance=contact),
         }
 
         if form.is_valid() and all(formset.is_valid() for formset in formsets.values()):
@@ -292,7 +292,7 @@ class TagCreateView(LoginRequiredMixin, View):
             if user_owns_contact:
                 initial_data = {"contacts": (int(contact_id),)}
 
-        form = TagForm(request.user, initial=initial_data)
+        form = TagForm(initial=initial_data, user=request.user)
 
         return render(request, "address_book/tag_form.html", {
             "form": form,
@@ -305,7 +305,7 @@ class TagCreateView(LoginRequiredMixin, View):
         again displaying errors. Conditionally redirects to either the 'contact-list' template
         or the 'contact-detail' template.
         """
-        form = TagForm(request.user, request.POST)
+        form = TagForm(data=request.POST, user=request.user)
 
         if form.is_valid():
             form.save()

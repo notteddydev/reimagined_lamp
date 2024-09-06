@@ -55,7 +55,7 @@ class TestAddressForm(BaseFormTestCase, TestCase):
         """
         Test that the AddressForm is correctly initialised setting the user_id to the form instance.
         """
-        form = AddressForm(self.primary_user)
+        form = AddressForm(user=self.primary_user)
 
         self.assertEqual(self.primary_user.id, form.instance.user_id)
 
@@ -72,7 +72,7 @@ class TestAddressForm(BaseFormTestCase, TestCase):
         """
         Test that the country empty_label is set as desired.
         """
-        form = AddressForm(self.primary_user)
+        form = AddressForm(user=self.primary_user)
 
         self.assertEqual("-- Select Country --", form.fields["country"].empty_label)
 
@@ -80,7 +80,7 @@ class TestAddressForm(BaseFormTestCase, TestCase):
         """
         Test that the correct fields are included/excluded.
         """
-        form = AddressForm(self.primary_user)
+        form = AddressForm(user=self.primary_user)
 
         self.assertEqual(
             Counter(["address_line_1", "address_line_2", "city", "country", "neighbourhood", "notes", "postcode", "state"]),
@@ -91,10 +91,10 @@ class TestAddressForm(BaseFormTestCase, TestCase):
         """
         Test that the form validates successfully with only the required fields.
         """
-        form = AddressForm(self.primary_user, {
+        form = AddressForm(data={
             "city": "London",
             "country": 235,
-        })
+        }, user=self.primary_user)
         
         self.assertTrue(form.is_valid())
 
@@ -102,7 +102,7 @@ class TestAddressForm(BaseFormTestCase, TestCase):
         """
         Test that the form fails to validate successfully without the required fields.
         """
-        form = AddressForm(self.primary_user, {})
+        form = AddressForm(data={}, user=self.primary_user)
         self.assertFalse(form.is_valid())
         self.assertEqual(
             Counter(["city", "country"]),
@@ -113,7 +113,7 @@ class TestAddressForm(BaseFormTestCase, TestCase):
         """
         Test that the form validates successfully with comprehensive data including the required fields.
         """
-        form = AddressForm(self.primary_user, {
+        form = AddressForm(data={
             "address_line_1": "1 Saville Road",
             "address_line_2": "The penthouse suite",
             "neighbourhood": "Mayfair",
@@ -122,7 +122,7 @@ class TestAddressForm(BaseFormTestCase, TestCase):
             "country": 235,
             "postcode": "SN1 61665",
             "notes": "Is this a real address? Let's find out.",
-        })
+        }, user=self.primary_user)
 
         self.assertTrue(form.is_valid())
 
@@ -153,7 +153,7 @@ class TestContactForm(BaseFormTestCase, TestCase):
         Common logic for checking that provided 'contact_data' raises a given error for a given field.
         """
         contact = ContactFactory.build(**contact_data)
-        form = ContactForm(self.primary_user, model_to_dict(contact))
+        form = ContactForm(data=model_to_dict(contact), user=self.primary_user)
         self.assertFalse(form.is_valid())
         self.assertIn(errorfield_to_test, form.errors)
         self.assertIn(errormsg_to_check, form.errors[errorfield_to_test])
@@ -162,7 +162,7 @@ class TestContactForm(BaseFormTestCase, TestCase):
         """
         Test that the ContactForm is correctly initialised setting the user_id to the form instance.
         """
-        form = ContactForm(self.primary_user)       
+        form = ContactForm(user=self.primary_user)       
         
         # Create Tags and Contacts for both Users, to ensure that only the primary Users'
         # Tags and Contacts appear in the respective querysets for selection.
@@ -179,14 +179,14 @@ class TestContactForm(BaseFormTestCase, TestCase):
         """
         Test that the profession field empty label is set as desired.
         """
-        form = ContactForm(self.primary_user)
+        form = ContactForm(user=self.primary_user)
         self.assertEqual(form.fields["profession"].empty_label, "-- Select Profession --")
 
     def test_fields_present(self) -> None:
         """
         Test that the correct fields are included/excluded.
         """
-        form = ContactForm(self.primary_user)
+        form = ContactForm(user=self.primary_user)
 
         self.assertEqual(
             Counter([
@@ -210,7 +210,7 @@ class TestContactForm(BaseFormTestCase, TestCase):
         """
         Test that fields where the type has been overridden from the default are the type desired.
         """
-        form = ContactForm(self.primary_user)
+        form = ContactForm(user=self.primary_user)
         self.assertTrue(isinstance(form.fields["anniversary"], forms.DateField))
         self.assertTrue(isinstance(form.fields["dob"], forms.DateField))
         self.assertTrue(isinstance(form.fields["dod"], forms.DateField))
@@ -219,11 +219,11 @@ class TestContactForm(BaseFormTestCase, TestCase):
         """
         Test that the form validates successfully with only the required fields.
         """
-        form = ContactForm(self.primary_user, {
+        form = ContactForm(data={
             "first_name": "Dave",
             "gender": constants.CONTACT_GENDER_MALE,
             "year_met": 2009,
-        })
+        }, user=self.primary_user)
         
         self.assertTrue(form.is_valid())
 
@@ -231,7 +231,7 @@ class TestContactForm(BaseFormTestCase, TestCase):
         """
         Test that the form fails to validate successfully without the required fields.
         """
-        form = ContactForm(self.primary_user, {})
+        form = ContactForm(data={}, user=self.primary_user)
         self.assertFalse(form.is_valid())
         self.assertEqual(
             Counter(["first_name", "gender", "year_met"]),
@@ -250,7 +250,7 @@ class TestContactForm(BaseFormTestCase, TestCase):
         tag = TagFactory.create(user=self.primary_user)
         family_member = ContactFactory.create(user=self.primary_user)
 
-        form = ContactForm(self.primary_user, {
+        form = ContactForm(data={
             "anniversary_day": "1",
             "anniversary_month": "1",
             "anniversary_year": "2001",
@@ -273,7 +273,7 @@ class TestContactForm(BaseFormTestCase, TestCase):
             "tags": [tag.id],
             "website": "www.https.com",
             "year_met": "2001",
-        })
+        }, user=self.primary_user)
 
         self.assertTrue(form.is_valid())
 
@@ -457,7 +457,7 @@ class TestEmailForm(BaseFormTestCase, TestCase):
         """
         Test that the form fails to validate successfully without the required fields.
         """
-        form = EmailForm({"archived": True})
+        form = EmailForm(data={"archived": True})
         self.assertFalse(form.is_valid())
         self.assertEqual(
             Counter(["email", "email_types"]),
@@ -470,17 +470,17 @@ class TestEmailForm(BaseFormTestCase, TestCase):
         email is successfully saved to db.
         """
         pref_type_id = get_pref_contactable_type_id("EmailType")
-        email_types: QuerySet = EmailType.objects.exclude(pk=pref_type_id).order_by("?")[:2]
-        email_type_ids: List[int] = list(email_types.values_list("id", flat=True))
+        email_types = EmailType.objects.exclude(pk=pref_type_id).order_by("?")[:2]
+        email_type_ids = list(email_types.values_list("id", flat=True))
 
-        form = EmailForm({
+        form = EmailForm(data={
             "archived": True,
             "email": "superunique@email.com",
             "email_types": email_type_ids,
         })
         self.assertTrue(form.is_valid())
 
-        email: Email = form.save(commit=False)
+        email = form.save(commit=False)
         email.contact = ContactFactory.create()
         email.save()
         form.save_m2m()
@@ -497,17 +497,17 @@ class TestEmailForm(BaseFormTestCase, TestCase):
         Test that form validation is successful with valid data and an unarchived
         email is successfully saved to db.
         """
-        email_types: QuerySet = EmailType.objects.order_by("?")[:2]
-        email_type_ids: List[int] = list(email_types.values_list("id", flat=True))
+        email_types = EmailType.objects.order_by("?")[:2]
+        email_type_ids = list(email_types.values_list("id", flat=True))
 
-        form = EmailForm({
+        form = EmailForm(data={
             "archived": False,
             "email": "superunique@email.com",
             "email_types": email_type_ids,
         })
         self.assertTrue(form.is_valid())
 
-        email: Email = form.save(commit=False)
+        email = form.save(commit=False)
         email.contact = ContactFactory.create()
         email.save()
         form.save_m2m()
@@ -527,7 +527,7 @@ class TestEmailForm(BaseFormTestCase, TestCase):
         pref_type_id = get_pref_contactable_type_id("EmailType")
         non_pref_type = EmailType.objects.exclude(pk=pref_type_id).order_by("?").first()
 
-        form = EmailForm({
+        form = EmailForm(data={
             "archived": True,
             "email": fake.email(),
             "email_types": [pref_type_id, non_pref_type.id]
@@ -546,7 +546,7 @@ class TestEmailForm(BaseFormTestCase, TestCase):
         """
         pref_type_id = get_pref_contactable_type_id("EmailType")
 
-        form = EmailForm({
+        form = EmailForm(data={
             "archived": False,
             "email": fake.email(),
             "email_types": [pref_type_id],
@@ -565,7 +565,7 @@ class TestEmailForm(BaseFormTestCase, TestCase):
         """
         pref_type_id = get_pref_contactable_type_id("EmailType")
 
-        form = EmailForm({
+        form = EmailForm(data={
             "archived": True,
             "email": fake.email(),
             "email_types": [pref_type_id],
@@ -600,7 +600,7 @@ class TestPhoneNumberForm(BaseFormTestCase, TestCase):
         """
         Test that the form fails to validate successfully without the required fields.
         """
-        form = PhoneNumberForm({"archived": True})
+        form = PhoneNumberForm(data={"archived": True})
         self.assertFalse(form.is_valid())
         self.assertEqual(
             Counter(["number", "phonenumber_types"]),
@@ -630,10 +630,10 @@ class TestPhoneNumberForm(BaseFormTestCase, TestCase):
         phone number is successfully saved to db.
         """
         pref_type_id = get_pref_contactable_type_id("PhoneNumberType")
-        phonenumber_types: QuerySet = PhoneNumberType.objects.exclude(pk=pref_type_id).order_by("?")[:2]
-        phonenumber_type_ids: List[int] = list(phonenumber_types.values_list("id", flat=True))
+        phonenumber_types = PhoneNumberType.objects.exclude(pk=pref_type_id).order_by("?")[:2]
+        phonenumber_type_ids = list(phonenumber_types.values_list("id", flat=True))
 
-        form = PhoneNumberForm({
+        form = PhoneNumberForm(data={
             "archived": True,
             "number_0": "GB",
             "number_1": "7123456789",
@@ -641,7 +641,7 @@ class TestPhoneNumberForm(BaseFormTestCase, TestCase):
         })
         self.assertTrue(form.is_valid())
 
-        phonenumber: PhoneNumber = form.save(commit=False)
+        phonenumber = form.save(commit=False)
         phonenumber.contact = ContactFactory.create()
         phonenumber.save()
         form.save_m2m()
@@ -658,10 +658,10 @@ class TestPhoneNumberForm(BaseFormTestCase, TestCase):
         Test that form validation is successful with valid data and an unarchived
         phonenumber is successfully saved to db.
         """
-        phonenumber_types: QuerySet = PhoneNumberType.objects.order_by("?")[:2]
-        phonenumber_type_ids: List[int] = list(phonenumber_types.values_list("id", flat=True))
+        phonenumber_types = PhoneNumberType.objects.order_by("?")[:2]
+        phonenumber_type_ids = list(phonenumber_types.values_list("id", flat=True))
 
-        form = PhoneNumberForm({
+        form = PhoneNumberForm(data={
             "archived": False,
             "number_0": "US",
             "number_1": "2015550123",
@@ -669,7 +669,7 @@ class TestPhoneNumberForm(BaseFormTestCase, TestCase):
         })
         self.assertTrue(form.is_valid())
 
-        phonenumber: PhoneNumber = form.save(commit=False)
+        phonenumber = form.save(commit=False)
         phonenumber.contact = ContactFactory.create()
         phonenumber.save()
         form.save_m2m()
@@ -689,7 +689,7 @@ class TestPhoneNumberForm(BaseFormTestCase, TestCase):
         pref_type_id = get_pref_contactable_type_id("PhoneNumberType")
         non_pref_type = PhoneNumberType.objects.exclude(pk=pref_type_id).order_by("?").first()
 
-        form = PhoneNumberForm({
+        form = PhoneNumberForm(data={
             "archived": True,
             "number_0": "US",
             "number_1": "2015550123",
@@ -709,7 +709,7 @@ class TestPhoneNumberForm(BaseFormTestCase, TestCase):
         """
         pref_type_id = get_pref_contactable_type_id("PhoneNumberType")
 
-        form = PhoneNumberForm({
+        form = PhoneNumberForm(data={
             "archived": False,
             "number_0": "GB",
             "number_1": "7123456789",
@@ -729,7 +729,7 @@ class TestPhoneNumberForm(BaseFormTestCase, TestCase):
         """
         pref_type_id = get_pref_contactable_type_id("PhoneNumberType")
 
-        form = PhoneNumberForm({
+        form = PhoneNumberForm(data={
             "archived": True,
             "number_0": "GB",
             "number_1": "7987654321",
@@ -754,7 +754,7 @@ class TestTagForm(BaseFormTestCase, TestCase):
         """
         Test that the TagForm is correctly initialised setting the user_id to the form instance.
         """
-        form = TagForm(self.primary_user)       
+        form = TagForm(user=self.primary_user)       
         
         # Create Contacts for both Users, to ensure that only the primary Users'
         # Contacts appear in the queryset for selection.
@@ -777,7 +777,7 @@ class TestTagForm(BaseFormTestCase, TestCase):
         """
         Test that the correct fields are included/excluded.
         """
-        form = TagForm(self.primary_user)
+        form = TagForm(user=self.primary_user)
 
         self.assertEqual(
             Counter(["contacts", "name"]),
@@ -788,7 +788,7 @@ class TestTagForm(BaseFormTestCase, TestCase):
         """
         Test that the form fails to validate successfully without the required fields.
         """
-        form = TagForm(self.primary_user, {})
+        form = TagForm(data={}, user=self.primary_user)
         self.assertFalse(form.is_valid())
         self.assertEqual(
             Counter(["contacts", "name"]),
@@ -799,7 +799,7 @@ class TestTagForm(BaseFormTestCase, TestCase):
         """
         Test that fields where the type has been overridden from the default are the type desired.
         """
-        form = TagForm(self.primary_user)
+        form = TagForm(user=self.primary_user)
         self.assertTrue(isinstance(form.fields["contacts"], forms.ModelMultipleChoiceField))
 
     def test_validates_and_saves_with_comprehensive_valid_data(self) -> None:
@@ -810,13 +810,13 @@ class TestTagForm(BaseFormTestCase, TestCase):
         contacts = ContactFactory.create_batch(12, user=self.primary_user)
         related_contact_ids = [contact.id for contact in contacts[:4]]
 
-        form = TagForm(self.primary_user, {
+        form = TagForm(data={
             "contacts": related_contact_ids,
             "name": "TesterTag",
-        })
+        }, user=self.primary_user)
         self.assertTrue(form.is_valid())
 
-        tag: Tag = form.save()
+        tag = form.save()
 
         self.assertTrue(Tag.objects.filter(pk=tag.id).exists())
         self.assertEqual(
@@ -873,7 +873,7 @@ class TestTenancyForm(BaseFormTestCase, TestCase):
         Test that the form validates successfully with only the required fields.
         """
         address = AddressFactory.create(user=self.primary_user)
-        form = TenancyForm({
+        form = TenancyForm(data={
             "address": address,
             "tenancy_types": AddressType.objects.order_by("?")[:2]
         }, user=self.primary_user)
@@ -884,7 +884,7 @@ class TestTenancyForm(BaseFormTestCase, TestCase):
         """
         Test that the form fails to validate successfully without the required fields.
         """
-        form = TenancyForm({"archived": True}, user=self.primary_user)
+        form = TenancyForm(data={"archived": True}, user=self.primary_user)
         self.assertFalse(form.is_valid())
         self.assertEqual(
             Counter(["address", "tenancy_types"]),
@@ -904,19 +904,19 @@ class TestTenancyForm(BaseFormTestCase, TestCase):
         tenancy is successfully saved to db.
         """
         pref_type_id = get_pref_contactable_type_id("AddressType")
-        address_types: QuerySet = AddressType.objects.exclude(pk=pref_type_id).order_by("?")[:2]
-        address_type_ids: List[int] = list(address_types.values_list("id", flat=True))
+        address_types = AddressType.objects.exclude(pk=pref_type_id).order_by("?")[:2]
+        address_type_ids = list(address_types.values_list("id", flat=True))
         address = AddressFactory.create(user=self.primary_user)
 
-        form = TenancyForm({
+        form = TenancyForm(data={
             "address": address.id,
             "archived": True,
             "tenancy_types": address_type_ids,
         }, user=self.primary_user)
         self.assertTrue(form.is_valid())
 
-        tenancy: Tenancy = form.save(commit=False)
-        contact: Contact = ContactFactory.create(user=self.primary_user)
+        tenancy = form.save(commit=False)
+        contact = ContactFactory.create(user=self.primary_user)
         tenancy.contact = contact
         tenancy.save()
         form.save_m2m()
@@ -935,19 +935,19 @@ class TestTenancyForm(BaseFormTestCase, TestCase):
         Test that form validation is successful with valid data and an unarchived
         Tenancy is successfully saved to db.
         """
-        address_types: QuerySet = AddressType.objects.order_by("?")[:2]
-        address_type_ids: List[int] = list(address_types.values_list("id", flat=True))
+        address_types = AddressType.objects.order_by("?")[:2]
+        address_type_ids = list(address_types.values_list("id", flat=True))
         address = AddressFactory.create(user=self.primary_user)
 
-        form = TenancyForm({
+        form = TenancyForm(data={
             "address": address.id,
             "archived": False,
             "tenancy_types": address_type_ids,
         }, user=self.primary_user)
         self.assertTrue(form.is_valid())
 
-        tenancy: Tenancy = form.save(commit=False)
-        contact: Contact = ContactFactory.create(user=self.primary_user)
+        tenancy = form.save(commit=False)
+        contact = ContactFactory.create(user=self.primary_user)
         tenancy.contact = contact
         tenancy.save()
         form.save_m2m()
@@ -970,7 +970,7 @@ class TestTenancyForm(BaseFormTestCase, TestCase):
         non_pref_type = AddressType.objects.exclude(pk=pref_type_id).order_by("?").first()
         address = AddressFactory.create(user=self.primary_user)
 
-        form = TenancyForm({
+        form = TenancyForm(data={
             "address": address.id,
             "archived": True,
             "tenancy_types": [pref_type_id, non_pref_type.id]
@@ -990,7 +990,7 @@ class TestTenancyForm(BaseFormTestCase, TestCase):
         pref_type_id = get_pref_contactable_type_id("AddressType")
         address = AddressFactory.create(user=self.primary_user)
 
-        form = TenancyForm({
+        form = TenancyForm(data={
             "address": address.id,
             "archived": False,
             "tenancy_types": [pref_type_id],
@@ -1010,7 +1010,7 @@ class TestTenancyForm(BaseFormTestCase, TestCase):
         pref_type_id = get_pref_contactable_type_id("AddressType")
         address = AddressFactory.create(user=self.primary_user)
 
-        form = TenancyForm({
+        form = TenancyForm(data={
             "address": address.id,
             "archived": True,
             "tenancy_types": [pref_type_id],
@@ -1058,7 +1058,7 @@ class TestWalletAddressForm(BaseFormTestCase, TestCase):
         Test that the form validates successfully with only the required fields.
         """
         network = CryptoNetwork.objects.order_by("?").first()
-        form = WalletAddressForm({
+        form = WalletAddressForm(data={
             "address": "0xjdfhgkjh2kjh2345jkh23k4jh234jkh23jk4h",
             "network": network.id,
             "transmission": random.choice([
@@ -1073,7 +1073,7 @@ class TestWalletAddressForm(BaseFormTestCase, TestCase):
         """
         Test that the form fails to validate successfully without the required fields.
         """
-        form = WalletAddressForm({"archived": True})
+        form = WalletAddressForm(data={"archived": True})
         self.assertFalse(form.is_valid())
         self.assertEqual(
             Counter(["address", "network", "transmission"]),
@@ -1087,7 +1087,7 @@ class TestWalletAddressForm(BaseFormTestCase, TestCase):
         """
         network = CryptoNetwork.objects.order_by("?").first()
 
-        form = WalletAddressForm({
+        form = WalletAddressForm(data={
             "address": "0x8sd7fg89sd7fg89s7as89d7fs98d7f8s9d7fsd9f",
             "archived": fake.boolean(),
             "network": network.id,
@@ -1098,8 +1098,8 @@ class TestWalletAddressForm(BaseFormTestCase, TestCase):
         })
         self.assertTrue(form.is_valid())
 
-        wallet_address: WalletAddress = form.save(commit=False)
-        contact: Contact = ContactFactory.create(user=self.primary_user)
+        wallet_address = form.save(commit=False)
+        contact = ContactFactory.create(user=self.primary_user)
         wallet_address.contact = contact
         wallet_address.save()
 
