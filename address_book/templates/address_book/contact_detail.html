@@ -1,5 +1,6 @@
 {% extends "address_book/address_book_base.html" %}
 {% load hreffer %}
+{% load filter_contact_list %}
 {% load static %}
 
 {% block title %}Address Book{% endblock title %}
@@ -97,7 +98,7 @@
                         <th>Nationalities:</th>
                         <td>
                             {% for nationality in contact.nationalities.all %}
-                                <a href="{% url "contact-list" %}?filter_field=nationality&amp;filter_value={{nationality.id}}">{{ nationality }}</a>{% if not forloop.last %}, {% endif %}
+                                <a href="{% url "contact-list" %}?{{ nationality.verbose|filter_contact_list:"nationalities__verbose" }}">{{ nationality }}</a>{% if not forloop.last %}, {% endif %}
                             {% endfor %}
                         </td>
                     </tr>
@@ -113,7 +114,9 @@
                 {% if contact.profession %}
                     <tr>
                         <th>Profession:</th>
-                        <td>{{ contact.profession }}</td>
+                        <td>
+                            <a href="{% url "contact-list" %}?{{ contact.profession.name|filter_contact_list:"profession__name" }}">{{ contact.profession }}</a>
+                        </td>
                     </tr>
                 {% endif %}
                 {% if contact.dob %}
@@ -205,6 +208,7 @@
                         <tr>
                             <td>{{ tag.name }}</td>
                             <td>
+                                <a href="{% url "contact-list" %}?{{ tag.name|filter_contact_list:"tags__name" }}">View Contacts</a>
                                 <a href="{% url "contact-list" %}?form-TOTAL_FORMS=1&amp;form-INITIAL_FORMS=0&amp;form-MIN_NUM_FORMS=0&amp;form-MAX_NUM_FORMS=1000&amp;form-0-filter_field=tags__name&amp;form-0-filter_value={{ tag.name }}&amp;">View Contacts</a>
                             </td>
                         </tr>
