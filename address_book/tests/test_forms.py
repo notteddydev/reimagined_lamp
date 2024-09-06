@@ -4,11 +4,10 @@ import random
 from collections import Counter
 from django import forms
 from django.apps import apps
-from django.db.models import QuerySet
 from django.forms.models import model_to_dict
 from django.test import TestCase
 from faker import Faker
-from typing import List, Optional
+from typing import Optional
 
 from address_book import constants
 from address_book.factories.address_factories import AddressFactory
