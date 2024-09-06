@@ -824,6 +824,23 @@ class TestTagForm(BaseFormTestCase, TestCase):
         )
         self.assertEqual("TesterTag", tag.name)
 
+    def test_removes_associated_contacts_on_update(self) -> None:
+        """
+        Test that when updating a Tag and it's associated Contacts, the associations are correctly
+        updated.
+        """
+        tag = TagFactory.create(user=self.primary_user)
+        contacts = ContactFactory.create_batch(3, tags=[tag], user=self.primary_user)
+
+        form = TagForm(data={"contacts": [contacts[0].id], "name": fake.word()}, instance=tag, user=self.primary_user)
+        self.assertTrue(form.is_valid())
+        
+        tag = form.save()
+        contacts_with_tag = Contact.objects.filter(tags__id=tag.id)
+
+        self.assertEqual(1, contacts_with_tag.count())
+        self.assertEqual(contacts[0].id, contacts_with_tag.first().id)
+
 
 class TestTenancyForm(BaseFormTestCase, TestCase):
     def test_fields_present(self) -> None:
