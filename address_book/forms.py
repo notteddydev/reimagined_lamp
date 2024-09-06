@@ -95,7 +95,7 @@ class ContactFilterForm(forms.Form):
         ("first_name", "First Name"),
         ("addresses__landline__number", "Landline"),
         ("last_name", "Last Name"),
-        ("nationality__verbose", "Nationality"),
+        ("nationalities__verbose", "Nationality"),
         ("addresses__neighbourhood", "Neighbourhood"),
         ("nickname", "Nickname"),
         ("phonenumber__number", "Phone Number"),
