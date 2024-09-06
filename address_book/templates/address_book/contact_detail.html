@@ -208,8 +208,8 @@
                         <tr>
                             <td>{{ tag.name }}</td>
                             <td>
+                                <a href="{% url "tag-update" tag.id %}?contact_id={{ object.id }}">Update</a>                                
                                 <a href="{% url "contact-list" %}?{{ tag.name|filter_contact_list:"tags__name" }}">View Contacts</a>
-                                <a href="{% url "contact-list" %}?form-TOTAL_FORMS=1&amp;form-INITIAL_FORMS=0&amp;form-MIN_NUM_FORMS=0&amp;form-MAX_NUM_FORMS=1000&amp;form-0-filter_field=tags__name&amp;form-0-filter_value={{ tag.name }}&amp;">View Contacts</a>
                             </td>
                         </tr>
                     {% endfor %}
