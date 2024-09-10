@@ -1,6 +1,5 @@
 ### ToDo (AddressBook)
 
-- Make sure that when creating an Address for a given Contact (passing contact-update contact.id to the address-create url as a next param), that the Address is pre-selected for a new Tenancy in the TenancyInlineFormSet.
 - Erm... add docblocks, pattern code, add typehints, refactor code - view classes particularly.
 - Remove typehints from variables. Only put them on method definitions.
 - Setup GitHub pipeline.
