@@ -210,6 +210,7 @@
                             <td>
                                 <a href="{% url "tag-update" tag.id %}?contact_id={{ object.id }}">Update</a>                                
                                 <a href="{% url "contact-list" %}?{{ tag.name|filter_contact_list:"tags__name" }}">View Contacts</a>
+                                <a href="{% url "tag-delete" tag.id %}?contact_id={{ object.id }}">Delete Tag</a>
                             </td>
                         </tr>
                     {% endfor %}

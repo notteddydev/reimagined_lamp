@@ -1,0 +1,24 @@
+{% extends "address_book/address_book_base.html" %}
+{% load static %}
+
+{% block title %}Address Book{% endblock title %}
+
+{% block scripts %}
+    <script src="{% static "copyToClipboard.js" %}"></script>
+{% endblock scripts %}
+
+{% block header %}Tag Delete{% endblock header %}
+
+{% block content %}
+    <form method="POST">
+        {% csrf_token %}
+        <h2>Are you sure that you want to delete tag: {{ object }}?</h2>
+        <p>The tag is associated with the following contacts:</p>
+        <ul>
+            {% for contact in tag.contact_set.all %}
+                <li>{{ contact.full_name }}</li>
+            {% endfor %}
+        </ul>
+        <button>Delete</button>
+    </form>
+{% endblock content %}

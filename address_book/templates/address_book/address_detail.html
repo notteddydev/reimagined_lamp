@@ -100,6 +100,7 @@
                         <td>
                             <a href="{% url "contact-detail" tenancy.contact.id %}">View</a>
                             <a href="{% url "contact-update" tenancy.contact.id %}">Update</a>
+                            <a href="{% url "tenancy-delete" tenancy.id %}">Delete Tenancy</a>
                         </td>
                     </tr>
                 {% endfor %}

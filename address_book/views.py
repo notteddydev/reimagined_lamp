@@ -3,13 +3,13 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.http import Http404, HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.template.defaultfilters import slugify
-from django.urls import reverse
-from django.views.generic import DetailView, View
+from django.urls import reverse, reverse_lazy
+from django.views.generic import DeleteView, DetailView, View
 
 from urllib.parse import urlparse, parse_qs
 
 from .forms import AddressForm, AddressPhoneNumberFormSet, ContactFilterFormSet, ContactForm, ContactPhoneNumberFormSet, EmailFormSet, TagForm, TenancyFormSet, WalletAddressFormSet
-from .models import Address, Contact, Tag
+from .models import Address, Contact, Tag, Tenancy
 from app.decorators import owned_by_user
 from app.mixins import OwnedByUserMixin
 
@@ -133,6 +133,14 @@ class AddressCreateView(LoginRequiredMixin, View):
         })
     
 
+class AddressDeleteView(LoginRequiredMixin, OwnedByUserMixin, DeleteView):
+    """
+    Delete a given Address.
+    """
+    model = Address
+    success_url = reverse_lazy("contact-list")
+    
+
 class AddressDetailView(LoginRequiredMixin, OwnedByUserMixin, DetailView):
     """
     Display details of a given Address.
@@ -226,6 +234,14 @@ class ContactDetailView(LoginRequiredMixin, OwnedByUserMixin, DetailView):
     Display details of a given Contact .
     """
     model = Contact
+
+
+class ContactDeleteView(LoginRequiredMixin, OwnedByUserMixin, DeleteView):
+    """
+    Delete a given Contact.
+    """
+    model = Contact
+    success_url = reverse_lazy("contact-list")
     
 
 class ContactUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
@@ -358,3 +374,28 @@ class TagUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
 
     def test_func(self) -> bool | None:
         return Tag.objects.filter(id=self.kwargs["pk"], user=self.request.user).exists()
+    
+
+class TagDeleteView(LoginRequiredMixin, OwnedByUserMixin, DeleteView):
+    model = Tag
+
+    def get_success_url(self) -> str:
+        contact_id = self.request.GET.get("contact_id", None)
+        if contact_id:
+            return reverse("contact-detail", args=[contact_id])
+
+        return reverse("contact-list")
+
+
+class TenancyDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
+    model = Tenancy
+
+    def get_success_url(self) -> str:
+        tenancy = self.get_object()
+        return reverse("address-detail", args=[tenancy.address_id])
+
+    def test_func(self) -> bool | None:
+        return Tenancy.objects.filter(
+            address__user=self.request.user,
+            contact__user=self.request.user,
+        ).exists()

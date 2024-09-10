@@ -14,8 +14,9 @@ from typing import Any, Optional
 from address_book.factories.address_factories import AddressFactory
 from address_book.factories.contact_factories import ContactFactory
 from address_book.factories.tag_factories import TagFactory
+from address_book.factories.tenancy_factories import TenancyFactory
 from address_book.factories.user_factories import UserFactory
-from address_book.models import Address, Contact, Tag
+from address_book.models import Address, Contact, Tag, Tenancy
 
 fake = Faker()
 
@@ -86,7 +87,42 @@ class BaseModelViewTestCase:
         self.assertTemplateUsed(response, template)
         for context_key in context_keys:
             self.assertIn(context_key, response.context)
-        
+
+
+class BaseDeleteViewTestCase(BaseModelViewTestCase):
+    def setUp(self):
+        super().setUp()
+        self.context_keys = ("object",)
+        self.template = f"address_book/{self.model._meta.object_name.lower()}_confirm_delete.html"
+
+    def test_get(self):
+        response = self._login_user_and_get_get_response()
+        self.assert_view_renders_correct_template_and_context(
+            response=response,
+            template=self.template,
+            context_keys=self.context_keys,
+        )
+
+    def test_error_code_if_user_not_owner(self):
+        """
+        Make sure that if a Model is not owned by the logged in User, they are thrown the appropriate error code.
+        """
+        response = self._login_user_and_get_get_response(
+            username=self.other_user.username,
+            password=self.other_user_password,
+        )
+        self.assertEqual(response.status_code, self.error_code)
+
+    def test_404_if_object_not_exists(self):
+        """
+        Make sure that if a Model does not exist with the pk provided in the URL
+        that the response status code is 404.
+        """
+        response = self._login_user_and_get_get_response(
+            url=reverse(f"{self.model._meta.object_name.lower()}-delete", args=[self.object.id + 1])
+        )
+        self.assertEqual(response.status_code, 404)
+
 
 class TestAddressCreateView(BaseModelViewTestCase, TestCase):
     def setUp(self):
@@ -266,6 +302,25 @@ class TestAddressCreateView(BaseModelViewTestCase, TestCase):
             },
             phonenumber_formset_errors[1]
         )
+
+
+class TestAddressDeleteView(BaseDeleteViewTestCase, TestCase):
+    model = Address
+
+    def setUp(self):
+        super().setUp()
+        self.error_code = 404
+        self.contact = ContactFactory.create(user=self.primary_user)
+        self.object = AddressFactory.create(user=self.primary_user)
+        self.contact.addresses.add(self.object)
+        self.url = reverse("address-delete", args=[self.object.id])
+
+    def test_redirect_upon_success(self):
+        """
+        Test that a successful delete post request redirects to 'contact-list'.
+        """
+        response = self._login_user_and_get_post_response()
+        self.assertRedirects(response, reverse("contact-list"))
 
 
 class TestAddressUpdateView(BaseModelViewTestCase, TestCase):
@@ -597,6 +652,23 @@ class TestContactCreateView(BaseModelViewTestCase, TestCase):
             response.context["email_formset"].errors[0]
         )
         self.assertIn("One must be designated as 'preferred'.", response.context["email_formset"].non_form_errors())
+
+
+class TestContactDeleteView(BaseDeleteViewTestCase, TestCase):
+    model = Contact
+
+    def setUp(self):
+        super().setUp()
+        self.error_code = 404
+        self.object = ContactFactory.create(user=self.primary_user)
+        self.url = reverse("contact-delete", args=[self.object.id])
+
+    def test_redirect_upon_success(self):
+        """
+        Test that a successful delete post request redirects to 'contact-list'.
+        """
+        response = self._login_user_and_get_post_response()
+        self.assertRedirects(response, reverse("contact-list"))
 
 
 class TestContactDetailView(BaseModelViewTestCase, TestCase):
@@ -1196,6 +1268,36 @@ class TestTagCreateView(BaseModelViewTestCase, TestCase):
         )
 
 
+class TestTagDeleteView(BaseDeleteViewTestCase, TestCase):
+    model = Tag
+
+    def setUp(self):
+        super().setUp()
+        self.error_code = 404
+        self.contact = ContactFactory.create(user=self.primary_user)
+        self.object = TagFactory.create(user=self.primary_user)
+        self.contact.tags.add(self.object)
+        self.url = reverse("tag-delete", args=[self.object.id])
+
+    def test_redirect_upon_success_no_contact_id(self):
+        """
+        Test that a successful delete post request redirects to 'contact-list' when
+        there is no contact_id get param.
+        """
+        response = self._login_user_and_get_post_response()
+        self.assertRedirects(response, reverse("contact-list"))
+
+    def test_redirect_upon_success_with_contact_id(self):
+        """
+        Test that a successful delete post request redirects to 'contact-detail' when
+        there is a contact_id get param.
+        """
+        response = self._login_user_and_get_post_response(
+            url=f"{reverse('tag-delete', args=[self.object.id])}?contact_id={self.contact.id}"
+        )
+        self.assertRedirects(response, reverse("contact-detail", args=[self.contact.id]))
+
+            
 class TestTagUpdateView(BaseModelViewTestCase, TestCase):
     def setUp(self):
         super().setUp()
@@ -1318,3 +1420,25 @@ class TestTagUpdateView(BaseModelViewTestCase, TestCase):
         )
         self.assertEqual(response.status_code, 403)
         self.assertTemplateNotUsed(response, self.template)
+
+
+class TestTenancyDeleteView(BaseDeleteViewTestCase, TestCase):
+    model = Tenancy
+
+    def setUp(self):
+        super().setUp()
+        self.error_code = 403
+        self.contact = ContactFactory.create(user=self.primary_user)
+        self.address = AddressFactory.create(user=self.primary_user)
+        self.object = TenancyFactory.create(
+            address=self.address,
+            contact=self.contact,
+        )
+        self.url = reverse("tenancy-delete", args=[self.object.id])
+
+    def test_redirect_upon_success(self):
+        """
+        Test that a successful delete post request redirects to 'address-detail'.
+        """
+        response = self._login_user_and_get_post_response()
+        self.assertRedirects(response, reverse("address-detail", args=[self.address.id]))

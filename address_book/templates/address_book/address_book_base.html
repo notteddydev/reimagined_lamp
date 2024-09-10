@@ -10,16 +10,22 @@
 {% endblock subnav %}
 
 {% block tertiarynav %}
-    {% if request.resolver_match.url_name == "contact-detail" %}
+    {% if request.resolver_match.url_name == "contact-delete" or request.resolver_match.url_name == "contact-detail" %}
         <a href="{% url "contact-update" object.id %}">Contact Update</a>
     {% endif %}
-    {% if request.resolver_match.url_name == "contact-update" %}
+    {% if request.resolver_match.url_name == "contact-delete" or request.resolver_match.url_name == "contact-update" %}
         <a href="{% url "contact-detail" object.id %}">Contact Detail</a>
     {% endif %}
-    {% if request.resolver_match.url_name == "address-detail" %}
+    {% if request.resolver_match.url_name == "contact-detail" or request.resolver_match.url_name == "contact-update" %}
+        <a href="{% url "contact-delete" object.id %}">Contact Delete</a>
+    {% endif %}
+    {% if request.resolver_match.url_name == "address-delete" or request.resolver_match.url_name == "address-detail" %}
         <a href="{% url "address-update" object.id %}">Address Update</a>
     {% endif %}
-    {% if request.resolver_match.url_name == "address-update" %}
+    {% if request.resolver_match.url_name == "address-delete" or request.resolver_match.url_name == "address-update" %}
         <a href="{% url "address-detail" object.id %}">Address Detail</a>
+    {% endif %}
+    {% if request.resolver_match.url_name == "address-detail" or request.resolver_match.url_name == "address-update" %}
+        <a href="{% url "address-delete" object.id %}">Address Delete</a>
     {% endif %}
 {% endblock tertiarynav %}

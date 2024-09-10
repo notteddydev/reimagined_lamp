@@ -1,0 +1,19 @@
+{% extends "address_book/address_book_base.html" %}
+{% load static %}
+
+{% block title %}Address Book{% endblock title %}
+
+{% block scripts %}
+    <script src="{% static "copyToClipboard.js" %}"></script>
+{% endblock scripts %}
+
+{% block header %}Tenancy Delete{% endblock header %}
+
+{% block content %}
+    <form method="POST">
+        {% csrf_token %}
+        <h2>Are you sure that you want to delete the tenancy that links contact: {{ object.contact.full_name }} with address:</h2>
+        <p>{{ object.address.readable|linebreaks }}</p>
+        <button>Delete</button>
+    </form>
+{% endblock content %}
