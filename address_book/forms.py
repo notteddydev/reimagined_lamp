@@ -8,11 +8,14 @@ from phonenumber_field.formfields import localized_choices, PrefixChoiceField, S
 
 from typing import List, Optional
 
-from .models import Address, AddressType, Contact, Email, EmailType, PhoneNumber, PhoneNumberType, Tag, Tenancy, WalletAddress
+from .models import Address, AddressType, Contact, Email, EmailType, PhoneNumber, PhoneNumberType, Tag, Tenancy, User, WalletAddress
 from .utils import get_years_from_year
 
 
 def create_date_field(required: Optional[bool] = False, from_year: Optional[int] = 1920) -> forms.DateField:
+    """
+    Create a DateField for a form with consistent empty labels and a consistent list of years.
+    """
     return forms.DateField(
         required=required,
         widget=forms.widgets.SelectDateWidget(
@@ -23,7 +26,11 @@ def create_date_field(required: Optional[bool] = False, from_year: Optional[int]
 
 
 class ContactableMixin:
-    def clean(self):
+    def clean(self) -> None:
+        """
+        Ensure that a Contactable, if associated with the 'preferred' ContactableType, is NOT archived,
+        and is associated with at least one other ContactableType.
+        """
         super().clean()
         if self.pref_contactable_type:
             contactable_types = self.cleaned_data.get(self.contactable_types_field_name, [])
@@ -36,6 +43,15 @@ class ContactableMixin:
 
 class ContactableFormSetMixin:
     def _get_contactable_type_errors(self) -> List[str]:
+        """
+        Ensure that in a ContactableFormSet, ONE UNARCHIVED Contactable is designated as 'preferred' -
+        no less, and no more. If there are no unarchived Contactables, no errors are added here.
+        The individual ContactableMixin takes care of ensuring that a Contactable is not 'preferred'
+        and archived at the same time.
+
+        Return an array of errors so that it can be concatenated with an array of any other errors which may
+        exist in the FormSet.
+        """
         errors = []
 
         if self.pref_contactable_type:
@@ -63,6 +79,9 @@ class ContactableFormSetMixin:
 
 class SaveFormSetIfNotEmptyMixin:
     def save_if_not_empty(self, instance: models.Model) -> List[models.Model]:
+        """
+        Ensures that a FormSet is not empty, before saving it.
+        """
         has_valid_data = any(
             form.is_valid() and form.cleaned_data
             for form in self
@@ -81,6 +100,10 @@ class AddressForm(forms.ModelForm):
         exclude = ["user"]
 
     def __init__(self, user, *args, **kwargs):
+        """
+        Set the user_id on the instance using the user passed in, set the empty_label for the Country
+        field.
+        """
         super(AddressForm, self).__init__(*args, **kwargs)
         self.instance.user_id = user.id
         self.fields["country"].empty_label = "-- Select Country --"
@@ -108,7 +131,10 @@ class ContactFilterForm(forms.Form):
     filter_field = forms.ChoiceField(choices=FILTER_FIELD_CHOICES, required=False)
     filter_value = forms.CharField(required=False)
 
-    def apply_filter(self, queryset):
+    def apply_filter(self, queryset: models.QuerySet[Contact]) -> models.QuerySet[Contact]:
+        """
+        Filter a Contact queryset based on the values passed into the Form.
+        """
         filter_field = self.cleaned_data.get("filter_field")
         filter_value = self.cleaned_data.get("filter_value")
             
@@ -119,7 +145,11 @@ class ContactFilterForm(forms.Form):
 
 
 class BaseContactFilterFormSet(forms.BaseFormSet):
-    def apply_filters(self, queryset):
+    def apply_filters(self, queryset: models.QuerySet[Contact]) -> models.QuerySet[Contact]:
+        """
+        Call the apply_filter method for each Form in the FormSet, filtering a Contact queryset
+        based on the values passed into the FormSet.
+        """
         for form in self:
             queryset = form.apply_filter(queryset)
 
@@ -138,6 +168,11 @@ class ContactForm(forms.ModelForm):
     dod = create_date_field()
 
     def __init__(self, user, *args, **kwargs):
+        """
+        Set the user_id for the instance using the User object passed in; filter Tags and FamilyMembers
+        querysets to ensure that only Models owned by the passed in User are provided as options; set 
+        the empty_label for 'Profession' field.
+        """
         super(ContactForm, self).__init__(*args, **kwargs)
         self.instance.user_id = user.id
         self.fields["profession"].empty_label = "-- Select Profession --"
@@ -145,10 +180,17 @@ class ContactForm(forms.ModelForm):
         self.fields["family_members"].queryset = Contact.objects.filter(user=user.id)
 
     def clean(self) -> None:
+        """
+        Call the clean_dates method.
+        """
         cleaned_data = super().clean()
         self.clean_dates(cleaned_data=cleaned_data)
 
     def clean_dates(self, cleaned_data: dict) -> None:
+        """
+        Clean the dates for the ContactForm, ensuring coherence of the 'year_met', 'dob', 'dod', and
+        'anniversary' fields.
+        """
         anniversary = cleaned_data.get("anniversary", None)
         dob = cleaned_data.get("dob", None)
         dod = cleaned_data.get("dod", None)
@@ -157,23 +199,17 @@ class ContactForm(forms.ModelForm):
         if dob:
             if anniversary and anniversary <= dob:
                 self.add_error("anniversary", "Anniversary must be greater than the date of birth.")
-
             if dob > datetime.date.today():
                 self.add_error("dob", "Date of birth may not be set to a future date.")
-
             if year_met and dob.year > year_met:
                 self.add_error("year_met", "Year met may not be before the date of birth.")
-
         if dod:
             if anniversary and anniversary > dod:
                 self.add_error("anniversary", "Anniversary must be sooner than the date of passing.")
-
             if dob and dob > dod:
                 self.add_error("dob", "Date of birth may not be after date of passing.")
-
             if dod > datetime.date.today():
                 self.add_error("dod", "Date of passing may not be set to a future date.")
-
             if year_met and dod.year < year_met:
                 self.add_error("year_met", "Year met may not be after date of passing.")
 
@@ -191,7 +227,11 @@ class BaseEmailInlineFormSet(ContactableFormSetMixin, SaveFormSetIfNotEmptyMixin
     contactable_types_field_name = "email_types"
     pref_contactable_type = EmailType.objects.preferred().first()
 
-    def clean(self):
+    def clean(self) -> None:
+        """
+        Call _get_contactable_type_errors method, and if it returns any errors, raise a validation error
+        to display them.
+        """
         super().clean()
         errors = self._get_contactable_type_errors()
         if errors:
@@ -208,7 +248,11 @@ EmailFormSet = forms.inlineformset_factory(
 
 
 class CustomSplitPhoneNumberField(SplitPhoneNumberField):
-    def prefix_field(self):
+    def prefix_field(self) -> PrefixChoiceField:
+        """
+        Set the empty_label (first, empty, choice) for the 'prefix_field', and sort the choices
+        in alphabetical order as opposed to in order of the numeric code.
+        """
         language = translation.get_language() or settings.LANGUAGE_CODE
         choices = localized_choices(language)
         choices[0] = ("", "-- Select Country Prefix --")
@@ -232,7 +276,11 @@ class BasePhoneNumberInlineFormSet(ContactableFormSetMixin, SaveFormSetIfNotEmpt
     contactable_types_field_name = "phonenumber_types"
     pref_contactable_type = PhoneNumberType.objects.preferred().first()
 
-    def clean(self):
+    def clean(self) -> None:
+        """
+        Call _get_contactable_type_errors method, and if it returns any errors, raise a validation error
+        to display them.
+        """
         super().clean()
         errors = self._get_contactable_type_errors()
         if errors:
@@ -260,6 +308,11 @@ class TagForm(forms.ModelForm):
         exclude = ["user"]
 
     def __init__(self, user, *args, **kwargs):
+        """
+        Set the instance user_id using the User passed in; filter the Contacts queryset so that only
+        Contacts owned by the logged in User are provided as choices; make sure that the initial value
+        is set to the existing linked Contacts if there are any.
+        """
         super(TagForm, self).__init__(*args, **kwargs)
         self.instance.user_id = user.id
         self.fields["contacts"] = forms.ModelMultipleChoiceField(
@@ -268,7 +321,11 @@ class TagForm(forms.ModelForm):
             widget=forms.CheckboxSelectMultiple
         )
 
-    def save(self, commit=True):
+    def save(self, commit: bool = True) -> Tag:
+        """
+        Ensure that the Contact associations are updated upon save - both adding and removing Contact
+        association where necessary.
+        """
         tag = super().save(commit=commit)
 
         if commit:
@@ -292,6 +349,10 @@ class TenancyForm(ContactableMixin, forms.ModelForm):
     pref_contactable_type = AddressType.objects.preferred().first()
 
     def __init__(self, *args, **kwargs):
+        """
+        Receive a User as an argument and use that to filter the queryset for the Address field to ensure
+        that only Addresses owned by the logged in User are provided as choices.
+        """
         user = kwargs.pop("user", None)
         if not user:
             raise TypeError("TenancyForm.__init__() missing 1 required keyword argument: 'user'")
@@ -309,15 +370,26 @@ class BaseTenancyInlineFormSet(ContactableFormSetMixin, SaveFormSetIfNotEmptyMix
     pref_contactable_type = AddressType.objects.preferred().first()
 
     def __init__(self, *args, **kwargs):
+        """
+        Receive a User as an arg, necessary for passing into the individual forms to filter the Address
+        querysets for the Address field.
+        """
         self.user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
 
-    def _construct_form(self, i, **kwargs):
-        # Pass the user instance to each form
+    def _construct_form(self, i: int, **kwargs) -> TenancyForm:
+        """
+        Pass the User into each form instance to filter Address querysets.
+        """
         kwargs["user"] = self.user
         return super()._construct_form(i, **kwargs)
 
-    def clean(self):
+    def clean(self) -> None:
+        """
+        Call _get_contactable_type_errors method, and if it returns any errors, concatenate them with any
+        errors that may arise from an Address attempted to be linked to a Contact more than once, and raise
+        a validation error displaying all errors, if there are any.
+        """
         super().clean()
         errors = self._get_contactable_type_errors()
 
@@ -349,6 +421,9 @@ class WalletAddressForm(forms.ModelForm):
         exclude = ["contact"]
 
     def __init__(self, *args, **kwargs):
+        """
+        Set the empty_label for the Network field.
+        """
         super(WalletAddressForm, self).__init__(*args, **kwargs)
         self.fields["network"].empty_label = "-- Select Network --"
 

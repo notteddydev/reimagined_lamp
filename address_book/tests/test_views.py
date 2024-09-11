@@ -96,6 +96,10 @@ class BaseDeleteViewTestCase(BaseModelViewTestCase):
         self.template = f"address_book/{self.model._meta.object_name.lower()}_confirm_delete.html"
 
     def test_get(self):
+        """
+        Test that the DeleteView renders the expected template and provides the expected keys
+        for the context object.
+        """
         response = self._login_user_and_get_get_response()
         self.assert_view_renders_correct_template_and_context(
             response=response,

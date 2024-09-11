@@ -185,6 +185,9 @@ class AddressUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
         })
 
     def test_func(self) -> bool | None:
+        """
+        Check that the Address being updated is owned by the logged in User.
+        """
         return Address.objects.filter(id=self.kwargs["pk"], user=self.request.user).exists()
 
 
@@ -290,6 +293,9 @@ class ContactUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
         })
 
     def test_func(self) -> bool | None:
+        """
+        Check that the Contact being updated is owned by the logged in User.
+        """
         return Contact.objects.filter(id=self.kwargs["pk"], user=self.request.user).exists()
 
 
@@ -343,6 +349,9 @@ class TagCreateView(LoginRequiredMixin, View):
 
 class TagUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
     def get(self, request: HttpRequest, pk: int) -> HttpResponse:
+        """
+        Return the tag_form template for updating an Tag, displaying any existing values.
+        """
         tag = get_object_or_404(Tag, pk=pk)
         form = TagForm(instance=tag, user=request.user)
         return render(request, "address_book/tag_form.html", {
@@ -351,6 +360,11 @@ class TagUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
         })
 
     def post(self, request: HttpRequest, pk: int) -> HttpResponse:
+        """
+        Updates a Tag with valid data and redirects to the corresponding ContactDetail view if
+        referred from a ContactDetail view, if not to the ContactList view; or, if incorrect
+        data provided, returns the tag_form template once again displaying errors.
+        """
         tag = get_object_or_404(Tag, pk=pk)
         form = TagForm(data=request.POST, instance=tag, user=request.user)
 
@@ -373,6 +387,9 @@ class TagUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
         })
 
     def test_func(self) -> bool | None:
+        """
+        Check that the Tag being updated is owned by the logged in User.
+        """
         return Tag.objects.filter(id=self.kwargs["pk"], user=self.request.user).exists()
     
 
@@ -380,6 +397,10 @@ class TagDeleteView(LoginRequiredMixin, OwnedByUserMixin, DeleteView):
     model = Tag
 
     def get_success_url(self) -> str:
+        """
+        Change the success url so that it redirects either to the ContactDetail view if a contact_id
+        was passed in, or if not, the ContactList view.
+        """
         contact_id = self.request.GET.get("contact_id", None)
         if contact_id:
             return reverse("contact-detail", args=[contact_id])
@@ -391,10 +412,17 @@ class TenancyDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     model = Tenancy
 
     def get_success_url(self) -> str:
+        """
+        Change the success url so that it redirects to the AddressDetail view for the Address associated
+        with the Tenancy.
+        """
         tenancy = self.get_object()
         return reverse("address-detail", args=[tenancy.address_id])
 
     def test_func(self) -> bool | None:
+        """
+        Check that the Tenancy being deleted is owned by the logged in User.
+        """
         return Tenancy.objects.filter(
             address__user=self.request.user,
             contact__user=self.request.user,
