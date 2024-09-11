@@ -1,7 +1,5 @@
 ### ToDo (AddressBook)
 
-- Erm... add docblocks, pattern code, add typehints, refactor code - view classes particularly.
-- Remove typehints from variables. Only put them on method definitions.
 - Setup GitHub pipeline.
 - Set up with nginx on local
 - Create a Mixin for views and 'next' get param url.
