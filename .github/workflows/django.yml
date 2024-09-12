@@ -54,13 +54,6 @@ jobs:
     - name: Install Dependencies
       run: pipenv install
 
-    - name: Wait for MySQL to start
-      run: |
-        while ! mysqladmin ping -h"mysql" --silent; do
-          echo "Waiting for MySQL to start..."
-          sleep 5
-        done
-
     - name: Run Tests
       env:
         DJANGO_DB_HOST: mysql
