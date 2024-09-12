@@ -70,9 +70,9 @@ jobs:
 
     - name: Run Tests
       env:
-        DJANGO_DB_HOST: mysql
-        DJANGO_DB_PORT: 3306
-        DJANGO_DB_NAME: ${{ secrets.DB_NAME }}
-        DJANGO_DB_USER: ${{ secrets.DB_USER }}
-        DJANGO_DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        MYSQL_HOST: mysql
+        MYSQL_PORT: 3306
+        MYSQL_DB_NAME: ${{ secrets.DB_NAME }}
+        MYSQL_USER: ${{ secrets.DB_USER }}
+        MYSQL_PASSWORD: ${{ secrets.DB_PASSWORD }}
       run: pipenv run python manage.py test
