@@ -3,6 +3,7 @@
 - Setup GitHub pipeline.
 - Set up with nginx on local
 - Create a Mixin for views and 'next' get param url.
+- Define __str__ method for Models
 
 forms.py
 - Make it so that only existing models being updated in formsets have the option to be deleted.
