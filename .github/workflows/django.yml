@@ -56,14 +56,14 @@ jobs:
 
     - name: Wait for MySQL to start
       run: |
-        while ! mysqladmin ping -h"127.0.0.1" --silent; do
+        while ! mysqladmin ping -h"mysql" --silent; do
           echo "Waiting for MySQL to start..."
           sleep 5
         done
 
     - name: Run Tests
       env:
-        DJANGO_DB_HOST: 127.0.0.1
+        DJANGO_DB_HOST: mysql
         DJANGO_DB_PORT: 3306
         DJANGO_DB_NAME: ${{ secrets.DB_NAME }}
         DJANGO_DB_USER: ${{ secrets.DB_USER }}
