@@ -10,10 +10,6 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    strategy:
-      max-parallel: 4
-      matrix:
-        python-version: [3.7, 3.8, 3.9]
 
     services:
       mysql:
@@ -26,6 +22,11 @@ jobs:
         ports:
           - 3306:3306
         options: --health-cmd="mysqladmin ping --silent"
+
+    strategy:
+      max-parallel: 4
+      matrix:
+        python-version: [3.7, 3.8, 3.9]
 
     steps:
     - name: Checkout Code
@@ -53,6 +54,26 @@ jobs:
 
     - name: Install Dependencies
       run: pipenv install
+
+    - name: Wait for MySQL to start
+      run: |
+        set -e
+        for i in {1..30}; do
+          if mysqladmin ping -h"mysql" --silent; then
+            echo "MySQL is up and running."
+            break
+          else
+            echo "Waiting for MySQL to start... ($i/30)"
+            sleep 5
+          fi
+        done
+        if [ "$i" -eq 30 ]; then
+          echo "MySQL did not start in time."
+          exit 1
+        fi
+
+    - name: View MySQL Logs
+      run: docker logs $(docker ps -q --filter "ancestor=mysql:5.7")
 
     - name: Run Tests
       env:
