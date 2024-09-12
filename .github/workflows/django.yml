@@ -15,6 +15,18 @@ jobs:
       matrix:
         python-version: [3.7, 3.8, 3.9]
 
+    services:
+      mysql:
+        image: mysql:5.7
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ secrets.DB_ROOT_PASSWORD }}
+          MYSQL_DATABASE: ${{ secrets.DB_NAME }}
+          MYSQL_USER: ${{ secrets.DB_USER }}
+          MYSQL_PASSWORD: ${{ secrets.DB_PASSWORD }}
+        ports:
+          - 3306:3306
+        options: --health-cmd="mysqladmin ping --silent"
+
     steps:
     - name: Checkout Code
       uses: actions/checkout@v4
@@ -42,5 +54,18 @@ jobs:
     - name: Install Dependencies
       run: pipenv install
 
+    - name: Wait for MySQL to start
+      run: |
+        while ! mysqladmin ping -h"127.0.0.1" --silent; do
+          echo "Waiting for MySQL to start..."
+          sleep 5
+        done
+
     - name: Run Tests
+      env:
+        DJANGO_DB_HOST: 127.0.0.1
+        DJANGO_DB_PORT: 3306
+        DJANGO_DB_NAME: ${{ secrets.DB_NAME }}
+        DJANGO_DB_USER: ${{ secrets.DB_USER }}
+        DJANGO_DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
       run: pipenv run python manage.py test
