@@ -55,7 +55,7 @@ jobs:
       run: pipenv install
 
     - name: Run Migrations
-      run: python manage.py migrate
+      run: pipenv run python manage.py migrate
       env: 
         MYSQL_DB_NAME: ${{ secrets.DB_NAME }}
         MYSQL_USER: ${{ secrets.DB_USER }}
