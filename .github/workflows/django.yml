@@ -17,8 +17,6 @@ jobs:
         env:
           MYSQL_ROOT_PASSWORD: ${{ secrets.DB_ROOT_PASSWORD }}
           MYSQL_DATABASE: ${{ secrets.DB_NAME }}
-          MYSQL_USER: ${{ secrets.MYSQL_USER }}
-          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
         ports: ['3306:3306']
         options: --health-cmd="mysqladmin ping --silent"
 
@@ -54,15 +52,6 @@ jobs:
     - name: Install Dependencies
       run: pipenv install
 
-    - name: Run Migrations
-      run: pipenv run python manage.py migrate
-      env: 
-        MYSQL_DB_NAME: ${{ secrets.DB_NAME }}
-        MYSQL_USER: ${{ secrets.DB_USER }}
-        MYSQL_PASSWORD: ${{ secrets.DB_ROOT_PASSWORD }}
-        MYSQL_HOST: 127.0.0.1
-        MYSQL_PORT: 3306
-
     - name: View MySQL Logs
       run: docker logs $(docker ps -q --filter "ancestor=mysql:8.0")
 
@@ -75,6 +64,28 @@ jobs:
 
     - name: View MySQL Logs
       run: docker logs $(docker ps -q --filter "ancestor=mysql:8.0")
+
+    - name: List Migration Files
+      run: |
+        ls myapp/migrations/
+
+    - name: Make Migrations
+      run: pipenv run python manage.py makemigrations
+      env: 
+        MYSQL_DB_NAME: ${{ secrets.DB_NAME }}
+        MYSQL_USER: ${{ secrets.DB_USER }}
+        MYSQL_PASSWORD: ${{ secrets.DB_ROOT_PASSWORD }}
+        MYSQL_HOST: 127.0.0.1
+        MYSQL_PORT: 3306
+
+    - name: Run Migrations
+      run: pipenv run python manage.py migrate
+      env: 
+        MYSQL_DB_NAME: ${{ secrets.DB_NAME }}
+        MYSQL_USER: ${{ secrets.DB_USER }}
+        MYSQL_PASSWORD: ${{ secrets.DB_ROOT_PASSWORD }}
+        MYSQL_HOST: 127.0.0.1
+        MYSQL_PORT: 3306
 
     - name: Run Tests
       env:
