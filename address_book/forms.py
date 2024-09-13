@@ -228,7 +228,10 @@ class EmailForm(ContactableMixin, forms.ModelForm):
 
 class BaseEmailInlineFormSet(ContactableFormSetMixin, SaveFormSetIfNotEmptyMixin, forms.BaseInlineFormSet):
     contactable_types_field_name = "email_types"
-    pref_contactable_type = EmailType.objects.preferred().first()
+
+    def __init__(self, *args, **kwargs):
+        super(BaseEmailInlineFormSet, self).__init__(*args, **kwargs)
+        self.pref_contactable_type = EmailType.objects.preferred().first()
 
     def clean(self) -> None:
         """
@@ -269,15 +272,21 @@ class PhoneNumberForm(ContactableMixin, forms.ModelForm):
         model = PhoneNumber
         exclude = ["address", "contact"]
 
+    def __init__(self, *args, **kwargs):
+        super(PhoneNumberForm, self).__init__(*args, **kwargs)
+        self.pref_contactable_type = PhoneNumberType.objects.preferred().first()
+
     contactable_types_field_name = "phonenumber_types"
-    pref_contactable_type = PhoneNumberType.objects.preferred().first()
 
     number = CustomSplitPhoneNumberField()
 
 
 class BasePhoneNumberInlineFormSet(ContactableFormSetMixin, SaveFormSetIfNotEmptyMixin, forms.BaseInlineFormSet):
     contactable_types_field_name = "phonenumber_types"
-    pref_contactable_type = PhoneNumberType.objects.preferred().first()
+
+    def __init__(self, *args, **kwargs):
+        super(BasePhoneNumberInlineFormSet, self).__init__(*args, **kwargs)
+        self.pref_contactable_type = PhoneNumberType.objects.preferred().first()
 
     def clean(self) -> None:
         """
@@ -349,7 +358,6 @@ class TenancyForm(ContactableMixin, forms.ModelForm):
         exclude = ["contact"]
 
     contactable_types_field_name = "tenancy_types"
-    pref_contactable_type = AddressType.objects.preferred().first()
 
     def __init__(self, *args, **kwargs):
         """
@@ -361,6 +369,7 @@ class TenancyForm(ContactableMixin, forms.ModelForm):
             raise TypeError("TenancyForm.__init__() missing 1 required keyword argument: 'user'")
         self.user = user
         super(TenancyForm, self).__init__(*args, **kwargs)
+        self.pref_contactable_type = AddressType.objects.preferred().first()
 
         self.fields["address"] = forms.ModelChoiceField(
             Address.objects.filter(user=self.user),
@@ -370,7 +379,6 @@ class TenancyForm(ContactableMixin, forms.ModelForm):
 
 class BaseTenancyInlineFormSet(ContactableFormSetMixin, SaveFormSetIfNotEmptyMixin, forms.BaseInlineFormSet):
     contactable_types_field_name = "tenancy_types"
-    pref_contactable_type = AddressType.objects.preferred().first()
 
     def __init__(self, *args, **kwargs):
         """
@@ -379,6 +387,7 @@ class BaseTenancyInlineFormSet(ContactableFormSetMixin, SaveFormSetIfNotEmptyMix
         """
         self.user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
+        self.pref_contactable_type = AddressType.objects.preferred().first()
 
     def _construct_form(self, i: int, **kwargs) -> TenancyForm:
         """
