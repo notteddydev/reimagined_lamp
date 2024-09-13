@@ -3,7 +3,7 @@ import importlib
 
 def get_my_model_view(my_model_view: str):
     # Dynamically import the view module
-    views_module = importlib.import_module('myapp.views')
+    views_module = importlib.import_module('address_book.views')
     return getattr(views_module, my_model_view)
 
 urlpatterns = [
