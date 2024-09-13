@@ -219,8 +219,11 @@ class EmailForm(ContactableMixin, forms.ModelForm):
         model = Email
         exclude = ["contact"]
 
+    def __init__(self, *args, **kwargs):
+        super(EmailForm, self).__init__(*args, **kwargs)
+        self.pref_contactable_type = EmailType.objects.preferred().first()
+
     contactable_types_field_name = "email_types"
-    pref_contactable_type = EmailType.objects.preferred().first()
 
 
 class BaseEmailInlineFormSet(ContactableFormSetMixin, SaveFormSetIfNotEmptyMixin, forms.BaseInlineFormSet):
