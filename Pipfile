@@ -15,6 +15,7 @@ qrcode = {extras = ["pil"], version = "*"}
 factory-boy = "*"
 faker = "*"
 phone-gen = "*"
+cryptography = "*"
 
 [dev-packages]
 
