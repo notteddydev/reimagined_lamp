@@ -58,6 +58,12 @@ jobs:
     - name: View MySQL Logs
       run: docker logs $(docker ps -q --filter "ancestor=mysql:5.7")
 
+    - name: Verify MySQL Connection
+      run: |
+        mysql --host=mysql --port=3306 --user=${{ secrets.MYSQL_USER }} --password=${{ secrets.MYSQL_PASSWORD }} -e "SHOW DATABASES;"
+      env:
+        MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+
     - name: Wait for MySQL to start
       run: |
         while ! mysqladmin ping -h"mysql" --silent; do
