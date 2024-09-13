@@ -60,7 +60,7 @@ jobs:
         MYSQL_DB_NAME: ${{ secrets.DB_NAME }}
         MYSQL_USER: ${{ secrets.DB_USER }}
         MYSQL_PASSWORD: ${{ secrets.DB_PASSWORD }}
-        MYSQL_HOST: 127.0.0.1
+        MYSQL_HOST: mysql
         MYSQL_PORT: 3306
 
     - name: View MySQL Logs
@@ -78,7 +78,7 @@ jobs:
 
     - name: Run Tests
       env:
-        MYSQL_HOST: 127.0.0.1
+        MYSQL_HOST: mysql
         MYSQL_PORT: 3306
         MYSQL_DB_NAME: ${{ secrets.DB_NAME }}
         MYSQL_USER: ${{ secrets.DB_USER }}
