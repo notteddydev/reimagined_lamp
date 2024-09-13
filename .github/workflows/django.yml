@@ -67,7 +67,7 @@ jobs:
 
     - name: List Migration Files
       run: |
-        ls myapp/migrations/
+        ls address_book/migrations/
 
     - name: Make Migrations
       run: pipenv run python manage.py makemigrations
