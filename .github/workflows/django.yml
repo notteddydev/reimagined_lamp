@@ -13,7 +13,7 @@ jobs:
 
     services:
       mysql:
-        image: mysql:5.7
+        image: mysql:8.0
         env:
           MYSQL_ROOT_PASSWORD: ${{ secrets.DB_ROOT_PASSWORD }}
           MYSQL_DATABASE: ${{ secrets.DB_NAME }}
@@ -64,7 +64,7 @@ jobs:
         MYSQL_PORT: 3306
 
     - name: View MySQL Logs
-      run: docker logs $(docker ps -q --filter "ancestor=mysql:5.7")
+      run: docker logs $(docker ps -q --filter "ancestor=mysql:8.0")
 
     - name: Wait for MySQL to start
       run: |
@@ -74,7 +74,7 @@ jobs:
         done
 
     - name: View MySQL Logs
-      run: docker logs $(docker ps -q --filter "ancestor=mysql:5.7")
+      run: docker logs $(docker ps -q --filter "ancestor=mysql:8.0")
 
     - name: Run Tests
       env:
