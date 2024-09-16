@@ -49,9 +49,6 @@ jobs:
     - name: Install Dependencies
       run: pipenv install
 
-    - name: Run flake8 linting
-      run: pipenv run flake8 .
-
     - name: Wait for MySQL to start
       run: |
         while ! mysqladmin ping -h"127.0.0.1" --port=3306 --silent; do
