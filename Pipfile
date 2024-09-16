@@ -16,6 +16,8 @@ factory-boy = "*"
 faker = "*"
 phone-gen = "*"
 cryptography = "*"
+coverage = "*"
+flake8 = "*"
 
 [dev-packages]
 
