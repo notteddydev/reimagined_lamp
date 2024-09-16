@@ -22,13 +22,13 @@ class ArchiveableQuerySet(models.QuerySet):
         Filters the QuerySet to return only models that have been archived.
         """
         return self.filter(archived=True)
-    
+
     def unarchived(self) -> ArchiveableQuerySet:
         """
         Filters the QuerySet to return only models that have not been archived.
         """
         return self.filter(archived=False)
-    
+
 
 class ArchiveableManager(models.Manager):
     def get_queryset(self) -> ArchiveableQuerySet:
@@ -48,7 +48,7 @@ class ArchiveableManager(models.Manager):
         Filters the QuerySet to return only models that have not been archived.
         """
         return self.get_queryset().unarchived()
-    
+
 
 class Archiveable(models.Model):
     class Meta:
@@ -58,7 +58,7 @@ class Archiveable(models.Model):
     objects = ArchiveableManager()
 
     archived = models.BooleanField(default=False, null=False)
-    
+
 
 class ContactableTypeQuerySet(models.QuerySet):
     def preferred(self) -> ContactableTypeQuerySet:
@@ -70,7 +70,7 @@ class ContactableTypeQuerySet(models.QuerySet):
         const_name = f"{model_name.upper()}__NAME_PREF"
         pref = getattr(constants, const_name)
         return self.filter(name=pref)
-    
+
     def unpreferred(self) -> ContactableTypeQuerySet:
         """
         Filters the QuerySet to return all ContactableTypes not of the 'preferred' type.
@@ -87,14 +87,14 @@ class ContactableTypeManager(models.Manager):
         Returns a custom QuerySet instance for the model managed by this manager.
         """
         return ContactableTypeQuerySet(self.model, using=self._db)
-    
+
     def preferred(self) -> ContactableTypeQuerySet:
         """
         Filters the QuerySet to return only ContactableTypes of the 'preferred' type -
         there should only be one.
         """
         return self.get_queryset().preferred()
-    
+
     def unpreferred(self) -> ContactableTypeQuerySet:
         """
         Filters the QuerySet to return all ContactableTypes not of the 'preferred' type.
@@ -109,15 +109,15 @@ class ContactableType(models.Model):
 
     objects = ContactableTypeManager()
 
-    name=models.CharField(max_length=9)
-    verbose=models.CharField(max_length=15)
+    name = models.CharField(max_length=9)
+    verbose = models.CharField(max_length=15)
 
     def __str__(self) -> str:
         """
         Returns a human-readable string representation of the object.
         """
         return self.verbose
-    
+
 
 class ContactableQuerySet(models.QuerySet):
     def preferred(self) -> ContactableQuerySet:
@@ -131,7 +131,7 @@ class ContactableQuerySet(models.QuerySet):
         subquery = field.related_model.objects.preferred().values("id")
         qkwargs = {f"{field_name}__in": models.Subquery(subquery)}
         return self.filter(**qkwargs)
-    
+
     def unpreferred(self) -> ContactableQuerySet:
         """
         Filters the QuerySet to return only Contactables not associated with the 'preferred'
@@ -151,14 +151,14 @@ class ContactableManager(models.Manager):
         Returns a custom QuerySet instance for the model managed by this manager.
         """
         return ContactableQuerySet(self.model, using=self._db)
-    
+
     def preferred(self) -> ContactableQuerySet:
         """
         Filters the QuerySet to return only Contactables associated with the 'preferred'
         ContactableType - there should be a maximum of one.
         """
         return self.get_queryset().preferred()
-    
+
     def unpreferred(self) -> ContactableQuerySet:
         """
         Filters the QuerySet to return only Contactables not associated with the 'preferred'
@@ -190,13 +190,13 @@ class ArchiveableContactableManager(models.Manager):
         ContactableType - there should be a maximum of one.
         """
         return self.get_queryset().preferred()
-    
+
     def unarchived(self) -> ArchiveableContactableQuerySet:
         """
         Filters the QuerySet to return only models that have not been archived.
         """
         return self.get_queryset().unarchived()
-    
+
     def unpreferred(self) -> ArchiveableContactableQuerySet:
         """
         Filters the QuerySet to return only Contactables not associated with the 'preferred'
@@ -217,7 +217,7 @@ class Contactable(models.Model):
         Return the ManyRelatedManager for the ContactableTypes in a commonly named property.
         """
         return getattr(self, f"{self._meta.object_name.lower()}_types")
-    
+
     @property
     def readable_types(self) -> str:
         """
@@ -237,8 +237,8 @@ class Nation(models.Model):
     class Meta:
         ordering = ["verbose"]
 
-    code=models.CharField(blank=False, max_length=3)
-    verbose=models.CharField(blank=False, max_length=52)
+    code = models.CharField(blank=False, max_length=3)
+    verbose = models.CharField(blank=False, max_length=52)
 
     def __str__(self) -> str:
         """
@@ -252,8 +252,8 @@ class Tag(models.Model):
         ordering = ["name"]
         unique_together = ("name", "user",)
 
-    user=models.ForeignKey(User, on_delete=models.CASCADE)
-    name=models.CharField(max_length=50)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    name = models.CharField(max_length=50)
 
     def __str__(self) -> str:
         """
@@ -268,10 +268,10 @@ class Tenancy(Archiveable, Contactable, models.Model):
 
     objects = ArchiveableContactableManager()
 
-    contact=models.ForeignKey("Contact", on_delete=models.CASCADE)
-    address=models.ForeignKey("Address", on_delete=models.CASCADE)
-    tenancy_types=models.ManyToManyField("AddressType")
-    
+    contact = models.ForeignKey("Contact", on_delete=models.CASCADE)
+    address = models.ForeignKey("Address", on_delete=models.CASCADE)
+    tenancy_types = models.ManyToManyField("AddressType")
+
     @property
     def vcard_entry(self) -> str:
         """
@@ -282,39 +282,43 @@ class Tenancy(Archiveable, Contactable, models.Model):
         adr += f"{self.address.address_line_1};{self.address.address_line_2};"
         if self.address.neighbourhood:
             adr += f"{self.address.neighbourhood}, "
-            
+
         return f"{adr}{self.address.city};{self.address.state};{self.address.postcode};{self.address.country.verbose}"
-        
+
 
 class Contact(models.Model):
     class Meta:
         ordering = ["first_name"]
 
-    user=models.ForeignKey(User, on_delete=models.CASCADE)
-    first_name=models.CharField(blank=False, max_length=100)
-    middle_names=models.CharField(blank=True, max_length=200)
-    last_name=models.CharField(blank=True, max_length=100)
-    nickname=models.CharField(blank=True, max_length=50)
-    gender=models.CharField(
-        choices=[(None, "-- Select Gender --"), (constants.CONTACT_GENDER_MALE, "Male"), (constants.CONTACT_GENDER_FEMALE, "Female")],
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    first_name = models.CharField(blank=False, max_length=100)
+    middle_names = models.CharField(blank=True, max_length=200)
+    last_name = models.CharField(blank=True, max_length=100)
+    nickname = models.CharField(blank=True, max_length=50)
+    gender = models.CharField(
+        choices=[
+            (None, "-- Select Gender --"),
+            (constants.CONTACT_GENDER_MALE, "Male"),
+            (constants.CONTACT_GENDER_FEMALE, "Female"),
+        ],
         max_length=1,
     )
-    dob=models.DateField(blank=True, null=True)
-    dod=models.DateField(blank=True, null=True)
-    anniversary=models.DateField(blank=True, null=True)
-    addresses=models.ManyToManyField("Address", blank=True, through=Tenancy)
-    nationalities=models.ManyToManyField(Nation, blank=True)
-    year_met=models.SmallIntegerField(
+    dob = models.DateField(blank=True, null=True)
+    dod = models.DateField(blank=True, null=True)
+    anniversary = models.DateField(blank=True, null=True)
+    addresses = models.ManyToManyField("Address", blank=True, through=Tenancy)
+    nationalities = models.ManyToManyField(Nation, blank=True)
+    year_met = models.SmallIntegerField(
         blank=False,
         choices=[(None, "-- Select Year --")] + [(year, str(year)) for year in get_years_from_year()],
         null=False,
     )
-    is_business=models.BooleanField(default=False, null=False)
-    tags=models.ManyToManyField(Tag, blank=True, symmetrical=True)
-    family_members=models.ManyToManyField("self", blank=True, symmetrical=True)
-    profession=models.ForeignKey("Profession", blank=True, on_delete=models.SET_NULL, null=True)
-    website=models.CharField(blank=True, max_length=100)
-    notes=models.TextField(blank=True)
+    is_business = models.BooleanField(default=False, null=False)
+    tags = models.ManyToManyField(Tag, blank=True, symmetrical=True)
+    family_members = models.ManyToManyField("self", blank=True, symmetrical=True)
+    profession = models.ForeignKey("Profession", blank=True, on_delete=models.SET_NULL, null=True)
+    website = models.CharField(blank=True, max_length=100)
+    notes = models.TextField(blank=True)
 
     @property
     def age(self) -> int | None:
@@ -322,14 +326,14 @@ class Contact(models.Model):
         If the Contact has a dob, returns their calculated age. If not, returns None.
         """
         return relativedelta(date.today(), self.dob).years if self.dob else None
-    
+
     @property
     def age_passed(self) -> int | None:
         """
         If the Contact has a dob and dod, returns the calculated age at which they passed. If not, returns None.
         """
         return relativedelta(self.dod, self.dob).years if self.dob and self.dod else None
-    
+
     @property
     def known_for_years(self) -> str:
         """
@@ -353,12 +357,12 @@ class Contact(models.Model):
             full_name += f" {self.last_name}"
 
         return full_name
-    
+
     @property
     def vcard(self) -> str:
         """
-        Returns the vcard string for the Contact, containing all non-archived contact data for them, ready to be downloaded
-        as a .vcf file.
+        Returns the vcard string for the Contact, containing all non-archived contact data for them, ready to be
+        downloaded as a .vcf file.
         """
         vcard = f"""
         BEGIN:VCARD
@@ -396,7 +400,7 @@ class Contact(models.Model):
         vcard = "\n".join(line.strip() for line in vcard.strip().split("\n"))
 
         return vcard
-    
+
     @property
     def years_married(self) -> int | None:
         """
@@ -404,7 +408,7 @@ class Contact(models.Model):
         married. If there is no anniversary date set, this returns None.
         """
         return relativedelta(date.today(), self.anniversary).years if self.anniversary else None
-    
+
     def clean(self) -> None:
         """
         Validate that the Contact is in an acceptable state to be saved to db. Validates cohesion of dates.
@@ -446,14 +450,14 @@ class Contact(models.Model):
         Returns the canonical URL for this instance of Contact.
         """
         return reverse("contact-detail", args=[self.id])
-    
+
     def save(self, *args: Any, **kwargs: Any) -> None:
         """
         Override the models save method, to ensure that clean() is called to validate it before saving to db.
         """
         self.clean()
         super().save(*args, **kwargs)
-    
+
     def __str__(self) -> str:
         """
         Returns a human-readable string representation of the object.
@@ -463,15 +467,15 @@ class Contact(models.Model):
 
 class PhoneNumberType(ContactableType, models.Model):
     pass
-    
+
 
 class PhoneNumber(Archiveable, Contactable, models.Model):
     objects = ArchiveableContactableManager()
 
-    number=PhoneNumberField(null=False)
-    address=models.ForeignKey("Address", on_delete=models.CASCADE, null=True)
-    contact=models.ForeignKey(Contact, on_delete=models.CASCADE, null=True)
-    phonenumber_types=models.ManyToManyField(PhoneNumberType)
+    number = PhoneNumberField(null=False)
+    address = models.ForeignKey("Address", on_delete=models.CASCADE, null=True)
+    contact = models.ForeignKey(Contact, on_delete=models.CASCADE, null=True)
+    phonenumber_types = models.ManyToManyField(PhoneNumberType)
 
     @property
     def country_code(self) -> str:
@@ -487,21 +491,21 @@ class PhoneNumber(Archiveable, Contactable, models.Model):
         The PhoneNumber international prefix required for calling internationally e.g. +1 for USA.
         """
         return self.parsed.country_code
-    
+
     @property
     def formatted(self) -> str:
         """
         The formatted PhoneNumber, for easier reading.
         """
         return phonenumbers.format_number(self.parsed, phonenumbers.PhoneNumberFormat.INTERNATIONAL)
-    
+
     @property
     def national_number(self) -> int | None:
         """
         The PhoneNumber, without preceeding 'country_prefix'.
         """
         return self.parsed.national_number
-    
+
     @property
     def parsed(self) -> phonenumbers.PhoneNumber:
         """
@@ -509,14 +513,14 @@ class PhoneNumber(Archiveable, Contactable, models.Model):
         country_code and national_number.
         """
         return phonenumbers.parse(str(self.number))
-    
+
     @property
     def vcard_entry(self) -> str:
         """
         Prepares a PhoneNumber entry for a vcard to be included in a .vcf file for a Contact.
         """
         return f"TEL;TYPE={self.types_for_vcard}:{self.number}"
-    
+
 
 class AddressType(ContactableType, models.Model):
     pass
@@ -526,15 +530,15 @@ class Address(models.Model):
     class Meta:
         ordering = ["country__verbose", "city", "address_line_1"]
 
-    user=models.ForeignKey(User, on_delete=models.CASCADE)
-    address_line_1=models.CharField(blank=True, max_length=100)
-    address_line_2=models.CharField(blank=True, max_length=100)
-    neighbourhood=models.CharField(blank=True, max_length=100)
-    city=models.CharField(max_length=100)
-    state=models.CharField(blank=True, max_length=100)
-    postcode=models.CharField(blank=True, max_length=20)
-    country=models.ForeignKey(Nation, on_delete=models.SET_NULL, null=True)
-    notes=models.TextField(blank=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    address_line_1 = models.CharField(blank=True, max_length=100)
+    address_line_2 = models.CharField(blank=True, max_length=100)
+    neighbourhood = models.CharField(blank=True, max_length=100)
+    city = models.CharField(max_length=100)
+    state = models.CharField(blank=True, max_length=100)
+    postcode = models.CharField(blank=True, max_length=20)
+    country = models.ForeignKey(Nation, on_delete=models.SET_NULL, null=True)
+    notes = models.TextField(blank=True)
 
     @property
     def readable(self) -> str:
@@ -542,7 +546,8 @@ class Address(models.Model):
         Returns the Address model as a readable string, with linebreaks as if it were written on an envelope.
         """
         readable = ""
-        address_parts = (self.address_line_1, self.address_line_2, self.neighbourhood, self.city, self.state, self.postcode)
+        address_parts = (self.address_line_1, self.address_line_2,
+                         self.neighbourhood, self.city, self.state, self.postcode)
 
         for address_part in address_parts:
             if len(address_part):
@@ -555,13 +560,13 @@ class Address(models.Model):
             readable += f"\nNotes:\n{self.notes}"
 
         return readable
-    
+
     def __str__(self) -> str:
         """
         Returns a human-readable string representation of the object.
         """
         return f"{self.address_line_1} {self.city}"
-    
+
 
 class EmailType(ContactableType, models.Model):
     pass
@@ -570,10 +575,10 @@ class EmailType(ContactableType, models.Model):
 class Email(Archiveable, Contactable, models.Model):
     objects = ArchiveableContactableManager()
 
-    email=models.EmailField(unique=True)
-    contact=models.ForeignKey(Contact, on_delete=models.CASCADE)
-    email_types=models.ManyToManyField(EmailType)
-    
+    email = models.EmailField(unique=True)
+    contact = models.ForeignKey(Contact, on_delete=models.CASCADE)
+    email_types = models.ManyToManyField(EmailType)
+
     @property
     def vcard_entry(self) -> str:
         """
@@ -586,8 +591,8 @@ class CryptoNetwork(models.Model):
     class Meta:
         ordering = ["name"]
 
-    name=models.CharField(max_length=100, unique=True)
-    symbol=models.CharField(max_length=10, unique=True)
+    name = models.CharField(max_length=100, unique=True)
+    symbol = models.CharField(max_length=10, unique=True)
 
     def __str__(self) -> str:
         """
@@ -603,10 +608,10 @@ class WalletAddress(Archiveable, models.Model):
         (constants.WALLETADDRESS_TRANSMISSION_YOU_RECEIVE, "You receive from this address",)
     ]
 
-    network=models.ForeignKey(CryptoNetwork, on_delete=models.CASCADE)
-    transmission=models.CharField(blank=False, choices=TRANSMISSION_CHOICES, max_length=12)
-    address=models.CharField(blank=False, max_length=96)
-    contact=models.ForeignKey(Contact, on_delete=models.CASCADE)
+    network = models.ForeignKey(CryptoNetwork, on_delete=models.CASCADE)
+    transmission = models.CharField(blank=False, choices=TRANSMISSION_CHOICES, max_length=12)
+    address = models.CharField(blank=False, max_length=96)
+    contact = models.ForeignKey(Contact, on_delete=models.CASCADE)
 
     @property
     def transmission_hr(self) -> str:
@@ -620,7 +625,7 @@ class Profession(models.Model):
     class Meta:
         ordering = ["name"]
 
-    name=models.CharField(max_length=100)
+    name = models.CharField(max_length=100)
 
     def __str__(self) -> str:
         """

@@ -8,7 +8,8 @@ from django.views.generic import DeleteView, DetailView, View
 
 from urllib.parse import urlparse, parse_qs
 
-from .forms import AddressForm, AddressPhoneNumberFormSet, ContactFilterFormSet, ContactForm, ContactPhoneNumberFormSet, EmailFormSet, TagForm, TenancyFormSet, WalletAddressFormSet
+from .forms import AddressForm, AddressPhoneNumberFormSet, ContactFilterFormSet, ContactForm, \
+    ContactPhoneNumberFormSet, EmailFormSet, TagForm, TenancyFormSet, WalletAddressFormSet
 from .models import Address, Contact, Tag, Tenancy
 from app.decorators import owned_by_user
 from app.mixins import OwnedByUserMixin
@@ -96,7 +97,7 @@ def contact_qrcode_view(request: HttpRequest, pk: int) -> HttpResponse:
     buffer.seek(0)
 
     return HttpResponse(buffer, content_type="image/png")
-    
+
 
 class AddressCreateView(LoginRequiredMixin, View):
     def get(self, request: HttpRequest) -> HttpResponse:
@@ -107,7 +108,7 @@ class AddressCreateView(LoginRequiredMixin, View):
             "form": AddressForm(user=request.user),
             "phonenumber_formset": AddressPhoneNumberFormSet(),
         })
-    
+
     def post(self, request: HttpRequest) -> HttpResponse:
         """
         Creates an Address with valid data and redirects to the corresponding AddressDetail view;
@@ -131,7 +132,7 @@ class AddressCreateView(LoginRequiredMixin, View):
             "form": form,
             "phonenumber_formset": phonenumber_formset,
         })
-    
+
 
 class AddressDeleteView(LoginRequiredMixin, OwnedByUserMixin, DeleteView):
     """
@@ -139,14 +140,14 @@ class AddressDeleteView(LoginRequiredMixin, OwnedByUserMixin, DeleteView):
     """
     model = Address
     success_url = reverse_lazy("contact-list")
-    
+
 
 class AddressDetailView(LoginRequiredMixin, OwnedByUserMixin, DetailView):
     """
     Display details of a given Address.
     """
     model = Address
-    
+
 
 class AddressUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
     def get(self, request: HttpRequest, pk: int) -> HttpResponse:
@@ -161,7 +162,7 @@ class AddressUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
             "object": address,
             "phonenumber_formset": AddressPhoneNumberFormSet(instance=address),
         })
-    
+
     def post(self, request: HttpRequest, pk: int) -> HttpResponse:
         """
         Updates an Address with valid data and redirects to the corresponding AddressDetail view;
@@ -203,7 +204,7 @@ class ContactCreateView(LoginRequiredMixin, View):
             "tenancy_formset": TenancyFormSet(user=request.user),
             "walletaddress_formset": WalletAddressFormSet(),
         })
-    
+
     def post(self, request: HttpRequest) -> HttpResponse:
         """
         Creates a Contact with valid data and redirects to the corresponding ContactDetail view;
@@ -211,7 +212,7 @@ class ContactCreateView(LoginRequiredMixin, View):
         errors.
         """
         form = ContactForm(data=request.POST, user=request.user)
-        
+
         formsets = {
             "email_formset": EmailFormSet(data=request.POST),
             "phonenumber_formset": ContactPhoneNumberFormSet(data=request.POST),
@@ -230,7 +231,7 @@ class ContactCreateView(LoginRequiredMixin, View):
             **{"form": form},
             **{key: formset for key, formset in formsets.items()}
         })
-    
+
 
 class ContactDetailView(LoginRequiredMixin, OwnedByUserMixin, DetailView):
     """
@@ -245,7 +246,7 @@ class ContactDeleteView(LoginRequiredMixin, OwnedByUserMixin, DeleteView):
     """
     model = Contact
     success_url = reverse_lazy("contact-list")
-    
+
 
 class ContactUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
     def get(self, request: HttpRequest, pk: int) -> HttpResponse:
@@ -263,7 +264,7 @@ class ContactUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
             "tenancy_formset": TenancyFormSet(instance=contact, user=request.user),
             "walletaddress_formset": WalletAddressFormSet(instance=contact),
         })
-    
+
     def post(self, request: HttpRequest, pk: int) -> HttpResponse:
         """
         Updates an Contact with valid data and redirects to the corresponding ContactDetail view;
@@ -307,7 +308,7 @@ class TagCreateView(LoginRequiredMixin, View):
         """
         contact_id = request.GET.get("contact_id")
         initial_data = {}
-        
+
         if contact_id:
             user_owns_contact = Contact.objects.filter(id=contact_id, user=request.user).exists()
 
@@ -319,7 +320,7 @@ class TagCreateView(LoginRequiredMixin, View):
         return render(request, "address_book/tag_form.html", {
             "form": form,
         })
-    
+
     def post(self, request: HttpRequest) -> HttpResponse:
         """
         Creates an Tag with valid data and redirects to the ContactList view, filtering by
@@ -345,7 +346,7 @@ class TagCreateView(LoginRequiredMixin, View):
         return render(request, "address_book/tag_form.html", {
             "form": form,
         })
-    
+
 
 class TagUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
     def get(self, request: HttpRequest, pk: int) -> HttpResponse:
@@ -380,7 +381,7 @@ class TagUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
                 return redirect(reverse("contact-detail", args=[referred_from_contact_id]))
 
             return redirect("contact-list")
-        
+
         return render(request, "address_book/tag_form.html", {
             "form": form,
             "object": tag,
@@ -391,7 +392,7 @@ class TagUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
         Check that the Tag being updated is owned by the logged in User.
         """
         return Tag.objects.filter(id=self.kwargs["pk"], user=self.request.user).exists()
-    
+
 
 class TagDeleteView(LoginRequiredMixin, OwnedByUserMixin, DeleteView):
     model = Tag

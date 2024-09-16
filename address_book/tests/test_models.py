@@ -16,7 +16,12 @@ fake = Faker()
 
 
 class TestContactModel(TestCase):
-    def _test_data_produces_expected_error_for_expected_field(self, contact_data: dict, errorfield_to_test: str, errormsg_to_check: str) -> None:
+    def _test_data_produces_expected_error_for_expected_field(
+            self,
+            contact_data: dict,
+            errorfield_to_test: str,
+            errormsg_to_check: str
+            ) -> None:
         """
         Common logic for checking that provided 'contact_data' raises a given error for a given field.
         """
@@ -31,10 +36,12 @@ class TestContactModel(TestCase):
         Test that a DoD < DoB fails validation.
         """
         contact_data = {
-            "anniversary": datetime.date(2001, 1, 1), # Add anniversary so that factory doesn't break due to deliberately incorrect dob / dod combo
+            # Add anniversary so that factory doesn't break due to deliberately incorrect dob / dod combo
+            "anniversary": datetime.date(2001, 1, 1),
             "dob": datetime.date(2001, 1, 1),
             "dod": datetime.date(2000, 12, 31),
-            "year_met": 2001 # Add year_met so that factory doesn't break due to deliberately incorrect dob / dod combo
+            # Add year_met so that factory doesn't break due to deliberately incorrect dob / dod combo
+            "year_met": 2001,
         }
         self._test_data_produces_expected_error_for_expected_field(
             contact_data=contact_data,
@@ -50,7 +57,8 @@ class TestContactModel(TestCase):
             "anniversary": datetime.date(2011, 1, 1),
             "dob": datetime.date(2001, 1, 1),
             "dod": datetime.date(2010, 1, 1),
-            "year_met": 2001 # Add year_met so that factory doesn't break due to deliberately incorrect dob / dod combo
+            # Add year_met so that factory doesn't break due to deliberately incorrect dob / dod combo
+            "year_met": 2001,
         }
         self._test_data_produces_expected_error_for_expected_field(
             contact_data=contact_data,
@@ -63,7 +71,8 @@ class TestContactModel(TestCase):
         Test that a DoD < year_met fails validation.
         """
         contact_data = {
-            "anniversary": datetime.date(2001, 1, 1), # Add anniversary so that factory doesn't break due to deliberately incorrect dob / dod combo
+            # Add anniversary so that factory doesn't break due to deliberately incorrect dob / dod combo
+            "anniversary": datetime.date(2001, 1, 1),
             "dob": datetime.date(2001, 1, 1),
             "dod": datetime.date(2000, 12, 31),
             "year_met": 2002
@@ -79,7 +88,8 @@ class TestContactModel(TestCase):
         Test that a year_met < DoB fails validation.
         """
         contact_data = {
-            "anniversary": datetime.date(2001, 1, 1), # Add anniversary so that factory doesn't break due to deliberately incorrect dob / dod combo
+            # Add anniversary so that factory doesn't break due to deliberately incorrect dob / dod combo
+            "anniversary": datetime.date(2001, 1, 1),
             "dob": datetime.date(2001, 1, 1),
             "dod": datetime.date(2000, 12, 31),
             "year_met": 1999
@@ -98,7 +108,8 @@ class TestContactModel(TestCase):
             "anniversary": datetime.date(2000, 1, 1),
             "dob": datetime.date(2001, 1, 1),
             "dod": datetime.date(2000, 12, 31),
-            "year_met": 2001 # Add year_met so that factory doesn't break due to deliberately incorrect dob / dod combo
+            # Add year_met so that factory doesn't break due to deliberately incorrect dob / dod combo
+            "year_met": 2001,
         }
         self._test_data_produces_expected_error_for_expected_field(
             contact_data=contact_data,
@@ -109,7 +120,8 @@ class TestContactModel(TestCase):
             "anniversary": datetime.date(2001, 1, 1),
             "dob": datetime.date(2001, 1, 1),
             "dod": datetime.date(2000, 12, 31),
-            "year_met": 2001 # Add year_met so that factory doesn't break due to deliberately incorrect dob / dod combo
+            # Add year_met so that factory doesn't break due to deliberately incorrect dob / dod combo
+            "year_met": 2001,
         }
         self._test_data_produces_expected_error_for_expected_field(
             contact_data=contact_data,
@@ -122,10 +134,12 @@ class TestContactModel(TestCase):
         Test that a DoD set to a future date fails validation.
         """
         contact_data = {
-            "anniversary": datetime.date(2001, 1, 1), # Add anniversary so that factory doesn't break due to deliberately incorrect dob / dod combo
+            # Add anniversary so that factory doesn't break due to deliberately incorrect dob / dod combo
+            "anniversary": datetime.date(2001, 1, 1),
             "dob": datetime.date(2001, 1, 1),
             "dod": datetime.date(datetime.datetime.now().year + 1, 12, 31),
-            "year_met": 2001 # Add year_met so that factory doesn't break due to deliberately incorrect dob / dod combo
+            # Add year_met so that factory doesn't break due to deliberately incorrect dob / dod combo
+            "year_met": 2001,
         }
         self._test_data_produces_expected_error_for_expected_field(
             contact_data=contact_data,
@@ -138,10 +152,12 @@ class TestContactModel(TestCase):
         Test that a DoB set to a future date fails validation.
         """
         contact_data = {
-            "anniversary": datetime.date(2001, 1, 1), # Add anniversary so that factory doesn't break due to deliberately incorrect dob / dod combo
+            # Add anniversary so that factory doesn't break due to deliberately incorrect dob / dod combo
+            "anniversary": datetime.date(2001, 1, 1),
             "dob": datetime.date(datetime.datetime.now().year + 1, 12, 31),
             "dod": datetime.date(2000, 12, 31),
-            "year_met": 2001 # Add year_met so that factory doesn't break due to deliberately incorrect dob / dod combo
+            # Add year_met so that factory doesn't break due to deliberately incorrect dob / dod combo
+            "year_met": 2001,
         }
         self._test_data_produces_expected_error_for_expected_field(
             contact_data=contact_data,
@@ -155,7 +171,8 @@ class TestContactModel(TestCase):
         """
         bad_year = datetime.datetime.now().year + 2
         contact_data = {
-            "anniversary": datetime.date(2001, 1, 1), # Add anniversary so that factory doesn't break due to deliberately incorrect dob / dod combo
+            # Add anniversary so that factory doesn't break due to deliberately incorrect dob / dod combo
+            "anniversary": datetime.date(2001, 1, 1),
             "dob": datetime.date(2001, 1, 1),
             "dod": datetime.date(2000, 12, 31),
             "year_met": bad_year
@@ -230,7 +247,7 @@ class TestArchiveableContactableQuerySet(TestCase):
 
             self.assertEqual(1, preferred_found_in_query.count())
             self.assertEqual(unpreferred_count, unpreferred_found_in_query.count())
-            
+
             self.assertEqual(preferred_archiveable_contactable.id, preferred_found_in_query.first().id)
             self.assertEqual(
                 Counter([ac.id for ac in unpreferred_archiveable_contactables]),
@@ -269,7 +286,7 @@ class TestArchiveableContactableQuerySet(TestCase):
             self.assertEqual(1, preferred_unarchived_found_in_query.count())
             self.assertEqual(unpreferred_archived_count, unpreferred_archived_found_in_query.count())
             self.assertEqual(unpreferred_unarchived_count, unpreferred_unarchived_found_in_query.count())
-            
+
             self.assertEqual(preferred.id, preferred_unarchived_found_in_query.first().id)
             self.assertEqual(
                 Counter([ac.id for ac in unpreferred_archived]),

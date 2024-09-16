@@ -3,6 +3,7 @@ from django.test import TestCase
 
 from address_book.utils import get_years_from_year
 
+
 class TestGetYearsFromYear(TestCase):
     def setUp(self) -> None:
         self.current_year = datetime.now().year
@@ -12,7 +13,7 @@ class TestGetYearsFromYear(TestCase):
         Test that the method returns the expected list of years when no args are passed to the method.
         """
         years = get_years_from_year()
-        
+
         year = 1900
         while year <= self.current_year:
             self.assertIn(year, years)
@@ -26,7 +27,7 @@ class TestGetYearsFromYear(TestCase):
         Test that the method returns the expected list of years when a 'year' arg is passed to the method.
         """
         years = get_years_from_year(year=2000)
-        
+
         year = 2000
         while year <= self.current_year:
             self.assertIn(year, years)
@@ -41,7 +42,6 @@ class TestGetYearsFromYear(TestCase):
         to the method as False.
         """
         years = get_years_from_year(desc=False)
-        
         year = 1900
         while year <= self.current_year:
             self.assertIn(year, years)

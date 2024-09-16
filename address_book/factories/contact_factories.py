@@ -39,7 +39,7 @@ class ContactFactory(factory.django.DjangoModelFactory):
         delta_days = (end_date - start_date).days
         random_days = random.randint(0, delta_days)
         return start_date + timedelta(days=random_days)
-    
+
     @factory.lazy_attribute
     def dod(self) -> date:
         end_date = date.today()
@@ -64,18 +64,18 @@ class ContactFactory(factory.django.DjangoModelFactory):
             return random.choice(existing_users)
         else:
             return UserFactory()
-    
+
     @factory.lazy_attribute
     def year_met(self) -> int:
         delta_days = (self.dod - self.dob).days
         random_days = random.randint(0, delta_days)
         return (self.dob + timedelta(days=random_days)).year
-    
+
     @factory.post_generation
     def family_members(self, create: bool, family_members: Optional[List[Contact]], **kwargs) -> None:
         if not create:
             return
-        
+
         if family_members is not None:
             for family_member in family_members:
                 self.family_members.add(family_member)
@@ -84,7 +84,7 @@ class ContactFactory(factory.django.DjangoModelFactory):
     def nationalities(self, create: bool, nationalities: Optional[List[Nation]], **kwargs) -> None:
         if not create:
             return
-        
+
         if nationalities is None:
             nationalities = Nation.objects.order_by("?")[:random.randint(1, 3)]
 
@@ -95,7 +95,7 @@ class ContactFactory(factory.django.DjangoModelFactory):
     def tags(self, create: bool, tags: Optional[List[Tag]], **kwargs) -> None:
         if not create:
             return
-        
+
         if tags is not None:
             for tag in tags:
                 self.tags.add(tag)

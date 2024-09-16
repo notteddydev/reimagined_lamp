@@ -8,7 +8,8 @@ from phonenumber_field.formfields import localized_choices, PrefixChoiceField, S
 
 from typing import List, Optional
 
-from .models import Address, AddressType, Contact, Email, EmailType, PhoneNumber, PhoneNumberType, Tag, Tenancy, User, WalletAddress
+from .models import Address, AddressType, Contact, Email, EmailType, PhoneNumber, PhoneNumberType, Tag, Tenancy, \
+    WalletAddress
 from .utils import get_years_from_year
 
 
@@ -69,10 +70,10 @@ class ContactableFormSetMixin:
                     unarchived_count += 1
 
             if pref_count > 1:
-                errors.append(f"Only one may be designated as 'preferred'.")
-            
+                errors.append("Only one may be designated as 'preferred'.")
+
             if pref_count < 1 <= unarchived_count:
-                errors.append(f"One must be designated as 'preferred'.")
+                errors.append("One must be designated as 'preferred'.")
 
         return errors
 
@@ -90,7 +91,7 @@ class SaveFormSetIfNotEmptyMixin:
         if has_valid_data:
             self.instance = instance
             return self.save()
-        
+
         return []
 
 
@@ -127,7 +128,7 @@ class ContactFilterForm(forms.Form):
         ("tags__name", "Tag"),
         ("walletaddress__address", "Wallet Address"),
         ("year_met", "Year Met"),
-    ]    
+    ]
     filter_field = forms.ChoiceField(choices=FILTER_FIELD_CHOICES, required=False)
     filter_value = forms.CharField(required=False)
 
@@ -137,7 +138,7 @@ class ContactFilterForm(forms.Form):
         """
         filter_field = self.cleaned_data.get("filter_field")
         filter_value = self.cleaned_data.get("filter_value")
-            
+
         if filter_field and filter_value:
             queryset = queryset.filter(**{f"{filter_field}__icontains": filter_value})
 
@@ -155,6 +156,7 @@ class BaseContactFilterFormSet(forms.BaseFormSet):
 
         return queryset
 
+
 ContactFilterFormSet = forms.formset_factory(ContactFilterForm, BaseContactFilterFormSet, extra=2)
 
 
@@ -170,7 +172,7 @@ class ContactForm(forms.ModelForm):
     def __init__(self, user, *args, **kwargs):
         """
         Set the user_id for the instance using the User object passed in; filter Tags and FamilyMembers
-        querysets to ensure that only Models owned by the passed in User are provided as options; set 
+        querysets to ensure that only Models owned by the passed in User are provided as options; set
         the empty_label for 'Profession' field.
         """
         super(ContactForm, self).__init__(*args, **kwargs)
@@ -195,7 +197,7 @@ class ContactForm(forms.ModelForm):
         dob = cleaned_data.get("dob", None)
         dod = cleaned_data.get("dod", None)
         year_met = cleaned_data.get("year_met", None)
-            
+
         if dob:
             if anniversary and anniversary <= dob:
                 self.add_error("anniversary", "Anniversary must be greater than the date of birth.")
@@ -313,6 +315,7 @@ AddressPhoneNumberFormSet = forms.inlineformset_factory(
     formset=BasePhoneNumberInlineFormSet,
     extra=2
 )
+
 
 class TagForm(forms.ModelForm):
     class Meta:

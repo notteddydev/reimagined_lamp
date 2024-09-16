@@ -49,16 +49,27 @@ class BaseModelViewTestCase:
             password=password or self.primary_user_password
         )
 
-    def _login_user_and_get_get_response(self, url: Optional[str] = None, username: Optional[str] = None, password: Optional[str] = None) -> HttpResponse:
+    def _login_user_and_get_get_response(
+            self,
+            url: Optional[str] = None,
+            username: Optional[str] = None,
+            password: Optional[str] = None
+            ) -> HttpResponse:
         """
         Logs in a user and makes a get request to the url provided, if none is provided it defaults to the
         url that has been set on the class. Returns the resulting HttpResponse object.
-        """        
+        """
         self._login_user(username=username, password=password)
         response = self.client.get(url or self.url)
         return response
-    
-    def _login_user_and_get_post_response(self, url: Optional[str] = None, post_data: Optional[dict] = {}, username: Optional[str] = None, password: Optional[str] = None, **kwargs: Any) -> HttpResponse:
+
+    def _login_user_and_get_post_response(
+            self,
+            url: Optional[str] = None,
+            post_data: Optional[dict] = {},
+            username: Optional[str] = None,
+            password: Optional[str] = None, **kwargs: Any
+            ) -> HttpResponse:
         """
         Logs in a user and makes a post request to the url provided, if none is provided it defaults to the
         url that has been set on the class. Returns the resulting HttpResponse object.
@@ -66,16 +77,21 @@ class BaseModelViewTestCase:
         self._login_user(username=username, password=password)
         response = self.client.post(url or self.url, post_data, **kwargs)
         return response
-    
+
     def test_get_request_redirects_if_not_logged_in(self):
         """
         Make sure that if a non logged in user makes a get request to a view which requires login,
-        they are redirected to the login page. 
+        they are redirected to the login page.
         """
         response = self.client.get(self.url)
         self.assertRedirects(response, f"{reverse('login')}?next={self.url}")
 
-    def assert_view_renders_correct_template_and_context(self, response: HttpResponse, template: str, context_keys: tuple) -> None:
+    def assert_view_renders_correct_template_and_context(
+            self,
+            response: HttpResponse,
+            template: str,
+            context_keys: tuple
+            ) -> None:
         """
         Assert that the view response has the correct template and contains the expected context keys.
 
@@ -334,7 +350,7 @@ class TestAddressUpdateView(BaseModelViewTestCase, TestCase):
         self.context_keys = ("form", "object", "phonenumber_formset",)
         self.template = "address_book/address_form.html"
         self.url = reverse("address-update", args=[self.address.id])
-    
+
     def test_403_if_not_owner(self):
         """
         Make sure that if a logged in user attempts to access the address-update view
@@ -489,7 +505,8 @@ class TestAddressUpdateView(BaseModelViewTestCase, TestCase):
 class TestContactCreateView(BaseModelViewTestCase, TestCase):
     def setUp(self):
         super().setUp()
-        self.context_keys = ("email_formset", "form", "phonenumber_formset", "tenancy_formset", "walletaddress_formset",)
+        self.context_keys = ("email_formset", "form", "phonenumber_formset",
+                             "tenancy_formset", "walletaddress_formset",)
         self.template = "address_book/contact_form.html"
         self.url = reverse("contact-create")
 
@@ -639,7 +656,7 @@ class TestContactCreateView(BaseModelViewTestCase, TestCase):
             template=self.template,
             context_keys=self.context_keys
         )
-        self.assertTemplateUsed("address_book/address_form.html") #TODO WHY THE F*@! is this coming out as true?
+        self.assertTemplateUsed("address_book/address_form.html")  # TODO WHY THE F*@! is this coming out as true?
         self.assertEqual(
             Counter(["first_name", "gender", "year_met"]),
             Counter(list(response.context["form"].errors.as_data()))
@@ -696,11 +713,11 @@ class TestContactDetailView(BaseModelViewTestCase, TestCase):
         )
         self.assertContains(response, self.contact.full_name)
         self.assertEqual(self.contact.id, response.context["object"].id)
-    
+
     def test_404_if_logged_in_as_other_user(self):
         """
         Make sure that if a logged in user attempts to access the contact-detail view
-        for a contact that does not belong to them, they are given a great big 404 right in their face. 
+        for a contact that does not belong to them, they are given a great big 404 right in their face.
         """
         response = self._login_user_and_get_get_response(
             username=self.other_user.username,
@@ -732,11 +749,11 @@ class TestContactDownloadView(BaseModelViewTestCase, TestCase):
         """
         response = self._login_user_and_get_get_response()
         self.assertEqual(response.status_code, 200)
-    
+
     def test_404_if_logged_in_as_other_user(self):
         """
         Make sure that if a logged in user attempts to access the contact-download view
-        for a contact that does not belong to them, they are given a great big 404 right in their face. 
+        for a contact that does not belong to them, they are given a great big 404 right in their face.
         """
         response = self._login_user_and_get_get_response(
             username=self.other_user.username,
@@ -750,7 +767,10 @@ class TestContactDownloadView(BaseModelViewTestCase, TestCase):
         """
         response = self._login_user_and_get_get_response()
         self.assertEqual(response["Content-Type"], "text/vcard")
-        self.assertEqual(response["Content-Disposition"], f"attachment; filename={slugify(self.contact.full_name)}.vcf")
+        self.assertEqual(
+            response["Content-Disposition"],
+            f"attachment; filename={slugify(self.contact.full_name)}.vcf"
+        )
 
     def test_404_if_contact_not_exists(self):
         """
@@ -874,11 +894,11 @@ class TestContactQrCodeView(BaseModelViewTestCase, TestCase):
         """
         response = self._login_user_and_get_get_response()
         self.assertEqual(response.status_code, 200)
-    
+
     def test_404_if_logged_in_as_other_user(self):
         """
         Make sure that if a logged in user attempts to access the contact-qrcode view
-        for a contact that does not belong to them, they are given a great big 404 right in their face. 
+        for a contact that does not belong to them, they are given a great big 404 right in their face.
         """
         response = self._login_user_and_get_get_response(
             username=self.other_user.username,
@@ -908,10 +928,11 @@ class TestContactUpdateView(BaseModelViewTestCase, TestCase):
     def setUp(self):
         super().setUp()
         self.contact = ContactFactory.create(user=self.primary_user)
-        self.context_keys = ("email_formset", "form", "object", "phonenumber_formset", "tenancy_formset", "walletaddress_formset",)
+        self.context_keys = ("email_formset", "form", "object", "phonenumber_formset",
+                             "tenancy_formset", "walletaddress_formset",)
         self.template = "address_book/contact_form.html"
         self.url = reverse("contact-update", args=[self.contact.id])
-    
+
     def test_403_if_not_owner(self):
         """
         Make sure that if a logged in user attempts to access the contact-update view
@@ -1094,8 +1115,14 @@ class TestContactUpdateView(BaseModelViewTestCase, TestCase):
             response.context["email_formset"].errors[0]
         )
         self.assertIn("One must be designated as 'preferred'.", response.context["email_formset"].non_form_errors())
-        self.assertIn("Only one may be designated as 'preferred'.", response.context["tenancy_formset"].non_form_errors())
-        self.assertIn("An address may only be assigned to a contact once.", response.context["tenancy_formset"].non_form_errors())
+        self.assertIn(
+            "Only one may be designated as 'preferred'.",
+            response.context["tenancy_formset"].non_form_errors()
+        )
+        self.assertIn(
+            "An address may only be assigned to a contact once.",
+            response.context["tenancy_formset"].non_form_errors()
+        )
 
     def test_post_with_valid_data_not_owner(self):
         """
@@ -1215,7 +1242,11 @@ class TestTagCreateView(BaseModelViewTestCase, TestCase):
         self.assertIn("contacts", initial_form_data)
         self.assertEqual(1, len(initial_form_data.get("contacts")))
         self.assertEqual(contact.id, initial_form_data.get("contacts")[0])
-        self.assertContains(response, f'<label for="id_contacts_0"><input type="checkbox" name="contacts" value="{contact.id}" id="id_contacts_0" checked>\n {contact}</label>')
+        self.assertContains(
+            response,
+            f'<label for="id_contacts_0"><input type="checkbox" name="contacts" \
+                value="{contact.id}" id="id_contacts_0" checked>\n {contact}</label>'
+        )
 
     def test_post_with_valid_data(self):
         """
@@ -1256,7 +1287,8 @@ class TestTagCreateView(BaseModelViewTestCase, TestCase):
         template again displaying errors.
         """
         invalid_form_data = {
-            "name": "This name is longer than 50 chars. This name is longer than 50 chars. This name is longer than 50 chars."
+            "name": "This name is longer than 50 chars. This name is \
+                longer than 50 chars. This name is longer than 50 chars."
         }
         response = self._login_user_and_get_post_response(
             post_data=invalid_form_data
@@ -1301,7 +1333,7 @@ class TestTagDeleteView(BaseDeleteViewTestCase, TestCase):
         )
         self.assertRedirects(response, reverse("contact-detail", args=[self.contact.id]))
 
-            
+
 class TestTagUpdateView(BaseModelViewTestCase, TestCase):
     def setUp(self):
         super().setUp()
@@ -1309,7 +1341,7 @@ class TestTagUpdateView(BaseModelViewTestCase, TestCase):
         self.context_keys = ("form", "object",)
         self.template = "address_book/tag_form.html"
         self.url = reverse("tag-update", args=[self.tag.id])
-    
+
     def test_403_if_not_owner(self):
         """
         Make sure that if a logged in user attempts to access the tag-update view

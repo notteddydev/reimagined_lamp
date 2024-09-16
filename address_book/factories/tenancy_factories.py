@@ -32,17 +32,17 @@ class TenancyFactory(factory.django.DjangoModelFactory):
             return random.choice(existing_contacts)
         else:
             return ContactFactory()
-        
+
     @factory.post_generation
     def tenancy_types(self, create: bool, tenancy_types: Optional[List[AddressType]], **kwargs) -> None:
         if not create:
             return
-        
+
         if tenancy_types is None:
             tenancy_types = AddressType.objects.exclude(
                 name=constants.ADDRESSTYPE__NAME_PREF
             ).order_by("?")[:random.randint(1, 2)]
-            
+
             contact_has_pref_tenancy = self.contact.tenancy_set.all().filter(
                 tenancy_types__name=constants.ADDRESSTYPE__NAME_PREF
             ).exists()
@@ -50,6 +50,6 @@ class TenancyFactory(factory.django.DjangoModelFactory):
             if not contact_has_pref_tenancy:
                 pref_tenancy_type = AddressType.objects.filter(name=constants.ADDRESSTYPE__NAME_PREF).first()
                 self.tenancy_types.add(pref_tenancy_type)
-        
+
         for tenancy_type in tenancy_types:
             self.tenancy_types.add(tenancy_type)

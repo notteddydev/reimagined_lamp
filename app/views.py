@@ -6,9 +6,11 @@ from django.shortcuts import redirect, render
 from django.views import View
 from django.views.generic import TemplateView
 
+
 class HomeView(LoginRequiredMixin, TemplateView):
     # redirect_field_name = "redirect_to"
     template_name = "home.html"
+
 
 class SignupView(View):
     def get(self, request: HttpRequest) -> HttpResponse:
@@ -17,7 +19,7 @@ class SignupView(View):
         """
         form = UserCreationForm()
         return render(request, "registration/signup.html", {"form": form})
-    
+
     def post(self, request: HttpRequest) -> HttpResponse:
         """
         Use the posted data to create a User - if it's successful, redirect to the home page. If not,

@@ -2,6 +2,7 @@ from django import template
 
 register = template.Library()
 
+
 def filter_contact_list(filter_value: str, filter_field: str) -> str:
     """
     Turns a phone number or email address into a href of a determined type.
@@ -14,5 +15,6 @@ def filter_contact_list(filter_value: str, filter_field: str) -> str:
     qs += f"form-0-filter_value={filter_value}&"
 
     return qs
+
 
 register.filter("filter_contact_list", filter_contact_list)

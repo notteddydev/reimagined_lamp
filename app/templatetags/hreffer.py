@@ -2,6 +2,7 @@ from django import template
 
 register = template.Library()
 
+
 def hreffer(value: str, href_type: str) -> str:
     """
     Turns a phone number or email address into a href of a determined type.
@@ -17,5 +18,6 @@ def hreffer(value: str, href_type: str) -> str:
         raise KeyError(f"'{href_type}' key does not exist in dictionary.")
 
     return HREFS[href_type](value)
+
 
 register.filter("hreffer", hreffer)

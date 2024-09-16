@@ -16,8 +16,11 @@ from address_book.factories.email_factories import EmailFactory
 from address_book.factories.phonenumber_factories import AddressPhoneNumberFactory, ContactPhoneNumberFactory
 from address_book.factories.tag_factories import TagFactory
 from address_book.factories.user_factories import UserFactory
-from address_book.forms import AddressForm, AddressPhoneNumberFormSet, ContactForm, ContactPhoneNumberFormSet, CustomSplitPhoneNumberField, EmailForm, EmailFormSet, PhoneNumberForm, TagForm, TenancyForm, TenancyFormSet, WalletAddressForm
-from address_book.models import Address, AddressType, Contact, Contactable, CryptoNetwork, Email, EmailType, PhoneNumber, PhoneNumberType, Tag, Tenancy, WalletAddress
+from address_book.forms import AddressForm, AddressPhoneNumberFormSet, ContactForm, ContactPhoneNumberFormSet, \
+    CustomSplitPhoneNumberField, EmailForm, EmailFormSet, PhoneNumberForm, TagForm, TenancyForm, TenancyFormSet, \
+    WalletAddressForm
+from address_book.models import Address, AddressType, Contact, Contactable, CryptoNetwork, Email, EmailType, \
+    PhoneNumber, PhoneNumberType, Tag, Tenancy, WalletAddress
 
 fake = Faker()
 
@@ -63,8 +66,8 @@ class TestAddressForm(BaseFormTestCase, TestCase):
         Test that AddressForm instantiation fails when no user is provided to the form instance.
         """
         with self.assertRaises(TypeError) as cm:
-            form = AddressForm()
-            
+            AddressForm()
+
         self.assertEqual(str(cm.exception), "AddressForm.__init__() missing 1 required positional argument: 'user'")
 
     def test_country_field_empty_label(self) -> None:
@@ -82,7 +85,8 @@ class TestAddressForm(BaseFormTestCase, TestCase):
         form = AddressForm(user=self.primary_user)
 
         self.assertEqual(
-            Counter(["address_line_1", "address_line_2", "city", "country", "neighbourhood", "notes", "postcode", "state"]),
+            Counter(["address_line_1", "address_line_2", "city", "country",
+                     "neighbourhood", "notes", "postcode", "state"]),
             Counter(form.fields.keys())
         )
 
@@ -94,7 +98,7 @@ class TestAddressForm(BaseFormTestCase, TestCase):
             "city": "London",
             "country": 235,
         }, user=self.primary_user)
-        
+
         self.assertTrue(form.is_valid())
 
     def test_not_validates_without_required_fields(self) -> None:
@@ -147,7 +151,12 @@ class TestBaseContactFilterFormSet:
 
 
 class TestContactForm(BaseFormTestCase, TestCase):
-    def _test_data_produces_expected_error_for_expected_field(self, contact_data: dict, errorfield_to_test: str, errormsg_to_check: str) -> None:
+    def _test_data_produces_expected_error_for_expected_field(
+            self,
+            contact_data: dict,
+            errorfield_to_test: str,
+            errormsg_to_check: str
+            ) -> None:
         """
         Common logic for checking that provided 'contact_data' raises a given error for a given field.
         """
@@ -161,8 +170,8 @@ class TestContactForm(BaseFormTestCase, TestCase):
         """
         Test that the ContactForm is correctly initialised setting the user_id to the form instance.
         """
-        form = ContactForm(user=self.primary_user)       
-        
+        form = ContactForm(user=self.primary_user)
+
         # Create Tags and Contacts for both Users, to ensure that only the primary Users'
         # Tags and Contacts appear in the respective querysets for selection.
         TagFactory.create_batch(3, user=self.other_user)
@@ -172,7 +181,10 @@ class TestContactForm(BaseFormTestCase, TestCase):
 
         self.assertEqual(self.primary_user.id, form.instance.user_id)
         self.assertQuerySetEqual(Tag.objects.filter(user=self.primary_user), form.fields["tags"].queryset)
-        self.assertQuerySetEqual(Contact.objects.filter(user=self.primary_user), form.fields["family_members"].queryset)
+        self.assertQuerySetEqual(
+            Contact.objects.filter(user=self.primary_user),
+            form.fields["family_members"].queryset
+        )
 
     def test_profession_field_empty_label(self) -> None:
         """
@@ -201,7 +213,7 @@ class TestContactForm(BaseFormTestCase, TestCase):
         Test that instantiation of the ContactForm fails without a valid user arg passed in.
         """
         with self.assertRaises(TypeError) as cm:
-            form = ContactForm()
+            ContactForm()
 
         self.assertEqual(str(cm.exception), "ContactForm.__init__() missing 1 required positional argument: 'user'")
 
@@ -223,7 +235,7 @@ class TestContactForm(BaseFormTestCase, TestCase):
             "gender": constants.CONTACT_GENDER_MALE,
             "year_met": 2009,
         }, user=self.primary_user)
-        
+
         self.assertTrue(form.is_valid())
 
     def test_not_validates_without_required_fields(self) -> None:
@@ -304,10 +316,12 @@ class TestContactForm(BaseFormTestCase, TestCase):
         Test that a DoD < DoB fails validation.
         """
         contact_data = {
-            "anniversary": datetime.date(2001, 1, 1), # Add anniversary so that factory doesn't break due to deliberately incorrect dob / dod combo
+            # Add anniversary so that factory doesn't break due to deliberately incorrect dob / dod combo
+            "anniversary": datetime.date(2001, 1, 1),
             "dob": datetime.date(2001, 1, 1),
             "dod": datetime.date(2000, 12, 31),
-            "year_met": 2001 # Add year_met so that factory doesn't break due to deliberately incorrect dob / dod combo
+            # Add year_met so that factory doesn't break due to deliberately incorrect dob / dod combo
+            "year_met": 2001,
         }
         self._test_data_produces_expected_error_for_expected_field(
             contact_data=contact_data,
@@ -323,7 +337,8 @@ class TestContactForm(BaseFormTestCase, TestCase):
             "anniversary": datetime.date(2011, 1, 1),
             "dob": datetime.date(2001, 1, 1),
             "dod": datetime.date(2010, 1, 1),
-            "year_met": 2001 # Add year_met so that factory doesn't break due to deliberately incorrect dob / dod combo
+            # Add year_met so that factory doesn't break due to deliberately incorrect dob / dod combo
+            "year_met": 2001
         }
         self._test_data_produces_expected_error_for_expected_field(
             contact_data=contact_data,
@@ -336,7 +351,8 @@ class TestContactForm(BaseFormTestCase, TestCase):
         Test that a DoD < year_met fails validation.
         """
         contact_data = {
-            "anniversary": datetime.date(2001, 1, 1), # Add anniversary so that factory doesn't break due to deliberately incorrect dob / dod combo
+            # Add anniversary so that factory doesn't break due to deliberately incorrect dob / dod combo
+            "anniversary": datetime.date(2001, 1, 1),
             "dob": datetime.date(2001, 1, 1),
             "dod": datetime.date(2000, 12, 31),
             "year_met": 2002
@@ -352,7 +368,8 @@ class TestContactForm(BaseFormTestCase, TestCase):
         Test that a year_met < DoB fails validation.
         """
         contact_data = {
-            "anniversary": datetime.date(2001, 1, 1), # Add anniversary so that factory doesn't break due to deliberately incorrect dob / dod combo
+            # Add anniversary so that factory doesn't break due to deliberately incorrect dob / dod combo
+            "anniversary": datetime.date(2001, 1, 1),
             "dob": datetime.date(2001, 1, 1),
             "dod": datetime.date(2000, 12, 31),
             "year_met": 1999
@@ -371,7 +388,8 @@ class TestContactForm(BaseFormTestCase, TestCase):
             "anniversary": datetime.date(2000, 1, 1),
             "dob": datetime.date(2001, 1, 1),
             "dod": datetime.date(2000, 12, 31),
-            "year_met": 2001 # Add year_met so that factory doesn't break due to deliberately incorrect dob / dod combo
+            # Add year_met so that factory doesn't break due to deliberately incorrect dob / dod combo
+            "year_met": 2001,
         }
         self._test_data_produces_expected_error_for_expected_field(
             contact_data=contact_data,
@@ -382,7 +400,8 @@ class TestContactForm(BaseFormTestCase, TestCase):
             "anniversary": datetime.date(2001, 1, 1),
             "dob": datetime.date(2001, 1, 1),
             "dod": datetime.date(2000, 12, 31),
-            "year_met": 2001 # Add year_met so that factory doesn't break due to deliberately incorrect dob / dod combo
+            # Add year_met so that factory doesn't break due to deliberately incorrect dob / dod combo
+            "year_met": 2001,
         }
         self._test_data_produces_expected_error_for_expected_field(
             contact_data=contact_data,
@@ -395,10 +414,12 @@ class TestContactForm(BaseFormTestCase, TestCase):
         Test that a DoD set to a future date fails validation.
         """
         contact_data = {
-            "anniversary": datetime.date(2001, 1, 1), # Add anniversary so that factory doesn't break due to deliberately incorrect dob / dod combo
+            # Add anniversary so that factory doesn't break due to deliberately incorrect dob / dod combo
+            "anniversary": datetime.date(2001, 1, 1),
             "dob": datetime.date(2001, 1, 1),
             "dod": datetime.date(datetime.datetime.now().year + 1, 12, 31),
-            "year_met": 2001 # Add year_met so that factory doesn't break due to deliberately incorrect dob / dod combo
+            # Add year_met so that factory doesn't break due to deliberately incorrect dob / dod combo
+            "year_met": 2001,
         }
         self._test_data_produces_expected_error_for_expected_field(
             contact_data=contact_data,
@@ -411,10 +432,12 @@ class TestContactForm(BaseFormTestCase, TestCase):
         Test that a DoB set to a future date fails validation.
         """
         contact_data = {
-            "anniversary": datetime.date(2001, 1, 1), # Add anniversary so that factory doesn't break due to deliberately incorrect dob / dod combo
+            # Add anniversary so that factory doesn't break due to deliberately incorrect dob / dod combo
+            "anniversary": datetime.date(2001, 1, 1),
             "dob": datetime.date(datetime.datetime.now().year + 1, 12, 31),
             "dod": datetime.date(2000, 12, 31),
-            "year_met": 2001 # Add year_met so that factory doesn't break due to deliberately incorrect dob / dod combo
+            # Add year_met so that factory doesn't break due to deliberately incorrect dob / dod combo
+            "year_met": 2001,
         }
         self._test_data_produces_expected_error_for_expected_field(
             contact_data=contact_data,
@@ -428,7 +451,8 @@ class TestContactForm(BaseFormTestCase, TestCase):
         """
         bad_year = datetime.datetime.now().year + 2
         contact_data = {
-            "anniversary": datetime.date(2001, 1, 1), # Add anniversary so that factory doesn't break due to deliberately incorrect dob / dod combo
+            # Add anniversary so that factory doesn't break due to deliberately incorrect dob / dod combo
+            "anniversary": datetime.date(2001, 1, 1),
             "dob": datetime.date(2001, 1, 1),
             "dod": datetime.date(2000, 12, 31),
             "year_met": bad_year
@@ -753,8 +777,8 @@ class TestTagForm(BaseFormTestCase, TestCase):
         """
         Test that the TagForm is correctly initialised setting the user_id to the form instance.
         """
-        form = TagForm(user=self.primary_user)       
-        
+        form = TagForm(user=self.primary_user)
+
         # Create Contacts for both Users, to ensure that only the primary Users'
         # Contacts appear in the queryset for selection.
         ContactFactory.create_batch(2, user=self.other_user)
@@ -762,14 +786,14 @@ class TestTagForm(BaseFormTestCase, TestCase):
 
         self.assertEqual(self.primary_user.id, form.instance.user_id)
         self.assertQuerySetEqual(Contact.objects.filter(user=self.primary_user), form.fields["contacts"].queryset)
-        
+
     def test_form_init_without_user(self) -> None:
         """
         Test that TagForm instantiation fails when no user is provided to the form instance.
         """
         with self.assertRaises(TypeError) as cm:
-            form = TagForm()
-            
+            TagForm()
+
         self.assertEqual(str(cm.exception), "TagForm.__init__() missing 1 required positional argument: 'user'")
 
     def test_fields_present(self) -> None:
@@ -834,7 +858,7 @@ class TestTagForm(BaseFormTestCase, TestCase):
 
         form = TagForm(data={"contacts": [contacts[0].id], "name": fake.word()}, instance=tag, user=self.primary_user)
         self.assertTrue(form.is_valid())
-        
+
         tag = form.save()
         contacts_with_tag = Contact.objects.filter(tags__id=tag.id)
 
@@ -872,8 +896,8 @@ class TestTenancyForm(BaseFormTestCase, TestCase):
         Test that TenancyForm instantiation fails when no user is provided to the form instance.
         """
         with self.assertRaises(TypeError) as cm:
-            form = TenancyForm()
-            
+            TenancyForm()
+
         self.assertEqual(str(cm.exception), "TenancyForm.__init__() missing 1 required keyword argument: 'user'")
 
     def test_address_field_empty_label(self) -> None:
@@ -893,7 +917,7 @@ class TestTenancyForm(BaseFormTestCase, TestCase):
             "address": address,
             "tenancy_types": AddressType.objects.order_by("?")[:2]
         }, user=self.primary_user)
-        
+
         self.assertTrue(form.is_valid())
 
     def test_not_validates_without_required_fields(self) -> None:
@@ -1082,7 +1106,7 @@ class TestWalletAddressForm(BaseFormTestCase, TestCase):
                 constants.WALLETADDRESS_TRANSMISSION_YOU_RECEIVE,
             ]),
         })
-        
+
         self.assertTrue(form.is_valid())
 
     def test_not_validates_without_required_fields(self) -> None:
@@ -1146,7 +1170,7 @@ class TestEmailFormSet(BaseFormTestCase, TestCase):
         else:
             email_types = self.non_pref_types[:2]
         return EmailFactory.create(contact=contact or self.contact, email_types=email_types)
-    
+
     def _get_management_form_data(self, initial: Optional[int] = 0, total: int = 2):
         """
         Create management form data for an Email FormSet.
@@ -1181,7 +1205,7 @@ class TestEmailFormSet(BaseFormTestCase, TestCase):
             "email_set-0-email": pref_email.email,
             "email_set-0-email_types": get_contactable_type_ids_for_contactable(pref_email),
             "email_set-0-id": str(pref_email.id),
-            
+
             "email_set-1-archived": False,
             "email_set-1-contact": str(self.contact.id),
             "email_set-1-DELETE": True,
@@ -1213,7 +1237,7 @@ class TestEmailFormSet(BaseFormTestCase, TestCase):
             "email_set-0-email": pref_email.email,
             "email_set-0-email_types": get_contactable_type_ids_for_contactable(pref_email),
             "email_set-0-id": str(pref_email.id),
-            
+
             "email_set-1-archived": False,
             "email_set-1-contact": str(self.contact.id),
             "email_set-1-email": non_pref_email.email,
@@ -1236,7 +1260,7 @@ class TestEmailFormSet(BaseFormTestCase, TestCase):
             "email_set-0-email": "one@email.com",
             "email_set-0-email_types": [self.pref_type.id, self.non_pref_type.id],
             "email_set-0-id": "",
-            
+
             "email_set-1-contact": "",
             "email_set-1-email": "two@email.com",
             "email_set-1-email_types": [self.pref_type.id, self.non_pref_type.id],
@@ -1258,7 +1282,7 @@ class TestEmailFormSet(BaseFormTestCase, TestCase):
             "email_set-0-email": "one@email.com",
             "email_set-0-email_types": [self.non_pref_type.id],
             "email_set-0-id": "",
-            
+
             "email_set-1-contact": "",
             "email_set-1-email": "two@email.com",
             "email_set-1-email_types": [self.non_pref_type.id],
@@ -1281,7 +1305,7 @@ class TestEmailFormSet(BaseFormTestCase, TestCase):
             "email_set-0-email": "one@email.com",
             "email_set-0-email_types": [self.pref_type.id, self.non_pref_type.id],
             "email_set-0-id": "",
-            
+
             "email_set-1-contact": "",
             "email_set-1-email": "two@email.com",
             "email_set-1-email_types": [self.non_pref_type.id],
@@ -1294,7 +1318,7 @@ class TestEmailFormSet(BaseFormTestCase, TestCase):
         formset.save()
 
         self.assertEqual(Email.objects.all().count(), 2)
-        
+
         pref_email_query = Email.objects.filter(email="one@email.com")
         self.assertTrue(pref_email_query.exists())
 
@@ -1304,7 +1328,7 @@ class TestEmailFormSet(BaseFormTestCase, TestCase):
             Counter([self.pref_type.id, self.non_pref_type.id]),
             Counter(pref_email.email_types.values_list("id", flat=True))
         )
-        
+
         secondary_email_query = Email.objects.filter(email="two@email.com")
         self.assertTrue(secondary_email_query.exists())
 
@@ -1329,7 +1353,7 @@ class TestEmailFormSet(BaseFormTestCase, TestCase):
             "email_set-0-email": "one@email.com",
             "email_set-0-email_types": [self.non_pref_type.id],
             "email_set-0-id": "",
-            
+
             "email_set-1-archived": True,
             "email_set-1-contact": "",
             "email_set-1-email": "two@email.com",
@@ -1343,7 +1367,7 @@ class TestEmailFormSet(BaseFormTestCase, TestCase):
         formset.save()
 
         self.assertEqual(Email.objects.all().count(), 2)
-        
+
         first_email_query = Email.objects.filter(email="one@email.com")
         self.assertTrue(first_email_query.exists())
 
@@ -1353,7 +1377,7 @@ class TestEmailFormSet(BaseFormTestCase, TestCase):
             Counter([self.non_pref_type.id]),
             Counter(first_email.email_types.values_list("id", flat=True))
         )
-        
+
         second_email_query = Email.objects.filter(email="two@email.com")
         self.assertTrue(second_email_query.exists())
 
@@ -1364,7 +1388,7 @@ class TestEmailFormSet(BaseFormTestCase, TestCase):
             Counter(second_email.email_types.values_list("id", flat=True))
         )
 
-    
+
 class TestContactPhoneNumberFormSet(BaseFormTestCase, TestCase):
     def setUp(self):
         super().setUp()
@@ -1385,7 +1409,7 @@ class TestContactPhoneNumberFormSet(BaseFormTestCase, TestCase):
             contact=contact or self.contact,
             phonenumber_types=phonenumber_types
         )
-    
+
     def _get_management_form_data(self, initial: Optional[int] = 0, total: int = 2):
         """
         Create management form data for a PhoneNumber FormSet.
@@ -1421,7 +1445,7 @@ class TestContactPhoneNumberFormSet(BaseFormTestCase, TestCase):
             "phonenumber_set-0-number_1": pref_phonenumber.national_number,
             "phonenumber_set-0-phonenumber_types": get_contactable_type_ids_for_contactable(pref_phonenumber),
             "phonenumber_set-0-id": str(pref_phonenumber.id),
-            
+
             "phonenumber_set-1-archived": False,
             "phonenumber_set-1-contact": str(self.contact.id),
             "phonenumber_set-1-DELETE": True,
@@ -1455,7 +1479,7 @@ class TestContactPhoneNumberFormSet(BaseFormTestCase, TestCase):
             "phonenumber_set-0-number_1": pref_phonenumber.national_number,
             "phonenumber_set-0-phonenumber_types": get_contactable_type_ids_for_contactable(pref_phonenumber),
             "phonenumber_set-0-id": str(pref_phonenumber.id),
-            
+
             "phonenumber_set-1-archived": False,
             "phonenumber_set-1-contact": str(self.contact.id),
             "phonenumber_set-1-number_0": non_pref_phonenumber.country_code,
@@ -1470,7 +1494,8 @@ class TestContactPhoneNumberFormSet(BaseFormTestCase, TestCase):
 
     def test_not_validates_with_multiple_preferred_phonenumbers(self) -> None:
         """
-        Test that form validation fails if more than one PhoneNumber in the formset is set as PhoneNumberType, 'preferred'.
+        Test that form validation fails if more than one PhoneNumber in the formset is set as PhoneNumberType,
+        'preferred'.
         """
         data = {
             **self._get_management_form_data(),
@@ -1480,7 +1505,7 @@ class TestContactPhoneNumberFormSet(BaseFormTestCase, TestCase):
             "phonenumber_set-0-number_1": "7783444445",
             "phonenumber_set-0-phonenumber_types": [self.pref_type.id, self.non_pref_type.id],
             "phonenumber_set-0-id": "",
-            
+
             "phonenumber_set-1-contact": "",
             "phonenumber_set-1-number_0": "US",
             "phonenumber_set-1-number_1": "4249998888",
@@ -1504,7 +1529,7 @@ class TestContactPhoneNumberFormSet(BaseFormTestCase, TestCase):
             "phonenumber_set-0-number_1": "7783444445",
             "phonenumber_set-0-phonenumber_types": [self.non_pref_type.id],
             "phonenumber_set-0-id": "",
-            
+
             "phonenumber_set-1-contact": "",
             "phonenumber_set-1-number_0": "US",
             "phonenumber_set-1-number_1": "4249998888",
@@ -1529,7 +1554,7 @@ class TestContactPhoneNumberFormSet(BaseFormTestCase, TestCase):
             "phonenumber_set-0-number_1": "7783444445",
             "phonenumber_set-0-phonenumber_types": [self.pref_type.id, self.non_pref_type.id],
             "phonenumber_set-0-id": "",
-            
+
             "phonenumber_set-1-contact": "",
             "phonenumber_set-1-number_0": "US",
             "phonenumber_set-1-number_1": "4249998888",
@@ -1543,7 +1568,7 @@ class TestContactPhoneNumberFormSet(BaseFormTestCase, TestCase):
         formset.save()
 
         self.assertEqual(PhoneNumber.objects.all().count(), 2)
-        
+
         pref_phonenumber_query = PhoneNumber.objects.filter(number="+447783444445")
         self.assertTrue(pref_phonenumber_query.exists())
 
@@ -1553,7 +1578,7 @@ class TestContactPhoneNumberFormSet(BaseFormTestCase, TestCase):
             Counter([self.pref_type.id, self.non_pref_type.id]),
             Counter(pref_phonenumber.phonenumber_types.values_list("id", flat=True))
         )
-        
+
         secondary_phonenumber_query = PhoneNumber.objects.filter(number="+14249998888")
         self.assertTrue(secondary_phonenumber_query.exists())
 
@@ -1579,7 +1604,7 @@ class TestContactPhoneNumberFormSet(BaseFormTestCase, TestCase):
             "phonenumber_set-0-number_1": "7711222333",
             "phonenumber_set-0-phonenumber_types": [self.non_pref_type.id],
             "phonenumber_set-0-id": "",
-            
+
             "phonenumber_set-1-archived": True,
             "phonenumber_set-1-contact": "",
             "phonenumber_set-1-number_0": "US",
@@ -1594,7 +1619,7 @@ class TestContactPhoneNumberFormSet(BaseFormTestCase, TestCase):
         formset.save()
 
         self.assertEqual(PhoneNumber.objects.all().count(), 2)
-        
+
         first_phonenumber_query = PhoneNumber.objects.filter(number="+447711222333")
         self.assertTrue(first_phonenumber_query.exists())
 
@@ -1604,7 +1629,7 @@ class TestContactPhoneNumberFormSet(BaseFormTestCase, TestCase):
             Counter([self.non_pref_type.id]),
             Counter(first_phonenumber.phonenumber_types.values_list("id", flat=True))
         )
-        
+
         second_phonenumber_query = PhoneNumber.objects.filter(number="+12015550123")
         self.assertTrue(second_phonenumber_query.exists())
 
@@ -1615,7 +1640,7 @@ class TestContactPhoneNumberFormSet(BaseFormTestCase, TestCase):
             Counter(second_phonenumber.phonenumber_types.values_list("id", flat=True))
         )
 
-    
+
 class TestAddressPhoneNumberFormSet(BaseFormTestCase, TestCase):
     def setUp(self):
         super().setUp()
@@ -1636,7 +1661,7 @@ class TestAddressPhoneNumberFormSet(BaseFormTestCase, TestCase):
             address=address or self.address,
             phonenumber_types=phonenumber_types
         )
-    
+
     def _get_management_form_data(self, initial: Optional[int] = 0, total: int = 2):
         """
         Create management form data for a PhoneNumber FormSet.
@@ -1672,7 +1697,7 @@ class TestAddressPhoneNumberFormSet(BaseFormTestCase, TestCase):
             "phonenumber_set-0-number_1": pref_phonenumber.national_number,
             "phonenumber_set-0-phonenumber_types": get_contactable_type_ids_for_contactable(pref_phonenumber),
             "phonenumber_set-0-id": str(pref_phonenumber.id),
-            
+
             "phonenumber_set-1-address": str(self.address.id),
             "phonenumber_set-1-archived": False,
             "phonenumber_set-1-DELETE": True,
@@ -1706,7 +1731,7 @@ class TestAddressPhoneNumberFormSet(BaseFormTestCase, TestCase):
             "phonenumber_set-0-number_1": pref_phonenumber.national_number,
             "phonenumber_set-0-phonenumber_types": get_contactable_type_ids_for_contactable(pref_phonenumber),
             "phonenumber_set-0-id": str(pref_phonenumber.id),
-            
+
             "phonenumber_set-1-address": str(self.address.id),
             "phonenumber_set-1-archived": False,
             "phonenumber_set-1-number_0": non_pref_phonenumber.country_code,
@@ -1721,7 +1746,8 @@ class TestAddressPhoneNumberFormSet(BaseFormTestCase, TestCase):
 
     def test_not_validates_with_multiple_preferred_phonenumbers(self) -> None:
         """
-        Test that form validation fails if more than one PhoneNumber in the formset is set as PhoneNumberType, 'preferred'.
+        Test that form validation fails if more than one PhoneNumber in the formset is set as PhoneNumberType,
+        'preferred'.
         """
         data = {
             **self._get_management_form_data(),
@@ -1731,7 +1757,7 @@ class TestAddressPhoneNumberFormSet(BaseFormTestCase, TestCase):
             "phonenumber_set-0-number_1": "7783444445",
             "phonenumber_set-0-phonenumber_types": [self.pref_type.id, self.non_pref_type.id],
             "phonenumber_set-0-id": "",
-            
+
             "phonenumber_set-1-address": "",
             "phonenumber_set-1-number_0": "US",
             "phonenumber_set-1-number_1": "4249998888",
@@ -1755,7 +1781,7 @@ class TestAddressPhoneNumberFormSet(BaseFormTestCase, TestCase):
             "phonenumber_set-0-number_1": "7783444445",
             "phonenumber_set-0-phonenumber_types": [self.non_pref_type.id],
             "phonenumber_set-0-id": "",
-            
+
             "phonenumber_set-1-address": "",
             "phonenumber_set-1-number_0": "US",
             "phonenumber_set-1-number_1": "4249998888",
@@ -1780,7 +1806,7 @@ class TestAddressPhoneNumberFormSet(BaseFormTestCase, TestCase):
             "phonenumber_set-0-number_1": "7783444445",
             "phonenumber_set-0-phonenumber_types": [self.pref_type.id, self.non_pref_type.id],
             "phonenumber_set-0-id": "",
-            
+
             "phonenumber_set-1-address": "",
             "phonenumber_set-1-number_0": "US",
             "phonenumber_set-1-number_1": "4249998888",
@@ -1794,7 +1820,7 @@ class TestAddressPhoneNumberFormSet(BaseFormTestCase, TestCase):
         formset.save()
 
         self.assertEqual(PhoneNumber.objects.all().count(), 2)
-        
+
         pref_phonenumber_query = PhoneNumber.objects.filter(number="+447783444445")
         self.assertTrue(pref_phonenumber_query.exists())
 
@@ -1804,7 +1830,7 @@ class TestAddressPhoneNumberFormSet(BaseFormTestCase, TestCase):
             Counter([self.pref_type.id, self.non_pref_type.id]),
             Counter(pref_phonenumber.phonenumber_types.values_list("id", flat=True))
         )
-        
+
         secondary_phonenumber_query = PhoneNumber.objects.filter(number="+14249998888")
         self.assertTrue(secondary_phonenumber_query.exists())
 
@@ -1830,7 +1856,7 @@ class TestAddressPhoneNumberFormSet(BaseFormTestCase, TestCase):
             "phonenumber_set-0-number_1": "7711222333",
             "phonenumber_set-0-phonenumber_types": [self.non_pref_type.id],
             "phonenumber_set-0-id": "",
-            
+
             "phonenumber_set-1-address": "",
             "phonenumber_set-1-archived": True,
             "phonenumber_set-1-number_0": "US",
@@ -1845,7 +1871,7 @@ class TestAddressPhoneNumberFormSet(BaseFormTestCase, TestCase):
         formset.save()
 
         self.assertEqual(PhoneNumber.objects.all().count(), 2)
-        
+
         first_phonenumber_query = PhoneNumber.objects.filter(number="+447711222333")
         self.assertTrue(first_phonenumber_query.exists())
 
@@ -1855,7 +1881,7 @@ class TestAddressPhoneNumberFormSet(BaseFormTestCase, TestCase):
             Counter([self.non_pref_type.id]),
             Counter(first_phonenumber.phonenumber_types.values_list("id", flat=True))
         )
-        
+
         second_phonenumber_query = PhoneNumber.objects.filter(number="+12015550123")
         self.assertTrue(second_phonenumber_query.exists())
 
@@ -1866,7 +1892,7 @@ class TestAddressPhoneNumberFormSet(BaseFormTestCase, TestCase):
             Counter(second_phonenumber.phonenumber_types.values_list("id", flat=True))
         )
 
-    
+
 class TestTenancyFormSet(BaseFormTestCase, TestCase):
     def setUp(self):
         super().setUp()
@@ -1891,7 +1917,7 @@ class TestTenancyFormSet(BaseFormTestCase, TestCase):
         )
         tenancy.tenancy_types.set(address_types)
         return tenancy
-    
+
     def _get_management_form_data(self, initial: Optional[int] = 0, total: int = 2):
         """
         Create management form data for a PhoneNumber FormSet.
@@ -1925,7 +1951,7 @@ class TestTenancyFormSet(BaseFormTestCase, TestCase):
             "tenancy_set-0-archived": False,
             "tenancy_set-0-tenancy_types": get_contactable_type_ids_for_contactable(pref_tenancy),
             "tenancy_set-0-id": str(pref_tenancy.id),
-            
+
             "tenancy_set-1-address": str(self.address_2.id),
             "tenancy_set-1-archived": False,
             "tenancy_set-1-DELETE": True,
@@ -1955,7 +1981,7 @@ class TestTenancyFormSet(BaseFormTestCase, TestCase):
             "tenancy_set-0-DELETE": True,
             "tenancy_set-0-tenancy_types": get_contactable_type_ids_for_contactable(pref_tenancy),
             "tenancy_set-0-id": str(pref_tenancy.id),
-            
+
             "tenancy_set-1-address": str(self.address_2.id),
             "tenancy_set-1-archived": False,
             "tenancy_set-1-tenancy_types": get_contactable_type_ids_for_contactable(non_pref_tenancy),
@@ -1976,7 +2002,7 @@ class TestTenancyFormSet(BaseFormTestCase, TestCase):
             "tenancy_set-0-address": str(self.address_1.id),
             "tenancy_set-0-tenancy_types": [self.pref_type.id, self.non_pref_type.id],
             "tenancy_set-0-id": "",
-            
+
             "tenancy_set-1-address": str(self.address_2.id),
             "tenancy_set-1-tenancy_types": [self.pref_type.id, self.non_pref_type.id],
             "tenancy_set-1-id": "",
@@ -1996,7 +2022,7 @@ class TestTenancyFormSet(BaseFormTestCase, TestCase):
             "tenancy_set-0-address": str(self.address_1.id),
             "tenancy_set-0-tenancy_types": [self.non_pref_type.id],
             "tenancy_set-0-id": "",
-            
+
             "tenancy_set-1-address": str(self.address_2.id),
             "tenancy_set-1-tenancy_types": [self.non_pref_type.id],
             "tenancy_set-1-id": "",
@@ -2017,7 +2043,7 @@ class TestTenancyFormSet(BaseFormTestCase, TestCase):
             "tenancy_set-0-address": str(self.address_1.id),
             "tenancy_set-0-tenancy_types": [self.pref_type.id, self.non_pref_type.id],
             "tenancy_set-0-id": "",
-            
+
             "tenancy_set-1-address": str(self.address_2.id),
             "tenancy_set-1-tenancy_types": [self.non_pref_type.id],
             "tenancy_set-1-id": "",
@@ -2029,7 +2055,7 @@ class TestTenancyFormSet(BaseFormTestCase, TestCase):
         formset.save()
 
         self.assertEqual(Tenancy.objects.all().count(), 2)
-        
+
         pref_tenancy_query = Tenancy.objects.filter(address=self.address_1.id)
         self.assertTrue(pref_tenancy_query.exists())
 
@@ -2039,7 +2065,7 @@ class TestTenancyFormSet(BaseFormTestCase, TestCase):
             Counter([self.pref_type.id, self.non_pref_type.id]),
             Counter(pref_tenancy.tenancy_types.values_list("id", flat=True))
         )
-        
+
         secondary_tenancy_query = Tenancy.objects.filter(address=self.address_2.id)
         self.assertTrue(secondary_tenancy_query.exists())
 
@@ -2063,7 +2089,7 @@ class TestTenancyFormSet(BaseFormTestCase, TestCase):
             "tenancy_set-0-archived": True,
             "tenancy_set-0-tenancy_types": [self.non_pref_type.id],
             "tenancy_set-0-id": "",
-            
+
             "tenancy_set-1-address": str(self.address_2.id),
             "tenancy_set-1-archived": True,
             "tenancy_set-1-tenancy_types": [self.non_pref_type.id],
@@ -2076,7 +2102,7 @@ class TestTenancyFormSet(BaseFormTestCase, TestCase):
         formset.save()
 
         self.assertEqual(Tenancy.objects.all().count(), 2)
-        
+
         first_tenancy_query = Tenancy.objects.filter(address=self.address_1.id)
         self.assertTrue(first_tenancy_query.exists())
 
@@ -2086,7 +2112,7 @@ class TestTenancyFormSet(BaseFormTestCase, TestCase):
             Counter([self.non_pref_type.id]),
             Counter(first_tenancy.tenancy_types.values_list("id", flat=True))
         )
-        
+
         second_tenancy_query = Tenancy.objects.filter(address=self.address_2.id)
         self.assertTrue(second_tenancy_query.exists())
 
