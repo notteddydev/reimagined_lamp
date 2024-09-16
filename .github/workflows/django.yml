@@ -50,7 +50,7 @@ jobs:
       run: pipenv install
 
     - name: Run flake8 linting
-      run: flake8 .
+      run: pipenv run flake8 .
 
     - name: Wait for MySQL to start
       run: |
