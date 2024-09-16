@@ -1244,8 +1244,7 @@ class TestTagCreateView(BaseModelViewTestCase, TestCase):
         self.assertEqual(contact.id, initial_form_data.get("contacts")[0])
         self.assertContains(
             response,
-            f'<label for="id_contacts_0"><input type="checkbox" name="contacts" \
-                value="{contact.id}" id="id_contacts_0" checked>\n {contact}</label>'
+            f'<input type="checkbox" name="contacts" value="{contact.id}" id="id_contacts_0" checked>\n {contact}'
         )
 
     def test_post_with_valid_data(self):
