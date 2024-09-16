@@ -46,14 +46,8 @@ jobs:
     - name: Install pipenv
       run: pip install pipenv
 
-    - name: Check pipenv version
-      run: pipenv --version
-
     - name: Install Dependencies
       run: pipenv install
-
-    - name: View MySQL Logs
-      run: docker logs $(docker ps -q --filter "ancestor=mysql:8.0")
 
     - name: Wait for MySQL to start
       run: |
@@ -61,31 +55,6 @@ jobs:
           echo "Waiting for MySQL to start..."
           sleep 5
         done
-
-    - name: View MySQL Logs
-      run: docker logs $(docker ps -q --filter "ancestor=mysql:8.0")
-
-    - name: List Migration Files
-      run: |
-        ls address_book/migrations/
-
-    - name: Make Migrations
-      run: pipenv run python manage.py makemigrations
-      env: 
-        MYSQL_DB_NAME: ${{ secrets.DB_NAME }}
-        MYSQL_USER: ${{ secrets.DB_USER }}
-        MYSQL_PASSWORD: ${{ secrets.DB_ROOT_PASSWORD }}
-        MYSQL_HOST: 127.0.0.1
-        MYSQL_PORT: 3306
-
-    - name: Run Migrations
-      run: pipenv run python manage.py migrate
-      env: 
-        MYSQL_DB_NAME: ${{ secrets.DB_NAME }}
-        MYSQL_USER: ${{ secrets.DB_USER }}
-        MYSQL_PASSWORD: ${{ secrets.DB_ROOT_PASSWORD }}
-        MYSQL_HOST: 127.0.0.1
-        MYSQL_PORT: 3306
 
     - name: Run Tests
       env:
