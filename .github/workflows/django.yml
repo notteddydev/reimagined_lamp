@@ -65,8 +65,8 @@ jobs:
         MYSQL_PASSWORD: ${{ secrets.DB_ROOT_PASSWORD }}
         SECRET_KEY: ${{ secrets.SECRET_KEY }}
       run: |
-        coverage run manage.py test
-        coverage report
+        pipenv run coverage run manage.py test
+        pipenv run coverage report
 
     - name: Upload coverage report
       uses: actions/upload-artifact@v3
