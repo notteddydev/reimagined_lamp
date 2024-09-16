@@ -67,6 +67,7 @@ jobs:
       run: |
         pipenv run coverage run manage.py test
         pipenv run coverage report
+        pipenv run coverage html
 
     - name: Upload coverage report
       uses: actions/upload-artifact@v3
