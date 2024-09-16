@@ -94,4 +94,5 @@ jobs:
         MYSQL_DB_NAME: ${{ secrets.DB_NAME }}
         MYSQL_USER: ${{ secrets.DB_USER }}
         MYSQL_PASSWORD: ${{ secrets.DB_ROOT_PASSWORD }}
+        SECRET_KEY: ${{ secrets.SECRET_KEY }}
       run: pipenv run python manage.py test
