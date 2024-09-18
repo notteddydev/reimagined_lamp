@@ -18,6 +18,7 @@ import qrcode
 from io import BytesIO
 
 
+
 @login_required
 @owned_by_user(Contact)
 def contact_download_view(request: HttpRequest, pk: int) -> HttpResponse:
@@ -121,12 +122,9 @@ class AddressCreateView(LoginRequiredMixin, View):
         if form.is_valid() and phonenumber_formset.is_valid():
             address = form.save()
             phonenumber_formset.save_if_not_empty(instance=address)
+            next_url = self.request.GET.get("next", None)
 
-            next_url = self.request.GET.get("next")
-            if next_url:
-                return redirect(next_url)
-
-            return redirect(reverse("address-detail", args=[address.id]))
+            return redirect(next_url or reverse("address-detail", args=[address.id]))
 
         return render(request, "address_book/address_form.html", {
             "form": form,
@@ -332,16 +330,8 @@ class TagCreateView(LoginRequiredMixin, View):
 
         if form.is_valid():
             form.save()
-
-            get_url = request.META.get("HTTP_REFERER")
-            parsed = urlparse(get_url)
-            params = parse_qs(parsed.query)
-            referred_from_contact_id = params.get("contact_id", [None])[0]
-
-            if referred_from_contact_id and parsed.path == reverse("tag-create"):
-                return redirect(reverse("contact-detail", args=[referred_from_contact_id]))
-
-            return redirect("contact-list")
+            next_url = request.GET.get("next", None)
+            return redirect(next_url or "contact-list")
 
         return render(request, "address_book/tag_form.html", {
             "form": form,
@@ -371,16 +361,8 @@ class TagUpdateView(LoginRequiredMixin, UserPassesTestMixin, View):
 
         if form.is_valid():
             form.save()
-
-            get_url = request.META.get("HTTP_REFERER")
-            parsed = urlparse(get_url)
-            params = parse_qs(parsed.query)
-            referred_from_contact_id = params.get("contact_id", [None])[0]
-
-            if referred_from_contact_id and parsed.path == reverse("tag-update", args=[tag.id]):
-                return redirect(reverse("contact-detail", args=[referred_from_contact_id]))
-
-            return redirect("contact-list")
+            next_url = request.GET.get("next", None)
+            return redirect(next_url or "contact-list")
 
         return render(request, "address_book/tag_form.html", {
             "form": form,
@@ -402,11 +384,8 @@ class TagDeleteView(LoginRequiredMixin, OwnedByUserMixin, DeleteView):
         Change the success url so that it redirects either to the ContactDetail view if a contact_id
         was passed in, or if not, the ContactList view.
         """
-        contact_id = self.request.GET.get("contact_id", None)
-        if contact_id:
-            return reverse("contact-detail", args=[contact_id])
-
-        return reverse("contact-list")
+        next_url = self.request.GET.get("next", None)
+        return next_url or reverse("contact-list")
 
 
 class TenancyDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
