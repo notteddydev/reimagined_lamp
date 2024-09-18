@@ -1263,7 +1263,7 @@ class TestTagCreateView(BaseModelViewTestCase, TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("contact-list"))
 
-    def test_post_with_valid_data_and_contact_id_in_previous_get_request(self):
+    def test_post_with_valid_data_and_contact_id_and_next_get_params(self):
         """
         Test that posting valid data is successful and redirects to the contact-detail page
         for the Contact that referred to the TagCreate page.
@@ -1274,8 +1274,8 @@ class TestTagCreateView(BaseModelViewTestCase, TestCase):
             "contacts": [contact.id],
         }
         response = self._login_user_and_get_post_response(
+            url=f"{self.url}?contact_id={contact.id}&next={reverse('contact-detail', args=[contact.id])}",
             post_data=valid_form_data,
-            HTTP_REFERER=f"{reverse('tag-create')}?contact_id={contact.id}"
         )
         self.assertEqual(response.status_code, 302)
         self.assertRedirects(response, reverse("contact-detail", args=[contact.id]))
@@ -1327,8 +1327,10 @@ class TestTagDeleteView(BaseDeleteViewTestCase, TestCase):
         Test that a successful delete post request redirects to 'contact-detail' when
         there is a contact_id get param.
         """
+        next_url = reverse("contact-detail", args=[self.object.id])
+        url = f"{reverse('tag-delete', args=[self.object.id])}?next={next_url}"
         response = self._login_user_and_get_post_response(
-            url=f"{reverse('tag-delete', args=[self.object.id])}?contact_id={self.contact.id}"
+            url=url
         )
         self.assertRedirects(response, reverse("contact-detail", args=[self.contact.id]))
 
@@ -1402,8 +1404,8 @@ class TestTagUpdateView(BaseModelViewTestCase, TestCase):
             "contacts": selected_contact_ids,
         }
         response = self._login_user_and_get_post_response(
+            url=f"{self.url}?next={reverse('contact-detail', args=[self.object.id])}",
             post_data=valid_form_data,
-            HTTP_REFERER=f"{reverse('tag-update', args=[self.tag.id])}?contact_id={referred_from_contact_id}",
         )
         self.assertEqual(response.status_code, 302)
         self.assertTrue(Tag.objects.filter(name="Cries all the time").exists())
