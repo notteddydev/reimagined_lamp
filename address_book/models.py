@@ -284,6 +284,12 @@ class Tenancy(Archiveable, Contactable, models.Model):
             adr += f"{self.address.neighbourhood}, "
 
         return f"{adr}{self.address.city};{self.address.state};{self.address.postcode};{self.address.country.verbose}"
+    
+    def __str__(self) -> str:
+        """
+        Return the __str__ of the associated contact and address.
+        """
+        return f"{self.contact} - {self.address}"
 
 
 class Contact(models.Model):
@@ -520,6 +526,12 @@ class PhoneNumber(Archiveable, Contactable, models.Model):
         Prepares a PhoneNumber entry for a vcard to be included in a .vcf file for a Contact.
         """
         return f"TEL;TYPE={self.types_for_vcard}:{self.number}"
+    
+    def __str__(self) -> str:
+        """
+        Return the formatted PhoneNumber.
+        """
+        return self.formatted
 
 
 class AddressType(ContactableType, models.Model):
@@ -585,6 +597,12 @@ class Email(Archiveable, Contactable, models.Model):
         Prepares an Email entry for a vcard to be included in a .vcf file for a Contact.
         """
         return f"EMAIL;TYPE=INTERNET,{self.types_for_vcard}:{self.email}"
+    
+    def __str__(self) -> str:
+        """
+        Return the email address.
+        """
+        return self.email
 
 
 class CryptoNetwork(models.Model):
@@ -619,6 +637,12 @@ class WalletAddress(Archiveable, models.Model):
         Returns the transmission property in a human readable format.
         """
         return " ".join(self.transmission.split("_")).capitalize()
+    
+    def __str__(self) -> str:
+        """
+        Return the human-readable transmission property, symbol, and address.
+        """
+        return f"({self.transmission_hr}) {self.network.symbol}: {self.address}"
 
 
 class Profession(models.Model):
