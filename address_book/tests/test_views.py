@@ -1327,7 +1327,7 @@ class TestTagDeleteView(BaseDeleteViewTestCase, TestCase):
         Test that a successful delete post request redirects to 'contact-detail' when
         there is a contact_id get param.
         """
-        next_url = reverse("contact-detail", args=[self.object.id])
+        next_url = reverse("contact-detail", args=[self.contact.id])
         url = f"{reverse('tag-delete', args=[self.object.id])}?next={next_url}"
         response = self._login_user_and_get_post_response(
             url=url
