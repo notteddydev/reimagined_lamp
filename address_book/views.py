@@ -6,8 +6,6 @@ from django.template.defaultfilters import slugify
 from django.urls import reverse, reverse_lazy
 from django.views.generic import DeleteView, DetailView, View
 
-from urllib.parse import urlparse, parse_qs
-
 from .forms import AddressForm, AddressPhoneNumberFormSet, ContactFilterFormSet, ContactForm, \
     ContactPhoneNumberFormSet, EmailFormSet, TagForm, TenancyFormSet, WalletAddressFormSet
 from .models import Address, Contact, Tag, Tenancy
@@ -16,7 +14,6 @@ from app.mixins import OwnedByUserMixin
 
 import qrcode
 from io import BytesIO
-
 
 
 @login_required
