@@ -1391,7 +1391,7 @@ class TestTagUpdateView(BaseModelViewTestCase, TestCase):
         )
         self.assertRedirects(response, reverse("contact-list"))
 
-    def test_post_with_valid_data_and_contact_id_in_previous_get_request(self):
+    def test_post_with_valid_data_and_next_get_param(self):
         """
         Test that posting valid data is successful and redirects to the appropriate contact-detail page.
         """
@@ -1404,7 +1404,7 @@ class TestTagUpdateView(BaseModelViewTestCase, TestCase):
             "contacts": selected_contact_ids,
         }
         response = self._login_user_and_get_post_response(
-            url=f"{self.url}?next={reverse('contact-detail', args=[self.object.id])}",
+            url=f"{self.url}?next={reverse('contact-detail', args=[referred_from_contact_id])}",
             post_data=valid_form_data,
         )
         self.assertEqual(response.status_code, 302)
