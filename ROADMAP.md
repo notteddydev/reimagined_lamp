@@ -1,7 +1,5 @@
 ### ToDo (AddressBook)
 
-- Setup GitHub pipeline.
-- Set up with nginx on local
 - Create a Mixin for views and 'next' get param url.
 - Define __str__ method for Models
 
